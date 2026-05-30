@@ -1,0 +1,128 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+:root {
+  --background-main: #fdfbf7;
+
+  --color-main: #004E4A;
+  --color-accent: #C9A75D;
+  --color-paragraph: #62748E;
+}
+
+@theme inline {
+  --color-background: var(--background-main);
+
+  --color-main: var(--color-main);
+  --color-accent: var(--color-accent);
+  --color-paragraph: var(--color-paragraph);
+}
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1rem;
+
+  @media (width <= 640px) {
+    padding-inline: 0.5rem;
+  }
+
+  @media (width >= 640px) {
+    max-width: 640px;
+  }
+
+  @media (width >= 768px) {
+    max-width: 768px;
+  }
+
+  @media (width >= 1024px) {
+    max-width: 1024px;
+  }
+
+  @media (width >= 1280px) {
+    max-width: 1280px;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.bg-block {
+  border-radius: 28px;
+  border: 1px solid #f3f4f6; 
+  background-color: white;
+  padding: 1.5rem; /* p-6 = 1.5rem = 24px */
+}
+
+
+@media (min-width: 768px) {
+  .bg-block {
+    padding: 2rem; /* p-8 = 2rem = 32px */
+  }
+}
+
+.title {
+  font-weight: 600;           
+  font-size: 2.25rem;         
+  line-height: 2.5rem;        
+  margin-bottom: 48px;
+}
+
+.title:after {
+  content: "";
+  display: block;
+  width: 84px;
+  height: 4px;
+  background-color: var(--color-accent);
+  margin-top: 16px;
+  border-radius: 4px;
+}
+
+.hover-underline {
+  position: relative;
+}
+
+.hover-underline::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  bottom: -4px;
+  height: 4px;
+  background-color: var(--color-accent);
+  border-radius: 9999px;
+  transition: all 0.35s ease;
+}
+
+/* === По центру (по умолчанию) === */
+.hover-underline.center::after {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* === Слева (accent версия) === */
+.hover-underline.left::after {
+  left: 0;
+  transform: translateX(0);
+  width: 0;
+}
+
+.hover-underline:hover::after,
+.hover-underline.active::after {
+  width: 90%;           
+}
+
+
+.hover-underline.left:hover::after {
+  width: 100%;           
+}
+
+.bg-urgent {
+  background-image: url("../../../public/bg-urgent.png");
+}
+
+@keyframes searchPop {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

@@ -1,0 +1,33 @@
+[
+  {
+    "type": "restaurant",
+    "id": "russian-house",
+    "name": "Русский Дом",
+    "category": "restaurant",
+    "address": "Duong Dong, Phu Quoc",
+    "phone": "+84 123 456 789",
+    "rating": 4.7,
+    "opening_hours": "10:00 - 22:00",
+    "price_range": "$$",
+    "description": "Русская кухня на Фукуоке с домашними блюдами и приятной атмосферой.",
+    "images": ["/images/restaurants/russian-house-1.jpg", "/images/restaurants/russian-house-2.jpg"],
+    "seo": {
+      "title": "Русский Дом — ресторан русской кухни на Фукуоке",
+      "description": "Где поесть русскую еду на Фукуоке. Русский Дом — цены, отзывы, адрес, доставка."
+    }
+  },
+  {
+    "type": "beach",
+    "id": "sao-beach",
+    "name": "Пляж Сау",
+    "category": "beach",
+    "location": "Фукуок, Вьетнам",
+    "rating": 4.8,
+    "description": "Песчаный пляж с прозрачной водой, идеален для отдыха и плавания.",
+    "images": ["/images/beaches/sao-beach-1.jpg", "/images/beaches/sao-beach-2.jpg"],
+    "seo": {
+      "title": "Пляж Сау на Фукуоке — гид",
+      "description": "Красивый пляж с белым песком на Фукуоке. Как добраться, что взять с собой."
+    }
+  }
+]

@@ -1,0 +1,1030 @@
+import type { Metadata } from 'next'
+import getData from '@/lib/api/data_LocalOrServer'
+import type { Section, SectionPageProps } from '@/shared/types/section.type'
+import {
+  FileText,
+  Calendar,
+  DollarSign,
+  Plane,
+  MapPin,
+  Package,
+  CheckSquare,
+  HelpCircle,
+  ArrowLeft,
+} from 'lucide-react'
+import Hero from '@/dataPage/sectionDataPage/section/Hero'
+import ArticleGrid from '@/dataPage/sectionDataPage/section/colection'
+import ContinuePlanning from '@/components/block/ContinuePlanning'
+
+
+const icons = {
+  worth: HelpCircle,
+  when: Calendar,
+  prices: DollarSign,
+  visa: FileText,
+  flights: Plane,
+  accommodation: MapPin,
+  know: CheckSquare,
+  packing: Package,
+}
+
+async function getSections(): Promise<Section[]> {
+  const sectionsData = Object.values(await getData('sections'))
+  return sectionsData as Section[]
+}
+
+// ---------- ГЕНЕРАЦИЯ СТАТИЧЕСКИХ ПАРАМЕТРОВ ----------
+// export async function generateStaticParams() {
+//   const sections = await getSections()
+//   return sections.map((section) => ({
+//     section: section.slug,
+//   }))
+// }
+
+// // ---------- МЕТАДАННЫЕ ----------
+// export async function generateMetadata({ params }: SectionPageProps): Promise<Metadata> {
+//   const { section: sectionParam } = await params
+//   const sections = await getSections()
+//   const section = sections.find((s) => s.slug === sectionParam)
+
+//   if (!section) {
+//     console.error('❌ Section not found:', sectionParam)
+//     return {
+//       title: 'Раздел не найден',
+//       description: 'Такой раздел не существует',
+//     }
+//   }
+
+//   return {
+//     title: section.seo.title ?? section.title,
+//     description: section.seo.description ?? section.description ?? '',
+//     keywords: section.seo.keywords ?? [],
+//   }
+// }
+
+export interface ArticleItem {
+  id: string | number
+  href: string
+  category?: string
+  image?: string
+  title: string
+  description: string
+  readTime?: string
+}
+
+
+const articles = [
+  // === ТРАНСПОРТ ===
+  {
+    id: 1,
+    href: '/on-island/transport/renting-bike',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/bike.jpg',
+    title: 'Как арендовать байк на Фукуоке',
+    description: 'Условия аренды, цены, документы и важные советы для безопасной езды по острову.',
+    readTime: '6 мин',
+  },
+  {
+    id: 2,
+    href: '/on-island/transport/taxi',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/taxi.jpg',
+    title: 'Такси на Фукуоке',
+    description: 'Какие приложения работают, сколько стоит поездка и где искать машину.',
+    readTime: '5 мин',
+  },
+  {
+    id: 11,
+    href: '/on-island/transport/grab-app',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/grab.jpg',
+    title: 'Как пользоваться Grab на Фукуоке',
+    description: 'Регистрация, оплата, заказ байка и машины через популярное приложение.',
+    readTime: '4 мин',
+  },
+  {
+    id: 12,
+    href: '/on-island/transport/renting-car',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/car.jpg',
+    title: 'Аренда авто на Фукуоке',
+    description: 'Где взять машину, какие права нужны и как не попасть на штрафы.',
+    readTime: '7 мин',
+  },
+  {
+    id: 13,
+    href: '/on-island/transport/bus-routes',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/bus.jpg',
+    title: 'Автобусы Фукуока: маршруты и цены',
+    description: 'Как добраться из аэропорта в город и между пляжами на общественном транспорте.',
+    readTime: '5 мин',
+  },
+  {
+    id: 14,
+    href: '/on-island/transport/airport-transfer',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/airport.jpg',
+    title: 'Трансфер из аэропорта Фукуока',
+    description: 'Все способы добраться до отеля: такси, шаттл, автобус и аренда.',
+    readTime: '6 мин',
+  },
+  {
+    id: 15,
+    href: '/on-island/transport/fuel-stations',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/fuel.jpg',
+    title: 'Заправки на острове',
+    description: 'Где заправляться, сколько стоит бензин и как не остаться с пустым баком.',
+    readTime: '3 мин',
+  },
+  {
+    id: 16,
+    href: '/on-island/transport/bicycle-rental',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/bicycle.jpg',
+    title: 'Аренда велосипеда',
+    description: 'Маршруты для спокойных прогулок и где взять хороший велосипед.',
+    readTime: '4 мин',
+  },
+  {
+    id: 17,
+    href: '/on-island/transport/speedboat',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/boat.jpg',
+    title: 'Спидботы и катера',
+    description: 'Как арендовать лодку для поездки на соседние острова.',
+    readTime: '5 мин',
+  },
+  {
+    id: 18,
+    href: '/on-island/transport/parking',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/parking.jpg',
+    title: 'Парковки на Фукуоке',
+    description: 'Где безопасно оставить байк и машину возле популярных пляжей.',
+    readTime: '3 мин',
+  },
+  {
+    id: 19,
+    href: '/on-island/transport/traffic-rules',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/traffic.jpg',
+    title: 'Правила дорожного движения',
+    description: 'Особенности вьетнамских дорог и как не нарушить местные ПДД.',
+    readTime: '6 мин',
+  },
+  {
+    id: 20,
+    href: '/on-island/transport/electric-bike',
+    category: 'ТРАНСПОРТ',
+    image: '/articles/ebike.jpg',
+    title: 'Электробайки: плюсы и минусы',
+    description: 'Стоит ли арендовать электрический скутер и где его зарядить.',
+    readTime: '4 мин',
+  },
+
+  // === ЕДА ===
+  {
+    id: 3,
+    href: '/food/restaurants',
+    category: 'ЕДА',
+    image: '/articles/food.jpg',
+    title: 'Где поесть на Фукуоке',
+    description: 'Рестораны, кафе, рынки и локальные места, которые стоит знать туристу.',
+    readTime: '8 мин',
+  },
+  {
+    id: 21,
+    href: '/food/seafood',
+    category: 'ЕДА',
+    image: '/articles/seafood.jpg',
+    title: 'Морепродукты на Фукуоке',
+    description: 'Лучшие места, где подают свежую рыбу, креветки и крабов.',
+    readTime: '7 мин',
+  },
+  {
+    id: 22,
+    href: '/food/street-food',
+    category: 'ЕДА',
+    image: '/articles/street.jpg',
+    title: 'Уличная еда острова',
+    description: 'Что обязательно попробовать в ночных ларьках и на рынках.',
+    readTime: '6 мин',
+  },
+  {
+    id: 23,
+    href: '/food/vietnamese-coffee',
+    category: 'ЕДА',
+    image: '/articles/coffee.jpg',
+    title: 'Вьетнамский кофе',
+    description: 'Как его готовят, где пробовать и почему он такой крепкий.',
+    readTime: '4 мин',
+  },
+  {
+    id: 24,
+    href: '/food/pho-recipe',
+    category: 'ЕДА',
+    image: '/articles/pho.jpg',
+    title: 'Фо и другие супы',
+    description: 'Разбираем национальные блюда и где их едят местные.',
+    readTime: '5 мин',
+  },
+  {
+    id: 25,
+    href: '/food/vegetarian',
+    category: 'ЕДА',
+    image: '/articles/veg.jpg',
+    title: 'Вегетарианские места',
+    description: 'Кафе и рестораны для тех, кто не ест мясо и морепродукты.',
+    readTime: '5 мин',
+  },
+  {
+    id: 26,
+    href: '/food/breakfast',
+    category: 'ЕДА',
+    image: '/articles/breakfast.jpg',
+    title: 'Где позавтракать',
+    description: 'Лучшие кафе с видом на море и европейским меню.',
+    readTime: '4 мин',
+  },
+  {
+    id: 27,
+    href: '/food/dinner-sunset',
+    category: 'ЕДА',
+    image: '/articles/dinner.jpg',
+    title: 'Ужин на закате',
+    description: 'Рестораны с лучшим видом на заходящее солнце.',
+    readTime: '5 мин',
+  },
+  {
+    id: 28,
+    href: '/food/banh-mi',
+    category: 'ЕДА',
+    image: '/articles/banhmi.jpg',
+    title: 'Бан ми: главный сэндвич',
+    description: 'История, рецепт и места, где готовят самые вкусные.',
+    readTime: '4 мин',
+  },
+  {
+    id: 29,
+    href: '/food/fruit-markets',
+    category: 'ЕДА',
+    image: '/articles/fruit.jpg',
+    title: 'Тропические фрукты',
+    description: 'Что попробовать из экзотики и как выбрать спелый плод.',
+    readTime: '6 мин',
+  },
+  {
+    id: 30,
+    href: '/food/fish-sauce',
+    category: 'ЕДА',
+    image: '/articles/sauce.jpg',
+    title: 'Рыбный соус с Фукуока',
+    description: 'Почему местный ныок-мам считается лучшим в мире.',
+    readTime: '4 мин',
+  },
+  {
+    id: 31,
+    href: '/food/beer-bars',
+    category: 'ЕДА',
+    image: '/articles/beer.jpg',
+    title: 'Бары и пабы острова',
+    description: 'Где выпить крафтовое пиво и посмотреть спорт.',
+    readTime: '5 мин',
+  },
+  {
+    id: 32,
+    href: '/food/italian-food',
+    category: 'ЕДА',
+    image: '/articles/italian.jpg',
+    title: 'Итальянская кухня',
+    description: 'Лучшие пиццерии и паста-бары для тех, кто устал от азии.',
+    readTime: '4 мин',
+  },
+  {
+    id: 33,
+    href: '/food/night-market',
+    category: 'ЕДА',
+    image: '/articles/nightmarket.jpg',
+    title: 'Ночной рынок Динь Кау',
+    description: 'Что пробовать, как торговаться и во сколько приходить.',
+    readTime: '6 мин',
+  },
+  {
+    id: 34,
+    href: '/food/desserts',
+    category: 'ЕДА',
+    image: '/articles/dessert.jpg',
+    title: 'Вьетнамские десерты',
+    description: 'Сладости, которые стоит попробовать хотя бы раз.',
+    readTime: '4 мин',
+  },
+  {
+    id: 35,
+    href: '/food/romantic-dinner',
+    category: 'ЕДА',
+    image: '/articles/romantic.jpg',
+    title: 'Романтический ужин',
+    description: 'ТОП-5 мест для свиданий и особых случаев.',
+    readTime: '5 мин',
+  },
+
+  // === ПЛЯЖИ ===
+  {
+    id: 4,
+    href: '/beaches/best',
+    category: 'ПЛЯЖИ',
+    image: '/articles/beach.jpg',
+    title: 'Лучшие пляжи острова',
+    description: 'Топ пляжей для купания, сноркелинга и красивых закатов.',
+    readTime: '7 мин',
+  },
+  {
+    id: 36,
+    href: '/beaches/long-beach',
+    category: 'ПЛЯЖИ',
+    image: '/articles/longbeach.jpg',
+    title: 'Long Beach: главный пляж',
+    description: 'Инфраструктура, отели, кафе и чем заняться.',
+    readTime: '5 мин',
+  },
+  {
+    id: 37,
+    href: '/beaches/sao-beach',
+    category: 'ПЛЯЖИ',
+    image: '/articles/sao.jpg',
+    title: 'Пляж Sao: белый песок',
+    description: 'Самый красивый пляж острова и как до него добраться.',
+    readTime: '4 мин',
+  },
+  {
+    id: 38,
+    href: '/beaches/ong-lang',
+    category: 'ПЛЯЖИ',
+    image: '/articles/onglang.jpg',
+    title: 'Ong Lang: тихое место',
+    description: 'Уединённый пляж для спокойного отдыха вдали от туристов.',
+    readTime: '4 мин',
+  },
+  {
+    id: 39,
+    href: '/beaches/khem-beach',
+    category: 'ПЛЯЖИ',
+    image: '/articles/khem.jpg',
+    title: 'Khem Beach: премиум',
+    description: 'Пляж с отелями 5 звёзд и дорогой инфраструктурой.',
+    readTime: '5 мин',
+  },
+  {
+    id: 40,
+    href: '/beaches/vung-bau',
+    category: 'ПЛЯЖИ',
+    image: '/articles/vungbau.jpg',
+    title: 'Vung Bau: для сёрферов',
+    description: 'Где ловить волны и когда лучший сезон для сёрфинга.',
+    readTime: '4 мин',
+  },
+  {
+    id: 41,
+    href: '/beaches/star-beach',
+    category: 'ПЛЯЖИ',
+    image: '/articles/star.jpg',
+    title: 'Star Beach: морские звёзды',
+    description: 'Место, где можно встретить морских звёзд в воде.',
+    readTime: '3 мин',
+  },
+  {
+    id: 42,
+    href: '/beaches/bai-dai',
+    category: 'ПЛЯЖИ',
+    image: '/articles/baidai.jpg',
+    title: 'Bai Dai: дикий пляж',
+    description: 'Минимум людей, максимум природы и чистая вода.',
+    readTime: '4 мин',
+  },
+  {
+    id: 43,
+    href: '/beaches/family',
+    category: 'ПЛЯЖИ',
+    image: '/articles/family.jpg',
+    title: 'Пляжи для семей с детьми',
+    description: 'Безопасные места с пологим входом и инфраструктурой.',
+    readTime: '5 мин',
+  },
+  {
+    id: 44,
+    href: '/beaches/sunset',
+    category: 'ПЛЯЖИ',
+    image: '/articles/beachsunset.jpg',
+    title: 'Пляжи для закатов',
+    description: 'Западные берега с самым красивым вечерним видом.',
+    readTime: '4 мин',
+  },
+  {
+    id: 45,
+    href: '/beaches/snorkeling',
+    category: 'ПЛЯЖИ',
+    image: '/articles/snorkel.jpg',
+    title: 'Пляжи для сноркелинга',
+    description: 'Где плавать с маской и смотреть кораллы.',
+    readTime: '5 мин',
+  },
+
+  // === БЕЗОПАСНОСТЬ ===
+  {
+    id: 5,
+    href: '/safety/tourist',
+    category: 'БЕЗОПАСНОСТЬ',
+    image: '/articles/safety.jpg',
+    title: 'Что важно знать туристу',
+    description: 'Простые правила, которые помогут избежать неприятных ситуаций.',
+    readTime: '6 мин',
+  },
+  {
+    id: 46,
+    href: '/safety/scams',
+    category: 'БЕЗОПАСНОСТЬ',
+    image: '/articles/scam.jpg',
+    title: 'Распространённые мошенничества',
+    description: 'Как не попасться на уловки таксистов и продавцов.',
+    readTime: '7 мин',
+  },
+  {
+    id: 47,
+    href: '/safety/medical',
+    category: 'БЕЗОПАСНОСТЬ',
+    image: '/articles/medical.jpg',
+    title: 'Аптеки и медицина',
+    description: 'Где купить лекарства и что делать в экстренной ситуации.',
+    readTime: '5 мин',
+  },
+  {
+    id: 48,
+    href: '/safety/insurance',
+    category: 'БЕЗОПАСНОСТЬ',
+    image: '/articles/insurance.jpg',
+    title: 'Страховка для поездки',
+    description: 'Какая нужна, сколько стоит и что покрывает.',
+    readTime: '6 мин',
+  },
+  {
+    id: 49,
+    href: '/safety/water-safety',
+    category: 'БЕЗОПАСНОСТЬ',
+    image: '/articles/water.jpg',
+    title: 'Безопасность на воде',
+    description: 'Течения, медузы и другие опасности моря.',
+    readTime: '5 мин',
+  },
+  {
+    id: 50,
+    href: '/safety/mosquitoes',
+    category: 'БЕЗОПАСНОСТЬ',
+    image: '/articles/mosquito.jpg',
+    title: 'Комары и лихорадка Денге',
+    description: 'Как защититься от укусов и что делать при симптомах.',
+    readTime: '4 мин',
+  },
+
+  // === ПРАКТИКА ===
+  {
+    id: 6,
+    href: '/money/budget',
+    category: 'ПРАКТИКА',
+    image: '/articles/budget.jpg',
+    title: 'Сколько денег брать на неделю',
+    description: 'Реальные расходы на еду, транспорт, жильё и развлечения.',
+    readTime: '8 мин',
+  },
+  {
+    id: 51,
+    href: '/money/exchange',
+    category: 'ПРАКТИКА',
+    image: '/articles/exchange.jpg',
+    title: 'Обмен валюты',
+    description: 'Где менять деньги и какой курс самый выгодный.',
+    readTime: '4 мин',
+  },
+  {
+    id: 52,
+    href: '/money/atm',
+    category: 'ПРАКТИКА',
+    image: '/articles/atm.jpg',
+    title: 'Банкоматы и карты',
+    description: 'Какие карты работают и сколько снимают комиссию.',
+    readTime: '5 мин',
+  },
+  {
+    id: 53,
+    href: '/money/tips',
+    category: 'ПРАКТИКА',
+    image: '/articles/tips.jpg',
+    title: 'Чаевые во Вьетнаме',
+    description: 'Где принято оставлять и сколько.',
+    readTime: '3 мин',
+  },
+  {
+    id: 54,
+    href: '/money/sim-card',
+    category: 'ПРАКТИКА',
+    image: '/articles/sim.jpg',
+    title: 'SIM-карта для туриста',
+    description: 'Какого оператора выбрать и сколько стоит интернет.',
+    readTime: '4 мин',
+  },
+  {
+    id: 55,
+    href: '/money/haggling',
+    category: 'ПРАКТИКА',
+    image: '/articles/haggle.jpg',
+    title: 'Как торговаться',
+    description: 'Правила и секреты успешного торга на рынках.',
+    readTime: '5 мин',
+  },
+  {
+    id: 56,
+    href: '/money/laundry',
+    category: 'ПРАКТИКА',
+    image: '/articles/laundry.jpg',
+    title: 'Прачечные на острове',
+    description: 'Где постирать вещи и сколько это стоит.',
+    readTime: '3 мин',
+  },
+  {
+    id: 57,
+    href: '/money/internet',
+    category: 'ПРАКТИКА',
+    image: '/articles/wifi.jpg',
+    title: 'Интернет и Wi-Fi',
+    description: 'Где быстрый интернет и стоит ли брать роутер.',
+    readTime: '4 мин',
+  },
+  {
+    id: 58,
+    href: '/money/electricity',
+    category: 'ПРАКТИКА',
+    image: '/articles/electric.jpg',
+    title: 'Розетки и переходники',
+    description: 'Какие вилки работают и нужно ли брать адаптер.',
+    readTime: '2 мин',
+  },
+  {
+    id: 59,
+    href: '/money/work-remote',
+    category: 'ПРАКТИКА',
+    image: '/articles/remote.jpg',
+    title: 'Работа удалённо с Фукуока',
+    description: 'Коворкинги, кафе с Wi-Fi и лайфхаки цифрового кочевника.',
+    readTime: '6 мин',
+  },
+  {
+    id: 60,
+    href: '/money/long-stay',
+    category: 'ПРАКТИКА',
+    image: '/articles/longstay.jpg',
+    title: 'Длительное пребывание',
+    description: 'Как арендовать квартиру на месяц и сэкономить.',
+    readTime: '7 мин',
+  },
+
+  // === МАРШРУТЫ ===
+  {
+    id: 7,
+    href: '/routes/1-day',
+    category: 'МАРШРУТЫ',
+    image: '/articles/route.jpg',
+    title: 'Маршрут на 1 день',
+    description: 'Короткий маршрут по острову без спешки: пляж, кафе, закат и рынок.',
+    readTime: '5 мин',
+  },
+  {
+    id: 61,
+    href: '/routes/3-days',
+    category: 'МАРШРУТЫ',
+    image: '/articles/3days.jpg',
+    title: '3 дня на Фукуоке',
+    description: 'Оптимальный маршрут для короткого отпуска.',
+    readTime: '8 мин',
+  },
+  {
+    id: 62,
+    href: '/routes/7-days',
+    category: 'МАРШРУТЫ',
+    image: '/articles/7days.jpg',
+    title: 'Неделя на острове',
+    description: 'Полный маршрут с островами, парками и ресторанами.',
+    readTime: '10 мин',
+  },
+  {
+    id: 63,
+    href: '/routes/north',
+    category: 'МАРШРУТЫ',
+    image: '/articles/north.jpg',
+    title: 'Север острова',
+    description: 'Сафари, Винперл и дикие пляжи за один день.',
+    readTime: '6 мин',
+  },
+  {
+    id: 64,
+    href: '/routes/south',
+    category: 'МАРШРУТЫ',
+    image: '/articles/south.jpg',
+    title: 'Юг острова',
+    description: 'Канатная дорога, пляж Sao и рыбный рынок.',
+    readTime: '6 мин',
+  },
+  {
+    id: 65,
+    href: '/routes/islands',
+    category: 'МАРШРУТЫ',
+    image: '/articles/islands.jpg',
+    title: 'Острова архипелага',
+    description: 'Какие острова посетить и как организовать тур.',
+    readTime: '7 мин',
+  },
+  {
+    id: 66,
+    href: '/routes/romantic',
+    category: 'МАРШРУТЫ',
+    image: '/articles/romantic-route.jpg',
+    title: 'Романтический маршрут',
+    description: 'Идеальный день для пары на Фукуоке.',
+    readTime: '5 мин',
+  },
+  {
+    id: 67,
+    href: '/routes/family',
+    category: 'МАРШРУТЫ',
+    image: '/articles/family-route.jpg',
+    title: 'Семейный маршрут',
+    description: 'Что посмотреть с детьми за 3 дня.',
+    readTime: '6 мин',
+  },
+  {
+    id: 68,
+    href: '/routes/photo',
+    category: 'МАРШРУТЫ',
+    image: '/articles/photo-route.jpg',
+    title: 'Маршрут для фотографов',
+    description: 'Лучшие точки для съёмки на острове.',
+    readTime: '5 мин',
+  },
+  {
+    id: 69,
+    href: '/routes/adventure',
+    category: 'МАРШРУТЫ',
+    image: '/articles/adventure.jpg',
+    title: 'Приключенческий тур',
+    description: 'Активности для любителей адреналина.',
+    readTime: '6 мин',
+  },
+  {
+    id: 70,
+    href: '/routes/food-tour',
+    category: 'МАРШРУТЫ',
+    image: '/articles/foodtour.jpg',
+    title: 'Гастрономический маршрут',
+    description: 'День, посвящённый вьетнамской кухне.',
+    readTime: '7 мин',
+  },
+
+  // === РАЗВЛЕЧЕНИЯ ===
+  {
+    id: 8,
+    href: '/activities/snorkeling',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/snorkeling.jpg',
+    title: 'Сноркелинг на Фукуоке',
+    description: 'Лучшие места, цены и советы для подводного плавания.',
+    readTime: '7 мин',
+  },
+  {
+    id: 71,
+    href: '/activities/vinwonders',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/vinwonders.jpg',
+    title: 'VinWonders: парк развлечений',
+    description: 'Аттракционы, аквапарк и шоу — всё что нужно знать.',
+    readTime: '8 мин',
+  },
+  {
+    id: 72,
+    href: '/activities/safari',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/safari.jpg',
+    title: 'Сафари-парк',
+    description: 'Крупнейший зоопарк Вьетнама и как его обойти.',
+    readTime: '6 мин',
+  },
+  {
+    id: 73,
+    href: '/activities/cable-car',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/cablecar.jpg',
+    title: 'Канатная дорога',
+    description: 'Самая длинная морская канатка в мире.',
+    readTime: '4 мин',
+  },
+  {
+    id: 74,
+    href: '/activities/diving',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/diving.jpg',
+    title: 'Дайвинг',
+    description: 'Где нырять с аквалангом и сколько стоит обучение.',
+    readTime: '6 мин',
+  },
+  {
+    id: 75,
+    href: '/activities/fishing',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/fishing.jpg',
+    title: 'Рыбалка',
+    description: 'Туры на рыбалку с местными рыбаками.',
+    readTime: '5 мин',
+  },
+  {
+    id: 76,
+    href: '/activities/kayak',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/kayak.jpg',
+    title: 'Каякинг',
+    description: 'Где арендовать каяк и лучшие маршруты.',
+    readTime: '4 мин',
+  },
+  {
+    id: 77,
+    href: '/activities/yoga',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/yoga.jpg',
+    title: 'Йога и медитация',
+    description: 'Студии и ретриты для душевного равновесия.',
+    readTime: '4 мин',
+  },
+  {
+    id: 78,
+    href: '/activities/massage',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/massage.jpg',
+    title: 'Массаж и СПА',
+    description: 'Лучшие салоны и виды массажа.',
+    readTime: '5 мин',
+  },
+  {
+    id: 79,
+    href: '/activities/cooking-class',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/cooking.jpg',
+    title: 'Кулинарные мастер-классы',
+    description: 'Научитесь готовить вьетнамские блюда.',
+    readTime: '4 мин',
+  },
+  {
+    id: 80,
+    href: '/activities/nightlife',
+    category: 'РАЗВЛЕЧЕНИЯ',
+    image: '/articles/nightlife.jpg',
+    title: 'Ночная жизнь',
+    description: 'Клубы, бары и шоу после захода солнца.',
+    readTime: '5 мин',
+  },
+
+  // === ДОКУМЕНТЫ ===
+  {
+    id: 9,
+    href: '/visa/rules',
+    category: 'ДОКУМЕНТЫ',
+    image: '/articles/visa.jpg',
+    title: 'Виза и документы',
+    description: 'Что нужно для въезда и сколько можно находиться на острове.',
+    readTime: '4 мин',
+  },
+  {
+    id: 81,
+    href: '/visa/extension',
+    category: 'ДОКУМЕНТЫ',
+    image: '/articles/extend.jpg',
+    title: 'Продление визы',
+    description: 'Как остаться дольше и сколько это стоит.',
+    readTime: '5 мин',
+  },
+  {
+    id: 82,
+    href: '/visa/visa-run',
+    category: 'ДОКУМЕНТЫ',
+    image: '/articles/visarun.jpg',
+    title: 'Visa-run: что это',
+    description: 'Как обновить визу, выехав в соседнюю страну.',
+    readTime: '6 мин',
+  },
+  {
+    id: 83,
+    href: '/visa/passport',
+    category: 'ДОКУМЕНТЫ',
+    image: '/articles/passport.jpg',
+    title: 'Требования к паспорту',
+    description: 'Срок действия и другие важные моменты.',
+    readTime: '3 мин',
+  },
+  {
+    id: 84,
+    href: '/visa/e-visa',
+    category: 'ДОКУМЕНТЫ',
+    image: '/articles/evisa.jpg',
+    title: 'Электронная виза',
+    description: 'Как оформить e-visa онлайн за 3 дня.',
+    readTime: '5 мин',
+  },
+  {
+    id: 85,
+    href: '/visa/embassy',
+    category: 'ДОКУМЕНТЫ',
+    image: '/articles/embassy.jpg',
+    title: 'Посольство Вьетнама',
+    description: 'Контакты и услуги для граждан РФ.',
+    readTime: '3 мин',
+  },
+
+  // === ШОПИНГ ===
+  {
+    id: 10,
+    href: '/shopping/markets',
+    category: 'ШОПИНГ',
+    image: '/articles/market.jpg',
+    title: 'Ночные рынки Фукуока',
+    description: 'Где купить сувениры, попробовать уличную еду и почувствовать атмосферу.',
+    readTime: '6 мин',
+  },
+  {
+    id: 86,
+    href: '/shopping/souvenirs',
+    category: 'ШОПИНГ',
+    image: '/articles/souvenirs.jpg',
+    title: 'Что привезти домой',
+    description: 'Лучшие сувениры и подарки из Вьетнама.',
+    readTime: '5 мин',
+  },
+  {
+    id: 87,
+    href: '/shopping/pearls',
+    category: 'ШОПИНГ',
+    image: '/articles/pearls.jpg',
+    title: 'Жемчуг с Фукуока',
+    description: 'Где купить настоящий и как отличить подделку.',
+    readTime: '5 мин',
+  },
+  {
+    id: 88,
+    href: '/shopping/clothes',
+    category: 'ШОПИНГ',
+    image: '/articles/clothes.jpg',
+    title: 'Одежда и ткани',
+    description: 'Где купить шёлк, аозай и пляжную одежду.',
+    readTime: '4 мин',
+  },
+  {
+    id: 89,
+    href: '/shopping/coffee-buy',
+    category: 'ШОПИНГ',
+    image: '/articles/coffee-buy.jpg',
+    title: 'Кофе на вывоз',
+    description: 'Какие сорта выбрать и как провезти через границу.',
+    readTime: '4 мин',
+  },
+  {
+    id: 90,
+    href: '/shopping/malls',
+    category: 'ШОПИНГ',
+    image: '/articles/mall.jpg',
+    title: 'Торговые центры',
+    description: 'Где найти брендовые вещи и супермаркеты.',
+    readTime: '4 мин',
+  },
+
+  // === ДОСТОПРИМЕЧАТЕЛЬНОСТИ ===
+  {
+    id: 91,
+    href: '/sights/dinh-cau',
+    category: 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ',
+    image: '/articles/dinhcau.jpg',
+    title: 'Храм Динь Кау',
+    description: 'Символ острова и самое фотографируемое место.',
+    readTime: '4 мин',
+  },
+  {
+    id: 92,
+    href: '/sights/pepper-farm',
+    category: 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ',
+    image: '/articles/pepper.jpg',
+    title: 'Перечные фермы',
+    description: 'Знаменитый фукуокский перец и экскурсии.',
+    readTime: '4 мин',
+  },
+  {
+    id: 93,
+    href: '/sights/fish-sauce-factory',
+    category: 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ',
+    image: '/articles/factory.jpg',
+    title: 'Фабрика рыбного соуса',
+    description: 'Как делают главный продукт острова.',
+    readTime: '5 мин',
+  },
+  {
+    id: 94,
+    href: '/sights/prison',
+    category: 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ',
+    image: '/articles/prison.jpg',
+    title: 'Тюрьма Фукуока',
+    description: 'Исторический музей и мрачное прошлое.',
+    readTime: '6 мин',
+  },
+  {
+    id: 95,
+    href: '/sights/pagoda',
+    category: 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ',
+    image: '/articles/pagoda.jpg',
+    title: 'Пагоды и храмы',
+    description: 'Самые красивые буддийские храмы острова.',
+    readTime: '5 мин',
+  },
+  {
+    id: 96,
+    href: '/sights/waterfall',
+    category: 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ',
+    image: '/articles/waterfall.jpg',
+    title: 'Водопады',
+    description: 'Suoi Tranh и другие природные красоты.',
+    readTime: '4 мин',
+  },
+  {
+    id: 97,
+    href: '/sights/ho-quoc',
+    category: 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ',
+    image: '/articles/hoquoc.jpg',
+    title: 'Пагода Хо Куок',
+    description: 'Величественный храм на склоне горы.',
+    readTime: '4 мин',
+  },
+  {
+    id: 98,
+    href: '/sights/honey-farm',
+    category: 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ',
+    image: '/articles/honey.jpg',
+    title: 'Пчелиные фермы',
+    description: 'Дегустация мёда и экскурсии.',
+    readTime: '3 мин',
+  },
+  {
+    id: 99,
+    href: '/sights/sunset-town',
+    category: 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ',
+    image: '/articles/sunset-town.jpg',
+    title: 'Sunset Town',
+    description: 'Средиземноморский городок на юге острова.',
+    readTime: '4 мин',
+  },
+  {
+    id: 100,
+    href: '/sights/kiss-bridge',
+    category: 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ',
+    image: '/articles/kissbridge.jpg',
+    title: 'Мост поцелуев',
+    description: 'Новая достопримечательность для романтиков.',
+    readTime: '3 мин',
+  },
+]
+
+
+const classPY = 'py-10 max-md:py-6'
+
+export default async function SectionPage({ params }: SectionPageProps) {
+  const { section: sectionParam } = await params
+  // const sections = await getSections()
+
+  // const section = Object.values(sections).find((s) => s.slug === sectionParam) as
+  //   | Section
+  //   | undefined
+
+  // if (!section) {
+  //   return <div className="p-10 text-center text-2xl">Раздел не найден</div>
+  // }
+  const categories = [
+    ...new Set(articles.map((a) => a.category).filter(Boolean)),
+  ] as string[]
+
+  return (
+    <div className="container">
+      <Hero className={classPY}/>
+      <ArticleGrid
+        articles={articles}
+        categories={categories}
+        title="Все подборки раздела"
+        className="py-10 max-md:py-6"
+        itemsPerPage={4} // 2 колонки × 2 ряда = 4 карточки
+      />
+      <ContinuePlanning  />
+
+    </div>
+  )
+}

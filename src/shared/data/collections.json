@@ -1,0 +1,21 @@
+[
+  {
+    "slug": "top-restaurants",
+    "title": "Лучшие рестораны Фукуока",
+    "description": "Подборка топовых ресторанов на Фукуоке с отзывами и рейтингами.",
+    "objects": [
+      {"type": "restaurant", "id": "russian-house", "name": "Русский Дом", "rating": 4.7, "link": "/on-island/food/russian-house"},
+      {"type": "restaurant", "id": "balalaika-cafe", "name": "Балалайка", "rating": 4.6, "link": "/on-island/food/balalaika"}
+    ]
+  },
+  {
+    "slug": "top-beaches",
+    "title": "Лучшие пляжи Фукуока",
+    "description": "10 самых красивых и удобных пляжей острова.",
+    "objects": [
+      {"type": "beach", "id": "sao-beach", "name": "Пляж Сау", "rating": 4.8, "link": "/on-island/beaches/sao-beach"},
+      {"type": "beach", "id": "long-beach", "name": "Лонг-Бич", "rating": 4.7, "link": "/on-island/beaches/long-beach"},
+      {"type": "beach", "id": "ong-lan", "name": "Пляж Онг Лан", "rating": 4.6, "link": "/on-island/beaches/ong-lan"}
+    ]
+  }
+]
