@@ -4,13 +4,13 @@ import { cn } from '@/lib/utils';
 
 
 export default function Collections({
-    className = "" 
+    containerClass = "" 
 }: {
-    className?: string 
+    containerClass?: string 
 } ) {
 
   return (
-    <section className={cn("rounded-3xl py-20 max-sm:py-10", className)}>
+    <section className={cn("rounded-3xl ", containerClass)}>
       <div className="">
         <div className="flex items-center gap-2">
           <h2 className="title">Подборки</h2>

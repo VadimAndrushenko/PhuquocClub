@@ -1,14 +1,14 @@
 import { cn } from "@/lib/utils";
 
 export default function NeedHelpArticle({
-  className = "",
+  containerClass = "",
 }: {
-  className?: string;
+  containerClass?: string;
 }) {
   return (
     <section
       className={cn(
-        className
+        containerClass
       )}
     >
       <div className="bg-main rounded-3xl p-6">

@@ -3,13 +3,13 @@ import Link from 'next/link'
 import type { UsefulArticleProps } from '@/shared/types/article.type'
 
 export default function UsefulArticle({
-  className = '',
+  containerClass = '',
   links = [],
 }: UsefulArticleProps) {
   if (!links || links.length === 0) return null
 
   return (
-    <section className={className}>
+    <section className={containerClass}>
       <div className="bg-block">
         <div className="mb-6 text-lg font-semibold tracking-[0.12em] text-[#101828]">
           Полезно

@@ -32,6 +32,7 @@ export async function getArticleBySlug(
   const { docs } = await payload.find({
     collection: 'articles',
     where: {
+      // status: { equals: 'published' },
       slug: { equals: slug },
     } as Where,
     depth: 2,

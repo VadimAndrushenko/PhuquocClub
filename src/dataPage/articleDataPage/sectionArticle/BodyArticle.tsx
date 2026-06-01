@@ -3,7 +3,7 @@ import { ContentComponents } from '../articleComponents/ContentComponents'
 import type { BodyArticleProps } from '@/shared/types/article.type'
 
 export default function BodyArticle({
-  className = '',
+  containerClass = '',
   contentArticle,
 }: BodyArticleProps) {
   return (
@@ -14,7 +14,7 @@ export default function BodyArticle({
           ContentComponents[item.typeContent as keyof typeof ContentComponents]
 
         return (
-          <section id={slugify(item.title)} key={index} className={className}>
+          <section id={slugify(item.title)} key={index} className={containerClass}>
             <h2 className="font-bold text-[44px] leading-tight mb-6 max-md:text-[7.3vw]">
               {item.title}
             </h2>

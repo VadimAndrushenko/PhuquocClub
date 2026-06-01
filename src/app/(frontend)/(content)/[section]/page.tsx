@@ -1,6 +1,4 @@
 import type { Metadata } from 'next'
-import getData from '@/lib/api/data_LocalOrServer'
-import type { Section, SectionPageProps } from '@/shared/types/section.type'
 import {
   FileText,
   Calendar,
@@ -12,10 +10,12 @@ import {
   HelpCircle,
   ArrowLeft,
 } from 'lucide-react'
-import Hero from '@/dataPage/sectionDataPage/section/Hero'
-import ArticleGrid from '@/dataPage/sectionDataPage/section/colection'
-import ContinuePlanning from '@/components/block/ContinuePlanning'
 
+import ContinuePlanning from '@/components/readyBlock/ContinuePlanning'
+import BestSelections from '@/components/readyBlock/BestSelections'
+import { SectionPageProps } from '@/shared/types/section.type'
+import CollectionsBlock from '@/components/readyBlock/CollectionsBlock'
+import Hero from '@/components/readyBlock/Hero'
 
 const icons = {
   worth: HelpCircle,
@@ -26,11 +26,6 @@ const icons = {
   accommodation: MapPin,
   know: CheckSquare,
   packing: Package,
-}
-
-async function getSections(): Promise<Section[]> {
-  const sectionsData = Object.values(await getData('sections'))
-  return sectionsData as Section[]
 }
 
 // ---------- ГЕНЕРАЦИЯ СТАТИЧЕСКИХ ПАРАМЕТРОВ ----------
@@ -62,17 +57,6 @@ async function getSections(): Promise<Section[]> {
 //   }
 // }
 
-export interface ArticleItem {
-  id: string | number
-  href: string
-  category?: string
-  image?: string
-  title: string
-  description: string
-  readTime?: string
-}
-
-
 const articles = [
   // === ТРАНСПОРТ ===
   {
@@ -83,6 +67,15 @@ const articles = [
     title: 'Как арендовать байк на Фукуоке',
     description: 'Условия аренды, цены, документы и важные советы для безопасной езды по острову.',
     readTime: '6 мин',
+  },
+  {
+    id: 3,
+    href: '/food/restaurants',
+    category: 'ЕДА',
+    image: '/articles/food.jpg',
+    title: 'Где поесть на Фукуоке',
+    description: 'Рестораны, кафе, рынки и локальные места, которые стоит знать туристу.',
+    readTime: '8 мин',
   },
   {
     id: 2,
@@ -185,15 +178,7 @@ const articles = [
   },
 
   // === ЕДА ===
-  {
-    id: 3,
-    href: '/food/restaurants',
-    category: 'ЕДА',
-    image: '/articles/food.jpg',
-    title: 'Где поесть на Фукуоке',
-    description: 'Рестораны, кафе, рынки и локальные места, которые стоит знать туристу.',
-    readTime: '8 мин',
-  },
+  
   {
     id: 21,
     href: '/food/seafood',
@@ -995,36 +980,90 @@ const articles = [
   },
 ]
 
-
+const collectionsData = [
+  {
+    id: 1,
+    href: '/food/restaurants',
+    category: 'ЕДА',
+    image: { 
+      url: "http://localhost:3000/api/media/file/collection.png",
+      alt: "Collection Image" 
+    } ,
+    title: 'Топ рестораны',
+    description: 'Лучшие места от локальной кухни до изысканных ресторанов.',
+    number: 1,
+  },
+  {
+    id: 2,
+    href: '/beaches/best',
+    category: 'ПЛЯЖИ',
+    image: { 
+      url: "http://localhost:3000/api/media/file/collection.png",
+      alt: "Collection Image" 
+    },
+    title: 'Лучшие пляжи',
+    description: 'Самые красивые и удобные пляжи для отдыха и сноркелинга.',
+    number: 2,
+  },
+  {
+    id: 3,
+    href: '/routes/1-day',
+    category: 'МАРШРУТЫ',
+    image: { 
+      url: "http://localhost:3000/api/media/file/hero-image-article-1.jpg",
+      alt: "Collection Image" 
+    },
+    title: 'Маршрут на 1 день',
+    description: 'Оптимальный план поездки без спешки и переплат.',
+    number: 3,
+  },
+]
 const classPY = 'py-10 max-md:py-6'
 
 export default async function SectionPage({ params }: SectionPageProps) {
   const { section: sectionParam } = await params
-  // const sections = await getSections()
 
-  // const section = Object.values(sections).find((s) => s.slug === sectionParam) as
-  //   | Section
-  //   | undefined
+  const categories = [...new Set(articles.map((a) => a.category).filter(Boolean))] as string[]
 
-  // if (!section) {
-  //   return <div className="p-10 text-center text-2xl">Раздел не найден</div>
-  // }
-  const categories = [
-    ...new Set(articles.map((a) => a.category).filter(Boolean)),
-  ] as string[]
+  // Моковые данные для Hero раздела (потом возьмёшь из БД)
+  const sectionHeroData = {
+    title: 'На острове',
+    description: 'Рестораны, кафе, рынки и локальные места, которые стоит знать туристу',
+    intro:
+      'Собрали проверенные места, районы, цены, советы по выбору кухни и подборки для разных сценариев: завтрак, ужин, морепродукты, кофе и локальная еда.',
+    category: 'ЕДА НА ФУКУОКЕ',
+    section: sectionParam,
+    image: {
+      url: '/ImageWithFallback.jpg',
+      alt: 'Закат на Фукуоке',
+    },
+    search: {
+      placeholder: 'Поиск по сайту: пляжи, отели, еда, транспорт...',
+      tags: true,
+    },
+  }
 
   return (
     <div className="container">
-      <Hero className={classPY}/>
-      <ArticleGrid
-        articles={articles}
+      <Hero
+        dataHero={sectionHeroData}
+        classes={{
+          container: `${classPY}`,
+          content: 'lg:max-w-[550px] lg:max-xl:max-w-[430px]',
+          title: 'text-5xl max-sm:text-[8vw]',
+          image: 'w-[620px] h-auth ',
+        }}
+      />
+      <BestSelections className={classPY} data={collectionsData}/>
+      <CollectionsBlock
+        collections={articles}
         categories={categories}
         title="Все подборки раздела"
-        className="py-10 max-md:py-6"
-        itemsPerPage={4} // 2 колонки × 2 ряда = 4 карточки
+        containerClass={classPY}
+        itemsPerPage={4} 
       />
-      <ContinuePlanning  />
 
+      <ContinuePlanning className={classPY} data={collectionsData} />
     </div>
   )
 }

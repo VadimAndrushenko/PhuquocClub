@@ -3,10 +3,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ArticleCard } from '@/components/ui/InfoCard'
-  import { ChevronDown, Filter, Check, X } from 'lucide-react'
 
-interface Article {
+import { ChevronDown, Filter, Check, X } from 'lucide-react'
+import { CollectionsCardAccent } from '../ui/InfoCard'
+
+interface Collection {
   id: string | number
   href: string
   category?: string
@@ -16,36 +17,36 @@ interface Article {
   readTime?: string
 }
 
-interface ArticleGridProps {
-  articles: Article[]
-  className?: string
+interface CollectionsBlockProps {
+  collections: Collection[]
+  containerClass?: string
   title?: string
   itemsPerPage?: number
   categories?: string[]
 }
 
-export default function ArticleGrid({
-  articles,
-  className = '',
+export default function CollectionsBlock({
+  collections,
+  containerClass = '',
   title,
   itemsPerPage = 4,
   categories = [],
-}: ArticleGridProps) {
+}: CollectionsBlockProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [isAnimating, setIsAnimating] = useState(false)
   const gridRef = useRef<HTMLDivElement>(null)
 
-  if (!articles || articles.length === 0) return null
+  if (!collections || collections.length === 0) return null
 
-  const filteredArticles = selectedCategory
-    ? articles.filter((article) => article.category === selectedCategory)
-    : articles
+  const filteredCollections = selectedCategory
+    ? collections.filter((collection) => collection.category === selectedCategory)
+    : collections
 
-  const totalPages = Math.ceil(filteredArticles.length / itemsPerPage)
+  const totalPages = Math.ceil(filteredCollections.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentArticles = filteredArticles.slice(startIndex, endIndex)
+  const currentCollections = filteredCollections.slice(startIndex, endIndex)
 
   const hasPrevPage = currentPage > 1
   const hasNextPage = currentPage < totalPages
@@ -72,60 +73,60 @@ export default function ArticleGrid({
     }, 300)
   }
 
-// Добавь состояние для dropdown
-const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-const dropdownRef = useRef<HTMLDivElement>(null)
+  // Добавь состояние для dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-// Закрытие при клике вне dropdown
-useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-      setIsDropdownOpen(false)
+  // Закрытие при клике вне dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false)
+      }
     }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
+
+  // Подсчет количества подборок в каждой категории
+  const getCategoryCount = (category: string) => {
+    if (!category) return collections.length
+    return collections.filter((c) => c.category === category).length
   }
 
-  if (isDropdownOpen) {
-    document.addEventListener('mousedown', handleClickOutside)
+  // Иконки для категорий (опционально)
+  const categoryIcons: Record<string, string> = {
+    'ТРАНСПОРТ': '🚗',
+    'ЕДА': '🍽️',
+    'ПЛЯЖИ': '🏖️',
+    'БЕЗОПАСНОСТЬ': '🛡️',
+    'ПРАКТИКА': '💡',
+    'МАРШРУТЫ': '🗺️',
+    'РАЗВЛЕЧЕНИЯ': '🎯',
+    'ДОКУМЕНТЫ': '📄',
+    'ШОПИНГ': '🛍️',
+    'ДОСТОПРИМЕЧАТЕЛЬНОСТИ': '🏛️',
   }
-
-  return () => {
-    document.removeEventListener('mousedown', handleClickOutside)
-  }
-}, [isDropdownOpen])
-
-// Подсчет количества статей в каждой категории
-const getCategoryCount = (category: string) => {
-  if (!category) return articles.length
-  return articles.filter((a) => a.category === category).length
-}
-
-// Иконки для категорий (опционально)
-const categoryIcons: Record<string, string> = {
-  'ТРАНСПОРТ': '🚗',
-  'ЕДА': '🍽️',
-  'ПЛЯЖИ': '🏖️',
-  'БЕЗОПАСНОСТЬ': '🛡️',
-  'ПРАКТИКА': '💡',
-  'МАРШРУТЫ': '🗺️',
-  'РАЗВЛЕЧЕНИЯ': '🎯',
-  'ДОКУМЕНТЫ': '📄',
-  'ШОПИНГ': '🛍️',
-  'ДОСТОПРИМЕЧАТЕЛЬНОСТИ': '🏛️',
-}
 
   return (
-    <section className={className}>
+    <section className={containerClass}>
       {title && (
-        <div className="flex items-end justify-between gap-4">
-          <h2 className="title flex-1">{title}</h2>
+        <div className="flex items-center justify-between gap-4 mb-12">
+          <h2 className="title bottom-none flex-1">{title}</h2>
           <span className="text-sm text-paragraph">
-            {filteredArticles.length}{' '}
-            {declOfNum(filteredArticles.length, ['подборка', 'подборки', 'подборок'])}
+            {filteredCollections.length}{' '}
+            {declOfNum(filteredCollections.length, ['подборка', 'подборки', 'подборок'])}
           </span>
         </div>
       )}
 
-      {/* Красивый кастомный dropdown */}
+      {/* кастомный dropdown */}
       {categories.length > 0 && (
         <div className="mb-8" ref={dropdownRef}>
           <div className="relative inline-block min-w-full">
@@ -160,16 +161,25 @@ const categoryIcons: Record<string, string> = {
 
               <div className="flex items-center gap-2">
                 {selectedCategory && (
-                  <button
+                  <span
+                    role="button"
+                    tabIndex={0}
                     onClick={(e) => {
                       e.stopPropagation()
                       handleCategoryChange('')
                     }}
-                    className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleCategoryChange('')
+                      }
+                    }}
+                    className="p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
                     aria-label="Сбросить фильтр"
                   >
-                    <X size={16} className="text-paragraph" />
-                  </button>
+                    <X size={14} className="text-paragraph pointer-events-none" />
+                  </span>
                 )}
                 <ChevronDown
                   size={20}
@@ -231,7 +241,7 @@ const categoryIcons: Record<string, string> = {
                         Все категории
                       </div>
                       <div className="text-xs text-paragraph">
-                        Показать все статьи
+                        Показать все подборки
                       </div>
                     </div>
                   </div>
@@ -286,7 +296,7 @@ const categoryIcons: Record<string, string> = {
                         </div>
                         <div className="text-xs text-paragraph">
                           {getCategoryCount(category)}{' '}
-                          {declOfNum(getCategoryCount(category), ['статья', 'статьи', 'статей'])}
+                          {declOfNum(getCategoryCount(category), ['подборка', 'подборки', 'подборок'])}
                         </div>
                       </div>
                     </div>
@@ -333,9 +343,9 @@ const categoryIcons: Record<string, string> = {
             isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
           )}
         >
-          {currentArticles.length === 0 ? (
+          {currentCollections.length === 0 ? (
             <div className="col-span-full text-center py-16">
-              <p className="text-paragraph text-lg">Статьи не найдены</p>
+              <p className="text-paragraph text-lg">Подборки не найдены</p>
               {selectedCategory && (
                 <button
                   onClick={() => handleCategoryChange('')}
@@ -346,23 +356,22 @@ const categoryIcons: Record<string, string> = {
               )}
             </div>
           ) : (
-            currentArticles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                id={article.id}
-                href={article.href}
-                category={article.category}
-                // image={article.image}
-                title={article.title}
-                description={article.description}
-                readTime={article.readTime}
+            currentCollections.map((collection) => (
+              <CollectionsCardAccent
+                key={collection.id}
+                image={collection.image}
+                href={collection.href}
+                category={collection.category}
+                title={collection.title}
+                description={collection.description}
+                readTime={collection.readTime}
               />
             ))
           )}
         </div>
       </div>
 
-      {/* 📱 Адаптивная пагинация */}
+      {/*  Адаптивная пагинация */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-1 sm:gap-2 mt-10 px-2">
           {/* ← Стрелка назад */}
@@ -387,7 +396,7 @@ const categoryIcons: Record<string, string> = {
               page === '...' ? (
                 <span
                   key={`dots-${index}`}
-                  className="w-3 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-paragraph text-sm sm:text-base"
+                  className="w-3 h-8 flex items-center justify-center text-paragraph text-sm sm:text-base"
                 >
                   ...
                 </span>
@@ -437,20 +446,18 @@ function getPageNumbers(
   current: number,
   total: number,
 ): (number | string)[] {
-  // На десктопе показываем все страницы до 7, потом с многоточиями
-
-    if (total <= 7) {
-      return Array.from({ length: total }, (_, i) => i + 1)
-    }
-
-    if (current <= 3) {
-      return [1, 2, 3, 4, '...', total]
-    } else if (current >= total - 2) {
-      return [1, '...', total - 3, total - 2, total - 1, total]
-    } else {
-      return [1, '...', current - 1, current, current + 1, '...', total]
-    }
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
   }
+
+  if (current <= 3) {
+    return [1, 2, 3, 4, '...', total]
+  } else if (current >= total - 2) {
+    return [1, '...', total - 3, total - 2, total - 1, total]
+  } else {
+    return [1, '...', current - 1, current, current + 1, '...', total]
+  }
+}
 
 function declOfNum(number: number, titles: [string, string, string]): string {
   const cases = [2, 0, 1, 1, 1, 2]

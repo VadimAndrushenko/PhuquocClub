@@ -2,11 +2,11 @@ import { cn } from '@/lib/utils'
 import type { KratkoArticleProps } from '@/shared/types/article.type'
 
 export default function KratkoArticle({
-  className = '',
+  containerClass = '',
   items,
 }: KratkoArticleProps) {
   return (
-    <section className={cn(className)}>
+    <section className={cn(containerClass)}>
       <div className="bg-block">
         <h3 className="mb-6 text-lg font-semibold uppercase tracking-[0.12em] text-[#101828]">
           Коротко

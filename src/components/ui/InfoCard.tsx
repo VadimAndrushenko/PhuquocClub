@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Slider from "./Slider";
 import { cn } from "@/lib/utils";
 
-interface InfoCardProps {
+interface TripPlanningProps {
   arr: {
     icon: LucideIcon
     title: string
@@ -14,8 +14,26 @@ interface InfoCardProps {
   }[]
 }
 
-interface ArticleCardProps {
-  id: string | number
+interface data {
+  id?: string | number
+  href: string
+  category?: string
+  image: { 
+      url: string
+      alt?: string 
+    } 
+  title: string
+  description: string
+  number?: string | number 
+}
+
+interface CollectionsCardProps {
+  data: data[]
+  bg?: string
+  heightInPx: number
+}
+
+interface CollectionsCardAccentProps {
   href: string
   category?: string
   image?: string
@@ -25,9 +43,9 @@ interface ArticleCardProps {
   className?: string
 }
 
-function InfoCard({
+function TripPlanning({
    arr 
-}: InfoCardProps) {
+}: TripPlanningProps) {
   return (
     <Slider
       cols={{520:2, lg:3 ,xl:4}}
@@ -72,7 +90,7 @@ function InfoCard({
   )
 }
 
-function ArticlesCollectionCard() {
+function PopularCards() {
     return (
       <Slider
         cols={{md:2 ,xl:3}}
@@ -105,6 +123,7 @@ function ArticlesCollectionCard() {
                 alt="WithFallback"
                 fill
                 className="object-cover rounded-xl"
+                unoptimized={process.env.NODE_ENV === 'development'}
               />
             </div>
         </div>
@@ -114,25 +133,31 @@ function ArticlesCollectionCard() {
 }
 
 function CollectionsCard({
+  data,
   bg,
   heightInPx,
-}: {
-  bg?: string
-  heightInPx: number
-}) {
+}: CollectionsCardProps){ 
+
+  
   return (
     <Slider
         cols={{sm:2 ,lg:3}}
         gap="2rem"
       >
-      {[1,2,3].map((i) => (
-        <div key={i} className={`group relative rounded-[22px] p-6 h-[${heightInPx}px] overflow-hidden  `}>
+      {data.map((item: data, i: number) => (
+        
+        <div 
+          style={{ height: `${heightInPx}px` }} 
+          key={i} 
+          className={`group relative rounded-[22px] p-6  overflow-hidden  `}
+        >
           <Image
-            src="/collection.png"
-            alt="Collection"
+            src={item.image.url || '/collection.png'}
+            alt={item.image.alt || "Collection"}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             priority
+            unoptimized={process.env.NODE_ENV === 'development'}
           />
 
           <div className="relative z-10 flex h-full flex-col justify-between text-white">
@@ -156,7 +181,7 @@ function CollectionsCard({
 
                 <Link 
                   href="/" 
-                  className="flex flex-shrink-0 items-center justify-center h-11 w-11 rounded-full bg-white text-black group/btn"
+                  className="flex shrink-0 items-center justify-center h-11 w-11 rounded-full bg-white text-black group/btn"
                 >
                   <ArrowRight className="transition-transform duration-300 group-hover/btn:translate-x-1" />
                 </Link>
@@ -170,8 +195,7 @@ function CollectionsCard({
   )
 }
 
-function ArticleCard({
-  id,
+function CollectionsCardAccent({
   href,
   category,
   image,
@@ -179,7 +203,7 @@ function ArticleCard({
   description,
   readTime,
   className = '',
-}: ArticleCardProps) {
+}: CollectionsCardAccentProps) {
   return (
     <Link
       href={href}
@@ -231,8 +255,8 @@ function ArticleCard({
 }
 
 export {
-  InfoCard,
-  ArticlesCollectionCard,
+  TripPlanning,
+  PopularCards,
   CollectionsCard,
-  ArticleCard,
+  CollectionsCardAccent,
 }

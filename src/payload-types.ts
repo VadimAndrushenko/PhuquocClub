@@ -70,6 +70,8 @@ export interface Config {
     users: User;
     articles: Article;
     media: Media;
+    subsections: Subsection;
+    sections: Section;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +82,8 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    subsections: SubsectionsSelect<false> | SubsectionsSelect<true>;
+    sections: SectionsSelect<false> | SectionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -152,86 +156,38 @@ export interface User {
  */
 export interface Article {
   id: number;
-  /**
-   * Черновик не виден на сайте. Опубликованная статья — видна всем.
-   */
   status: 'draft' | 'published';
-  /**
-   * Например: "Как арендовать байк на Фукуоке"
-   */
   title: string;
-  /**
-   * Адрес статьи: /on-island/transport/[slug]. Только латиница и дефисы.
-   */
   slug: string;
   /**
-   * Например: on-island, before-trip
+   * Выберите подборку — category и section заполнятся автоматически.
    */
-  section?: string | null;
+  subsection: number | Subsection;
   /**
-   * Например: transport, accommodation
+   * Автозаполняется из подборки. При необходимости можно переопределить вручную.
    */
-  subsection?: string | null;
+  section?: (number | null) | Section;
   /**
-   * Например: ТРАНСПОРТ, ЕДА, БЕЗОПАСНОСТЬ
+   * Берётся автоматически из названия подборки.
    */
   category?: string | null;
-  /**
-   * Показывается под заголовком. 1-2 предложения.
-   */
   description?: string | null;
-  /**
-   * Первый абзац статьи.
-   */
   intro?: string | null;
-  /**
-   * Главное изображение. Рекомендуемый размер: 1200×800 px.
-   */
   image?: (number | null) | Media;
-  /**
-   * Например: "6 мин"
-   */
   readTime?: string | null;
-  /**
-   * Кто написал статью
-   */
   author?: string | null;
-  /**
-   * Карточки с важной информацией. Можно добавить 0–10 элементов.
-   */
   kratko_items?:
     | {
-        /**
-         * Какая иконка будет слева
-         */
         icon: 'DollarSign' | 'FileText' | 'MapPin' | 'ShieldAlert' | 'Clock' | 'User';
-        /**
-         * Например: "Цена", "Документы"
-         */
         label: string;
-        /**
-         * Например: "от 150 000 VND"
-         */
         value: string;
         id?: string | null;
       }[]
     | null;
-  /**
-   * Нажмите "Добавить" — секция добавится сразу
-   */
   content_blocks?:
     | {
-        /**
-         * Например: "Где арендовать байк"
-         */
         title: string;
-        /**
-         * Содержание секции
-         */
         description?: string | null;
-        /**
-         * Что показать после текста (необязательно)
-         */
         contentType?: ('none' | 'table' | 'warning' | 'checklist' | 'tips') | null;
         table?: {
           headers: {
@@ -259,14 +215,8 @@ export interface Article {
         id?: string | null;
       }[]
     | null;
-  /**
-   * Рекомендации в конце статьи.
-   */
   related_articles?:
     | {
-        /**
-         * Уникальный идентификатор
-         */
         id?: string | null;
         category?: string | null;
         title: string;
@@ -276,9 +226,6 @@ export interface Article {
         readTime?: string | null;
       }[]
     | null;
-  /**
-   * Ссылки на другие разделы.
-   */
   useful_links?:
     | {
         href: string;
@@ -286,17 +233,8 @@ export interface Article {
         id?: string | null;
       }[]
     | null;
-  /**
-   * Настройки для поисковиков
-   */
   seo?: {
-    /**
-     * До 60 символов
-     */
     title?: string | null;
-    /**
-     * До 160 символов
-     */
     description?: string | null;
     keywords?:
       | {
@@ -304,14 +242,52 @@ export interface Article {
           id?: string | null;
         }[]
       | null;
-    /**
-     * Для черновиков
-     */
     noIndex?: boolean | null;
   };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subsections".
+ */
+export interface Subsection {
+  id: number;
+  /**
+   * Например: "Транспорт", "Лучшие пляжи"
+   */
+  title: string;
+  /**
+   * Например: transport, beaches, restaurants. Только латиница и дефисы.
+   */
+  slug: string;
+  /**
+   * В каком разделе сайта отображается эта подборка
+   */
+  section: number | Section;
+  description?: string | null;
+  image?: (number | null) | Media;
+  status?: ('draft' | 'published') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sections".
+ */
+export interface Section {
+  id: number;
+  title: string;
+  /**
+   * Например: on-island, before-trip. Только латиница и дефисы.
+   */
+  slug: string;
+  description?: string | null;
+  image?: (number | null) | Media;
+  status?: ('draft' | 'published') | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -367,6 +343,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'subsections';
+        value: number | Subsection;
+      } | null)
+    | ({
+        relationTo: 'sections';
+        value: number | Section;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -440,8 +424,8 @@ export interface ArticlesSelect<T extends boolean = true> {
   status?: T;
   title?: T;
   slug?: T;
-  section?: T;
   subsection?: T;
+  section?: T;
   category?: T;
   description?: T;
   intro?: T;
@@ -543,6 +527,33 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subsections_select".
+ */
+export interface SubsectionsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  section?: T;
+  description?: T;
+  image?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sections_select".
+ */
+export interface SectionsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  image?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

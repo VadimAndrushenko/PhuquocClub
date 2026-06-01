@@ -207,7 +207,7 @@ export default function PagesSearch({
       
       {/* Tags */}
       {tags && (
-        <div className="flex flex-wrap justify-start gap-3 mt-4 max-w-[500px] max-sm:gap-1.5">
+        <div className="flex flex-wrap justify-start gap-3 mt-4 lg:max-w-[500px] max-sm:gap-1.5">
           {arrTags.map((tag) => (
             <button
               key={tag.label}

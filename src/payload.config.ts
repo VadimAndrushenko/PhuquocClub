@@ -8,6 +8,8 @@ import { fileURLToPath } from 'url'
 import { Users } from './payloadFile/collections/Users'
 import { Articles } from './payloadFile/collections/Articles'
 import { Media } from './payloadFile/collections/Media'
+import { SubSections } from './payloadFile/collections/SubSections'
+import { Sections } from './payloadFile/collections/Sections'
 
 
 
@@ -23,6 +25,8 @@ export default buildConfig({
     Users,
     Articles,  // ← Проверь, что здесь есть
     Media,
+    SubSections,
+    Sections,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET!,

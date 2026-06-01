@@ -1,6 +1,6 @@
 import { Sun, BookType, Wallet, House } from "lucide-react";
 import { cn } from '@/lib/utils';
-import { InfoCard } from "@/components/ui/InfoCard";
+import { TripPlanning } from "@/components/ui/InfoCard";
 
 const infoCards = [
   {
@@ -34,15 +34,15 @@ const infoCards = [
 ];
 
 export default function Planning({
-    className = "" 
+    containerClass = "" 
 }: {
-    className?: string 
+    containerClass?: string 
 } ) {
     
   return (
-    <section className={cn("py-20 max-sm:py-10", className)}>
+    <section className={cn("", containerClass)}>
       <h2 className="title">Планируете поездку</h2>
-      <InfoCard 
+      <TripPlanning 
         arr={infoCards}
       />
     </section>

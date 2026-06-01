@@ -3,11 +3,11 @@ import { cn, slugify } from '@/lib/utils'
 import type { NavigationArticleProps } from '@/shared/types/article.type'
 
 export default function NavigationArticle({
-  className = '',
+  containerClass = '',
   blocks,
 }: NavigationArticleProps) {
   return (
-    <section className={className}>
+    <section className={containerClass}>
       <div className="bg-block">
         <div className="mb-6 text-lg font-semibold tracking-[0.12em] text-[#101828]">
           В статье

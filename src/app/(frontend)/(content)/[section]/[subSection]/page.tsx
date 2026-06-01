@@ -1,54 +1,28 @@
 import type { Metadata } from 'next'
-import getData from '@/lib/api/data_LocalOrServer'
-import type { SubSection, SubSectionPageProps } from '@/shared/types/subSection.type'
-import Link from 'next/link'
-import {
-  FileText,
-  Calendar,
-  DollarSign,
-  Plane,
-  MapPin,
-  Package,
-  CheckSquare,
-  HelpCircle,
-  ArrowLeft,
-} from 'lucide-react'
-import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
-const icons = {
-  worth: HelpCircle,
-  when: Calendar,
-  prices: DollarSign,
-  visa: FileText,
-  flights: Plane,
-  accommodation: MapPin,
-  know: CheckSquare,
-  packing: Package,
-}
-
-async function getSections(): Promise<SubSection[]> {
-  const sectionsData = Object.values(await getData('subSections'))
-  return sectionsData as SubSection[]
-}
+import ContinuePlanning from '@/components/readyBlock/ContinuePlanning'
+import BestSelections from '@/components/readyBlock/BestSelections'
+import CollectionsBlock from '@/components/readyBlock/CollectionsBlock'
+import { SubSectionPageProps } from '@/shared/types/subSection.type'
+import { getArticleBySlug } from '@/lib/payload'
+import Hero from '@/components/readyBlock/Hero'
 
 // ---------- ГЕНЕРАЦИЯ СТАТИЧЕСКИХ ПАРАМЕТРОВ ----------
 // export async function generateStaticParams() {
-//   const subSection = await getSections()
-//   return subSection.map((subSection) => ({
-//     section: subSection.section,
-//     subSection: subSection.slug,
+//   const sections = await getSections()
+//   return sections.map((section) => ({
+//     section: section.slug,
 //   }))
 // }
 
 // // ---------- МЕТАДАННЫЕ ----------
-// export async function generateMetadata({ params }: SubSectionPageProps): Promise<Metadata> {
-//   const { subSection: sectionParam } = await params
+// export async function generateMetadata({ params }: SectionPageProps): Promise<Metadata> {
+//   const { section: sectionParam } = await params
+//   const sections = await getSections()
+//   const section = sections.find((s) => s.slug === sectionParam)
 
-//   const subSections = await getSections()
-//   const subSection = subSections.find((s) => s.slug === sectionParam)
-
-//   if (!subSection) {
-//     console.error('❌ SubSection not found:', sectionParam)
+//   if (!section) {
+//     console.error('❌ Section not found:', sectionParam)
 //     return {
 //       title: 'Раздел не найден',
 //       description: 'Такой раздел не существует',
@@ -56,144 +30,111 @@ async function getSections(): Promise<SubSection[]> {
 //   }
 
 //   return {
-//     title: subSection.seo.title ?? subSection.title,
-//     description: subSection.seo.description ?? subSection.description ?? '',
-//     keywords: subSection.seo.keywords ?? [],
+//     title: section.seo.title ?? section.title,
+//     description: section.seo.description ?? section.description ?? '',
+//     keywords: section.seo.keywords ?? [],
 //   }
 // }
 
+const collectionsData = [
+  {
+    id: 1,
+    href: '/food/restaurants',
+    category: 'ЕДА',
+    image: { 
+      url: "http://localhost:3000/api/media/file/collection.png",
+      alt: "Collection Image" 
+    } ,
+    title: 'Топ рестораны',
+    description: 'Лучшие места от локальной кухни до изысканных ресторанов.',
+    number: 1,
+  },
+  {
+    id: 2,
+    href: '/beaches/best',
+    category: 'ПЛЯЖИ',
+    image: { 
+      url: "http://localhost:3000/api/media/file/collection.png",
+      alt: "Collection Image" 
+    },
+    title: 'Лучшие пляжи',
+    description: 'Самые красивые и удобные пляжи для отдыха и сноркелинга.',
+    number: 2,
+  },
+  {
+    id: 3,
+    href: '/routes/1-day',
+    category: 'МАРШРУТЫ',
+    image: { 
+      url: "http://localhost:3000/api/media/file/hero-image-article-1.jpg",
+      alt: "Collection Image" 
+    },
+    title: 'Маршрут на 1 день',
+    description: 'Оптимальный план поездки без спешки и переплат.',
+    number: 3,
+  },
+]
+
+const classPY = 'py-10 max-md:py-6'
+
 export default async function SubSectionPage({ params }: SubSectionPageProps) {
-  const { subSection: subSectionParam } = await params
-  const subSections = await getSections()
+  const { section: sectionParam } = await params
 
-  const subSection = Object.values(subSections).find((s) => s.slug === subSectionParam) as
-    | SubSection
-    | undefined
+const allArticle = await getArticleBySlug('bike-rental-phu-quoc')
 
-  if (!subSection) {
-    return <div className="p-10 text-center text-2xl">Под раздел не найден</div>
+// Извлекаем URL изображения
+const imageUrl =
+  typeof allArticle?.image === 'object' && allArticle?.image
+    ? allArticle.image.url
+    : ""
+
+// Формируем href из section/subsection/slug
+const href = allArticle?.section && allArticle?.subsection
+  ? `/${allArticle.section}/${allArticle.subsection}/${allArticle.slug}`
+  : `/${allArticle?.slug}`
+
+// Собираем итоговый объект
+const parsArticle = [{
+  id: allArticle?.id,
+  href,
+  category: allArticle?.category || '',
+  image: imageUrl,
+  title: allArticle?.title || '',
+  description: allArticle?.description || '',
+  readTime: allArticle?.readTime || '',
+}]
+
+  // Моковые данные для Hero раздела (потом возьмёшь из БД)
+  const sectionHeroData = {
+    title: 'Транспорт на фукуоке',
+    description: 'машины, байки и лодки, которые стоит знать туристу',
+    intro:
+      'Собрали проверенные места, районы, цены, советы по выбору кухни и подборки для разных сценариев: завтрак, ужин, морепродукты, кофе и локальная еда.',
+    category: 'ТРАНСПОРТ',
+    section: sectionParam,
+    image: {
+      url: '/ImageWithFallback.jpg',
+      alt: 'Закат на Фукуоке',
+    },
+    search: {
+      placeholder: 'Поиск по сайту: пляжи, отели, еда, транспорт...',
+      tags: true,
+    },
   }
 
   return (
-    <div className="bg-zinc-50 min-h-[calc(100vh-80px)] py-12">
-      <div className="max-w-7xl mx-auto px-4">
-        <Link
-          href={`/${subSection.section}`}
-          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6"
-        >
-          <ArrowLeft size={18} />
-          Назад
-        </Link>
+    <div className="container">
+      <Hero dataHero={sectionHeroData} classes={{ container: `${classPY}` }} />
+      <BestSelections className={classPY} data={collectionsData}/>
+      <CollectionsBlock
+        collections={parsArticle}
+        // categories={categories}
+        title="Все подборки раздела"
+        containerClass={classPY}
+        itemsPerPage={4} 
+      />
 
-        {/* Header */}
-        <div className="mb-12">
-          {/* хлебные крошки  */}
-          <Breadcrumbs
-            URL={{
-              section: subSection.section,
-              subsection: subSection.slug,
-            }}
-          />
-
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{subSection.title}</h1>
-
-          {subSection.description && (
-            <p className="text-xl text-muted-foreground">{subSection.description}</p>
-          )}
-        </div>
-
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {subSection.articles.map((article) => {
-            const Icon = icons[article.slug as keyof typeof icons] || FileText
-
-            return (
-              <Link
-                key={article.slug}
-                href={`/${subSection.section}/${subSection.slug}/${article.slug}`}
-                className="
-                  group
-                  bg-white
-                  rounded-2xl
-                  p-6
-                  shadow-sm
-                  hover:shadow-lg
-                  transition-all
-                  border
-                  hover:-translate-y-1
-                "
-              >
-                <div
-                  className="
-                  w-14 h-14
-                  rounded-xl
-                  bg-blue-100
-                  text-blue-600
-                  flex
-                  items-center
-                  justify-center
-                  mb-4
-                  group-hover:bg-blue-600
-                  group-hover:text-white
-                  transition
-                "
-                >
-                  <Icon size={26} />
-                </div>
-
-                <h2 className="text-xl font-semibold mb-2">{article.title}</h2>
-
-                {article.description && (
-                  <p className="text-muted-foreground text-sm">{article.description}</p>
-                )}
-              </Link>
-            )
-          })}
-        </div>
-
-        {/* Quick Start */}
-        <div
-          className="
-          mt-14
-          bg-gradient-to-br
-          from-blue-600
-          to-indigo-700
-          rounded-2xl
-          p-8
-          text-white
-        "
-        >
-          <h2 className="text-2xl font-semibold mb-6">С чего начать?</h2>
-
-          <div className="grid md:grid-cols-4 gap-6">
-            {subSection.articles.slice(0, 4).map((article, i) => (
-              <div key={article.slug} className="flex gap-3">
-                <div
-                  className="
-                  w-8 h-8
-                  shrink-0
-                  rounded-full
-                  bg-white
-                  text-blue-600
-                  flex
-                  items-center
-                  justify-center
-                  font-bold
-                "
-                >
-                  {i + 1}
-                </div>
-
-                <div>
-                  <div className="font-medium">{article.title}</div>
-
-                  <div className="text-sm text-blue-100">Подробнее</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <ContinuePlanning className={classPY} data={collectionsData}/>
     </div>
   )
 }

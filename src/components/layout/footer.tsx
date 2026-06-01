@@ -88,6 +88,7 @@ export function Footer() {
                     alt={item.label}
                     width={32}
                     height={32}
+                    unoptimized={process.env.NODE_ENV === 'development'}
                   />
                 </Link>
               ))}

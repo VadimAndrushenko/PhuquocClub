@@ -1,18 +1,85 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, FieldHookArgs } from 'payload'
+
+/**
+ * Хук beforeChange: автоматически заполняет `section` из выбранной подборки.
+ */
+async function autoFillSection({ data, req }: FieldHookArgs) {
+  if (!data?.subsection) {
+    data.section = null
+    data.category = ''
+    return
+  }
+
+  try {
+    const subsectionId =
+      typeof data.subsection === 'object' && data.subsection !== null
+        ? (data.subsection as any).id
+        : data.subsection
+
+    if (!subsectionId) return
+
+    // Загружаем подборку с depth: 1 чтобы получить section
+    const subsection = await req.payload.findByID({
+      collection: 'subsections',
+      id: subsectionId,
+      depth: 1,
+    })
+
+    if (!subsection) return
+
+    // 🔥 category = название подборки (title)
+    data.category = subsection.title || ''
+
+    // 🔥 section = relationship к родительской секции подборки
+    if (subsection.section) {
+      data.section =
+        typeof subsection.section === 'object' && subsection.section !== null
+          ? (subsection.section as any).id
+          : subsection.section
+    }
+  } catch (error) {
+    console.error('❌ Ошибка автозаполнения:', error)
+  }
+}
+
+/**
+ * Хук afterRead: преобразует subsection и section в slug'и (строки)
+ * вместо огромных вложенных объектов.
+ */
+function simplifyRelationships({ doc }: { doc: any }) {
+  // subsection → slug
+  if (doc.subsection && typeof doc.subsection === 'object') {
+    doc.subsection = doc.subsection.slug || doc.subsection.id
+  }
+
+  // section → slug
+  if (doc.section && typeof doc.section === 'object') {
+    doc.section = doc.section.slug || doc.section.id
+  }
+
+  return doc
+}
 
 export const Articles: CollectionConfig = {
   slug: 'articles',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'section', 'category', 'status'],
+    defaultColumns: ['title', 'subsection', 'section', 'category', 'status'],
     description: 'Статьи для сайта — управляйте контентом здесь',
   },
-  versions: { 
+  versions: {
     drafts: {
       autosave: { interval: 100 },
     },
   },
   labels: { singular: 'Статья', plural: 'Статьи' },
+
+  hooks: {
+    beforeChange: [autoFillSection],
+    beforeValidate: [autoFillSection],
+    afterRead: [simplifyRelationships], // 🔥 упрощаем ответ API
+  },
+
   fields: [
     // === 🟢 СТАТУС ===
     {
@@ -25,10 +92,7 @@ export const Articles: CollectionConfig = {
       ],
       defaultValue: 'draft',
       required: true,
-      admin: {
-        description: 'Черновик не виден на сайте. Опубликованная статья — видна всем.',
-        position: 'sidebar',
-      },
+      admin: { position: 'sidebar' },
     },
 
     // === 📌 ОСНОВНАЯ ИНФОРМАЦИЯ ===
@@ -37,7 +101,7 @@ export const Articles: CollectionConfig = {
       type: 'text',
       label: 'Заголовок статьи',
       required: true,
-      admin: { description: 'Например: "Как арендовать байк на Фукуоке"', position: 'sidebar' },
+      admin: { position: 'sidebar' },
     },
     {
       name: 'slug',
@@ -45,25 +109,45 @@ export const Articles: CollectionConfig = {
       label: 'URL-адрес (slug)',
       required: true,
       unique: true,
-      admin: { description: 'Адрес статьи: /on-island/transport/[slug]. Только латиница и дефисы.', position: 'sidebar' },
+      admin: { position: 'sidebar' },
     },
-    {
-      name: 'section',
-      type: 'text',
-      label: 'Раздел сайта',
-      admin: { description: 'Например: on-island, before-trip', position: 'sidebar' },
-    },
+
+    // 🔥 ПОДБОРКА (relationship)
     {
       name: 'subsection',
-      type: 'text',
-      label: 'Подраздел',
-      admin: { description: 'Например: transport, accommodation', position: 'sidebar' },
+      type: 'relationship',
+      relationTo: 'subsections',
+      label: '📂 Подборка (подраздел)',
+      required: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Выберите подборку — category и section заполнятся автоматически.',
+      },
     },
+
+    // 🔥 РАЗДЕЛ (relationship к sections — можно выбрать вручную, но автозаполнение приоритетнее)
+    {
+      name: 'section',
+      type: 'relationship',
+      relationTo: 'sections',
+      label: '📁 Раздел сайта',
+      admin: {
+        position: 'sidebar',
+        description:
+          'Автозаполняется из подборки. При необходимости можно переопределить вручную.',
+      },
+    },
+
+    // 🔥 КАТЕГОРИЯ (авто из подборки, readOnly)
     {
       name: 'category',
       type: 'text',
-      label: 'Категория (для бейджа)',
-      admin: { description: 'Например: ТРАНСПОРТ, ЕДА, БЕЗОПАСНОСТЬ' },
+      label: '🏷️ Категория (авто)',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'Берётся автоматически из названия подборки.',
+      },
     },
 
     // === ✍️ ТЕКСТ ===
@@ -71,13 +155,13 @@ export const Articles: CollectionConfig = {
       name: 'description',
       type: 'textarea',
       label: 'Короткое описание',
-      admin: { description: 'Показывается под заголовком. 1-2 предложения.', rows: 3 },
+      admin: { rows: 3 },
     },
     {
       name: 'intro',
       type: 'textarea',
       label: 'Вступление',
-      admin: { description: 'Первый абзац статьи.', rows: 5 },
+      admin: { rows: 5 },
     },
 
     // === 🖼️ МЕДИА ===
@@ -86,7 +170,6 @@ export const Articles: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
       label: 'Обложка статьи',
-      admin: { description: 'Главное изображение. Рекомендуемый размер: 1200×800 px.' },
     },
 
     // === ⏱️ МЕТА ===
@@ -94,14 +177,12 @@ export const Articles: CollectionConfig = {
       name: 'readTime',
       type: 'text',
       label: 'Время чтения',
-      admin: { description: 'Например: "6 мин"' },
     },
     {
       name: 'author',
       type: 'text',
       label: 'Автор',
       defaultValue: 'Phuquoc.Club',
-      admin: { description: 'Кто написал статью' },
     },
 
     // === 🎯 БЛОК "КРАТКО" ===
@@ -109,14 +190,10 @@ export const Articles: CollectionConfig = {
       name: 'kratko_items',
       type: 'array',
       label: '📋 Блок "Кратко"',
-      admin: {
-        description: 'Карточки с важной информацией. Можно добавить 0–10 элементов.',
-      },
       fields: [
         {
           name: 'icon',
           type: 'select',
-          label: '🎨 Иконка',
           required: true,
           options: [
             { label: '💰 Деньги / Цена', value: 'DollarSign' },
@@ -126,131 +203,89 @@ export const Articles: CollectionConfig = {
             { label: '⏰ Время', value: 'Clock' },
             { label: '👤 Человек', value: 'User' },
           ],
-          admin: { description: 'Какая иконка будет слева' },
         },
-        {
-          name: 'label',
-          type: 'text',
-          label: '🏷️ Подпись',
-          required: true,
-          admin: { description: 'Например: "Цена", "Документы"' },
-        },
-        {
-          name: 'value',
-          type: 'text',
-          label: '💬 Значение',
-          required: true,
-          admin: { description: 'Например: "от 150 000 VND"' },
-        },
+        { name: 'label', type: 'text', required: true },
+        { name: 'value', type: 'text', required: true },
       ],
     },
 
-// === 🧱 БЛОКИ КОНТЕНТА  ===
-{
-  name: 'content_blocks',
-  type: 'array',  
-  label: '📝 Содержание статьи',
-  admin: {
-    description: 'Нажмите "Добавить" — секция добавится сразу',
-  },
-  fields: [
+    // === 🧱 БЛОКИ КОНТЕНТА ===
     {
-      name: 'title',
-      type: 'text',
-      label: '🔹 Заголовок секции',
-      required: true,
-      admin: { description: 'Например: "Где арендовать байк"' },
-    },
-    {
-      name: 'description',
-      type: 'textarea',
-      label: '🔹 Основной текст',
-      admin: { description: 'Содержание секции', rows: 6 },
-    },
-    {
-      name: 'contentType',
-      type: 'select',
-      label: '🔹 Дополнительный элемент',
-      options: [
-        { label: '— Не добавлять —', value: 'none' },
-        { label: '📊 Таблица', value: 'table' },
-        { label: '⚠️ Предупреждение', value: 'warning' },
-        { label: '✅ Чек-лист', value: 'checklist' },
-        { label: '💡 Совет', value: 'tips' },
-      ],
-      defaultValue: 'none',
-      admin: { description: 'Что показать после текста (необязательно)' },
-    },
-    // 📊 ТАБЛИЦА
-    {
-      name: 'table',
-      type: 'group',
-      label: '📊 Настройки таблицы',
-      admin: { condition: (_, sibling) => sibling.contentType === 'table' },
-      fields: [
-        {
-          name: 'headers',
-          type: 'group',
-          label: 'Заголовки столбцов',
-          fields: [
-            { name: 'header1', type: 'text', label: 'Название 1', required: true },
-            { name: 'header2', type: 'text', label: 'Название 2', required: true },
-            { name: 'header3', type: 'text', label: 'Название 3', required: true }
-          ],
-        },
-        {
-          name: 'rows',
-          type: 'array',
-          label: 'Строки',
-          fields: [
-            { name: 'cell1', type: 'text', label: 'Ячейка 1', required: true },
-            { name: 'cell2', type: 'text', label: 'Ячейка 2', required: true },
-            { name: 'cell3', type: 'text', label: 'Ячейка 3', required: true },
-          ],
-        },
-      ],
-    },
-    // ⚠️ ПРЕДУПРЕЖДЕНИЕ
-    {
-      name: 'warning',
-      type: 'textarea',
-      label: '⚠️ Текст предупреждения',
-      admin: { condition: (_, sibling) => sibling.contentType === 'warning', rows: 4 },
-    },
-    // ✅ ЧЕК-ЛИСТ
-    {
-      name: 'checklist',
+      name: 'content_blocks',
       type: 'array',
-      label: '✅ Пункты чек-листа',
-      admin: { condition: (_, sibling) => sibling.contentType === 'checklist' },
-      fields: [{ name: 'item', type: 'text', label: 'Пункт', required: true }],
+      label: '📝 Содержание статьи',
+      fields: [
+        { name: 'title', type: 'text', required: true },
+        { name: 'description', type: 'textarea', admin: { rows: 6 } },
+        {
+          name: 'contentType',
+          type: 'select',
+          options: [
+            { label: '— Не добавлять —', value: 'none' },
+            { label: '📊 Таблица', value: 'table' },
+            { label: '⚠️ Предупреждение', value: 'warning' },
+            { label: '✅ Чек-лист', value: 'checklist' },
+            { label: '💡 Совет', value: 'tips' },
+          ],
+          defaultValue: 'none',
+        },
+        {
+          name: 'table',
+          type: 'group',
+          admin: { condition: (_, sibling) => sibling.contentType === 'table' },
+          fields: [
+            {
+              name: 'headers',
+              type: 'group',
+              fields: [
+                { name: 'header1', type: 'text', required: true },
+                { name: 'header2', type: 'text', required: true },
+                { name: 'header3', type: 'text', required: true },
+              ],
+            },
+            {
+              name: 'rows',
+              type: 'array',
+              fields: [
+                { name: 'cell1', type: 'text', required: true },
+                { name: 'cell2', type: 'text', required: true },
+                { name: 'cell3', type: 'text', required: true },
+              ],
+            },
+          ],
+        },
+        {
+          name: 'warning',
+          type: 'textarea',
+          admin: { condition: (_, sibling) => sibling.contentType === 'warning', rows: 4 },
+        },
+        {
+          name: 'checklist',
+          type: 'array',
+          admin: { condition: (_, sibling) => sibling.contentType === 'checklist' },
+          fields: [{ name: 'item', type: 'text', required: true }],
+        },
+        {
+          name: 'tips',
+          type: 'textarea',
+          admin: { condition: (_, sibling) => sibling.contentType === 'tips', rows: 4 },
+        },
+      ],
     },
-    // 💡 СОВЕТ
-    {
-      name: 'tips',
-      type: 'textarea',
-      label: '💡 Текст совета',
-      admin: { condition: (_, sibling) => sibling.contentType === 'tips', rows: 4 },
-    },
-  ],
-},
 
     // === 🔗 СВЯЗАННЫЕ СТАТЬИ ===
     {
       name: 'related_articles',
       type: 'array',
       label: '🔗 Похожие статьи',
-      admin: {
-        description: 'Рекомендации в конце статьи.',
-      },
       fields: [
-        { name: 'id', type: 'text', label: 'ID', admin: { description: 'Уникальный идентификатор' } },
-        { name: 'category', type: 'text', label: 'Категория' },
-        { name: 'title', type: 'text', label: 'Заголовок', required: true },
-        { name: 'description', type: 'textarea', label: 'Описание', admin: { rows: 3 } },
-        { name: 'image', type: 'text', label: 'Путь к изображению' },
-        { name: 'href', type: 'text', label: 'Ссылка', required: true },
-        { name: 'readTime', type: 'text', label: 'Время чтения' },
+        { name: 'id', type: 'text' },
+        { name: 'category', type: 'text' },
+        { name: 'title', type: 'text', required: true },
+        { name: 'description', type: 'textarea', admin: { rows: 3 } },
+        { name: 'image', type: 'text' },
+        { name: 'href', type: 'text', required: true },
+        { name: 'readTime', type: 'text' },
       ],
     },
 
@@ -259,10 +294,9 @@ export const Articles: CollectionConfig = {
       name: 'useful_links',
       type: 'array',
       label: '📚 Полезные ссылки',
-      admin: { description: 'Ссылки на другие разделы.' },
       fields: [
-        { name: 'href', type: 'text', label: '🔗 URL', required: true },
-        { name: 'label', type: 'text', label: '🏷️ Текст', required: true },
+        { name: 'href', type: 'text', required: true },
+        { name: 'label', type: 'text', required: true },
       ],
     },
 
@@ -271,17 +305,11 @@ export const Articles: CollectionConfig = {
       name: 'seo',
       type: 'group',
       label: '🔍 SEO и мета-теги',
-      admin: { description: 'Настройки для поисковиков' },
       fields: [
-        { name: 'title', type: 'text', label: '📄 SEO-заголовок', admin: { description: 'До 60 символов' } },
-        { name: 'description', type: 'textarea', label: '📝 SEO-описание', admin: { description: 'До 160 символов', rows: 3 } },
-        {
-          name: 'keywords',
-          type: 'array',
-          label: '🏷️ Ключевые слова',
-          fields: [{ name: 'keyword', type: 'text', label: 'Слово' }],
-        },
-        { name: 'noIndex', type: 'checkbox', label: '🚫 Не индексировать', admin: { description: 'Для черновиков' } },
+        { name: 'title', type: 'text' },
+        { name: 'description', type: 'textarea', admin: { rows: 3 } },
+        { name: 'keywords', type: 'array', fields: [{ name: 'keyword', type: 'text' }] },
+        { name: 'noIndex', type: 'checkbox' },
       ],
     },
   ],

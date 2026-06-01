@@ -1,4 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
+import { HeroData } from './blockType/hero.type'
+import { ImageType } from './global.type'
 
 // ============================================
 // 🎯 ТИПЫ ДЛЯ СЫРЫХ ДАННЫХ ИЗ PAYLOAD CMS
@@ -85,8 +87,8 @@ export interface PayloadUsefulLink {
 
 /** SEO настройки */
 export interface PayloadSEO {
-  title?: string
-  description?: string
+  title: string
+  description: string
   keywords?: Array<{ id?: string; keyword: string }>
   noIndex?: boolean
 }
@@ -104,12 +106,12 @@ export interface PayloadArticle {
   author: string
   description: string
   intro: string
-  image?: PayloadMedia | null
+  image: PayloadMedia 
   kratko_items?: PayloadKratkoItem[]
   content_blocks?: any[]  // теперь array, не blocks
   related_articles?: PayloadRelatedArticle[]
   useful_links?: PayloadUsefulLink[]
-  seo?: PayloadSEO
+  seo: PayloadSEO
   createdAt: string
   updatedAt: string
 }
@@ -117,6 +119,21 @@ export interface PayloadArticle {
 // ============================================
 // 🎯 ТИПЫ ДЛЯ ТРАНСФОРМИРОВАННЫХ ДАННЫХ
 // ============================================
+
+export type HeroArticleData = {
+  slug: string
+  section: string
+  subsection: string
+  title: string
+  description: string
+  intro: string
+  category: string
+  readTime: string
+  author: string
+  updatedAt?: string
+  createdAt?: string
+  image: ImageType
+}
 
 /** Элемент блока "Кратко" для компонента */
 export interface KratkoItem {
@@ -161,7 +178,7 @@ export interface UsefulLink {
 
 /** Результат трансформации статьи */
 export interface TransformedArticleData {
-  article: PayloadArticle
+  heroData: HeroArticleData        
   kratkoItems: KratkoItem[]
   sectionBlocks: SectionBlock[]
   relatedArticles: RelatedArticle[]
@@ -173,51 +190,38 @@ export interface TransformedArticleData {
 // ============================================
 
 /** Props для HederArticle */
-export interface HederArticleProps {
-  className?: string
-  article: {
-    slug?: string
-    section?: string
-    subsection?: string
-    title?: string
-    description?: string
-    intro?: string
-    category?: string
-    readTime?: string
-    author?: string
-    updatedAt?: string
-    createdAt?: string
-    image?: PayloadMedia | string | null
-  }
+export interface HeroArticleProps {
+  containerClass?: string
+  dataArticle: HeroArticleData
 }
 
 /** Props для KratkoArticle */
 export interface KratkoArticleProps {
-  className?: string
+  containerClass?: string
   items: KratkoItem[]
 }
 
 /** Props для NavigationArticle */
 export interface NavigationArticleProps {
-  className?: string
+  containerClass?: string
   blocks: SectionBlock[]
 }
 
 /** Props для BodyArticle */
 export interface BodyArticleProps {
-  className?: string
+  containerClass?: string
   contentArticle: SectionBlock[]
 }
 
 /** Props для UsefulArticle */
 export interface UsefulArticleProps {
-  className?: string
+  containerClass?: string
   links?: UsefulLink[]
 }
 
 /** Props для RelatedArticles */
 export interface RelatedArticlesProps {
-  className?: string
+  containerClass?: string
   articles: RelatedArticle[]
   title?: string
 }

@@ -2,7 +2,7 @@
 import { Sun, BookType, Wallet, House } from "lucide-react";
 
 import { cn } from '@/lib/utils';
-import { InfoCard } from "@/components/ui/InfoCard";
+import { TripPlanning } from "@/components/ui/InfoCard";
 
 const infoCards = [
   {
@@ -36,20 +36,20 @@ const infoCards = [
 ];
 
 export default function Urgent({
-    className = "" 
+    containerClass = "" 
 }: {
-    className?: string 
+    containerClass?: string 
 } ) {
     
   return (
     <section className="bg-urgent bg-cover bg-centerpy-20">
-      <div className={cn("py-20 max-sm:py-10",className)}>
+      <div className={cn("",containerClass)}>
         
         <div className="flex items-center gap-2 mb-4">
           <h2 className="title text-white">Срочно нужно</h2>
         </div>
 
-        <InfoCard
+        <TripPlanning
           arr={infoCards}
         />
 

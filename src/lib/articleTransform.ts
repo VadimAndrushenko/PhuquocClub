@@ -19,6 +19,7 @@ import type {
   PayloadContentBlock,
   PayloadRelatedArticle,
   PayloadUsefulLink,
+  HeroArticleData,
 } from '@/shared/types/article.type'
 
 const iconMap: Record<string, LucideIcon> = {
@@ -31,7 +32,34 @@ const iconMap: Record<string, LucideIcon> = {
 }
 
 export function transformArticle(article: PayloadArticle): TransformedArticleData {
-  // 1. 🎯 Блок "Кратко" — используем PayloadKratkoItem
+  // ============================================
+  // 🎯 ДАННЫЕ ДЛЯ HERO КОМПОНЕНТА
+  // ============================================
+  console.log(article );
+  
+
+  // Формируем объект для Hero
+  const heroData: HeroArticleData = {
+    title: article.title || 'Заголовок пуст',
+    description: article.description || 'пуст',
+    intro: article.intro || 'пуст',
+    category: article.category , 
+    image: {
+      url: article.image.url,
+      alt: article.image.alt || article.title,
+    },
+    readTime: article.readTime || '',
+    author: article.author || 'Phuquoc.Club',
+    updatedAt: article.updatedAt,
+    createdAt: article.createdAt,
+    section: article.section,
+    subsection: article.subsection.slug ,
+    slug: article.slug ,
+  }
+
+  // ============================================
+  // 📋 БЛОК "КРАТКО"
+  // ============================================
   const kratkoItems: KratkoItem[] = (article.kratko_items || []).map(
     (item: PayloadKratkoItem) => ({
       icon: iconMap[item.icon] || FileText,
@@ -39,17 +67,18 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
       value: item.value,
     })
   )
-  
-  // 2. 🧱 Секции статьи — используем PayloadContentBlock
-  const sectionBlocks: SectionBlock[] = (article.content_blocks || [])
-    .map((block: PayloadContentBlock) => {
+
+  // ============================================
+  // 🧱 СЕКЦИИ СТАТЬИ
+  // ============================================
+  const sectionBlocks: SectionBlock[] = (article.content_blocks || []).map(
+    (block: PayloadContentBlock) => {
       const result: SectionBlock = {
         title: block.title,
         description: block.description,
         typeContent: block.contentType === 'none' ? undefined : block.contentType,
       }
 
-      // 📊 Таблица
       if (block.contentType === 'table' && block.table) {
         const { headers, rows } = block.table
         result.table = {
@@ -58,24 +87,21 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
           ) as string[],
           rows: rows?.map((r) => [r.cell1, r.cell2, r.cell3]) || [],
         }
-      }
-      // ⚠️ Предупреждение
-      else if (block.contentType === 'warning') {
+      } else if (block.contentType === 'warning') {
         result.warning = block.warning
-      }
-      // ✅ Чек-лист
-      else if (block.contentType === 'checklist') {
+      } else if (block.contentType === 'checklist') {
         result.checklist = block.checklist?.map((c) => c.item) || []
-      }
-      // 💡 Совет
-      else if (block.contentType === 'tips') {
+      } else if (block.contentType === 'tips') {
         result.tips = block.tips
       }
 
       return result
-    })
+    }
+  )
 
-  // 3. 📚 Полезные ссылки — используем PayloadUsefulLink
+  // ============================================
+  // 📚 ПОЛЕЗНЫЕ ССЫЛКИ
+  // ============================================
   const usefulLinks: UsefulLink[] = (article.useful_links || []).map(
     (link: PayloadUsefulLink) => ({
       href: link.href,
@@ -83,7 +109,9 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
     })
   )
 
-  // 4. 🔗 Связанные статьи — используем PayloadRelatedArticle
+  // ============================================
+  // 🔗 СВЯЗАННЫЕ СТАТЬИ
+  // ============================================
   const relatedArticles: RelatedArticle[] = (article.related_articles || []).map(
     (a: PayloadRelatedArticle) => ({
       id: a.id || '',
@@ -96,9 +124,8 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
     })
   )
 
-
   return {
-    article,
+    heroData,      
     kratkoItems,
     sectionBlocks,
     relatedArticles,
