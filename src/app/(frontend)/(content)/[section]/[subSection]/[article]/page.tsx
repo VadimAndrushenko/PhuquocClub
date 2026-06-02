@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getArticleBySlug } from '@/lib/payload'
 import { transformArticle } from '@/lib/articleTransform'
-import type { ArticlePageProps } from '@/shared/types/article.type'
+import type { ArticlePageProps } from '@/shared/types/pageType/article.type'
 
 import KratkoArticle from '@/dataPage/articleDataPage/sectionArticle/KratkoArticle'
 import BodyArticle from '@/dataPage/articleDataPage/sectionArticle/BodyArticle'
@@ -33,23 +33,18 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   const { heroData, kratkoItems, sectionBlocks, usefulLinks, relatedArticles } =
     transformArticle(rawArticle)
-    
 
   return (
     <div className="container">
       <article>
-        
-        <HeroArticle
-          containerClass={classPY}
-          dataArticle={heroData}
-        />
+        <HeroArticle containerClass={classPY} dataArticle={heroData} />
 
         {kratkoItems.length > 0 && <KratkoArticle containerClass={classPY} items={kratkoItems} />}
 
         {sectionBlocks.length > 0 && (
           <>
             <NavigationArticle blocks={sectionBlocks} containerClass={classPY} />
-            <BodyArticle contentArticle={sectionBlocks} containerClass={classPY}/>
+            <BodyArticle contentArticle={sectionBlocks} containerClass={classPY} />
           </>
         )}
 

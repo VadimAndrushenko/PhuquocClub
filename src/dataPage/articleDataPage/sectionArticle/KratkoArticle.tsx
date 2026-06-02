@@ -1,10 +1,7 @@
 import { cn } from '@/lib/utils'
-import type { KratkoArticleProps } from '@/shared/types/article.type'
+import type { KratkoArticleProps } from '@/shared/types/pageType/article.type'
 
-export default function KratkoArticle({
-  containerClass = '',
-  items,
-}: KratkoArticleProps) {
+export default function KratkoArticle({ containerClass = '', items }: KratkoArticleProps) {
   return (
     <section className={cn(containerClass)}>
       <div className="bg-block">

@@ -1,17 +1,13 @@
 import { slugify } from '@/lib/utils'
 import { ContentComponents } from '../articleComponents/ContentComponents'
-import type { BodyArticleProps } from '@/shared/types/article.type'
+import type { BodyArticleProps } from '@/shared/types/pageType/article.type'
 
-export default function BodyArticle({
-  containerClass = '',
-  contentArticle,
-}: BodyArticleProps) {
+export default function BodyArticle({ containerClass = '', contentArticle }: BodyArticleProps) {
   return (
     <>
       {contentArticle.map((item, index) => {
         const Component =
-          item.typeContent &&
-          ContentComponents[item.typeContent as keyof typeof ContentComponents]
+          item.typeContent && ContentComponents[item.typeContent as keyof typeof ContentComponents]
 
         return (
           <section id={slugify(item.title)} key={index} className={containerClass}>

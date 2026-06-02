@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import ContinuePlanning from '@/components/readyBlock/ContinuePlanning'
 import BestSelections from '@/components/readyBlock/BestSelections'
 import CollectionsBlock from '@/components/readyBlock/CollectionsBlock'
-import { SubSectionPageProps } from '@/shared/types/subSection.type'
+import { SubSectionPageProps } from '@/shared/types/pageType/subSection.type'
 import { getArticleBySlug } from '@/lib/payload'
 import Hero from '@/components/readyBlock/Hero'
 
@@ -80,7 +80,7 @@ const classPY = 'py-10 max-md:py-6'
 export default async function SubSectionPage({ params }: SubSectionPageProps) {
   const { section: sectionParam } = await params
 
-const allArticle = await getArticleBySlug('bike-rental-phu-quoc')
+const allArticle = await getArticleBySlug('masina')
 
 // Извлекаем URL изображения
 const imageUrl =

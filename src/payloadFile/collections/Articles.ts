@@ -1,24 +1,47 @@
-import type { CollectionConfig, FieldHookArgs } from 'payload'
+import type { CollectionConfig, FieldHookArgs, Where } from 'payload'
 
-/**
- * Хук beforeChange: автоматически заполняет `section` из выбранной подборки.
- */
-async function autoFillSection({ data, req }: FieldHookArgs) {
+// ============================================
+// 🔧 ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ============================================
+
+/** Генерирует href из section/subsection/slug */
+function generateHref(doc: any): string {
+  if (!doc) return '/'
+  
+  const sectionSlug = typeof doc.section === 'object' && doc.section 
+    ? doc.section.slug 
+    : doc.section || ''
+    
+  const subsectionSlug = typeof doc.subsection === 'object' && doc.subsection 
+    ? doc.subsection.slug 
+    : doc.subsection || ''
+    
+  const articleSlug = doc.slug || ''
+  
+  if (sectionSlug && subsectionSlug && articleSlug) {
+    return `/${sectionSlug}/${subsectionSlug}/${articleSlug}`
+  }
+  return `/${articleSlug}`
+}
+
+// ============================================
+// 🪝 ХУКИ
+// ============================================
+
+async function autoFillFromSubsection({ data, req }: FieldHookArgs<Record<string, unknown>>): Promise<void> {
   if (!data?.subsection) {
-    data.section = null
+    data.section = ''
     data.category = ''
     return
   }
 
   try {
-    const subsectionId =
-      typeof data.subsection === 'object' && data.subsection !== null
-        ? (data.subsection as any).id
-        : data.subsection
+    const subsectionId = typeof data.subsection === 'object' && data.subsection !== null && 'id' in data.subsection
+      ? (data.subsection as { id: string }).id
+      : data.subsection as string
 
     if (!subsectionId) return
 
-    // Загружаем подборку с depth: 1 чтобы получить section
     const subsection = await req.payload.findByID({
       collection: 'subsections',
       id: subsectionId,
@@ -27,15 +50,14 @@ async function autoFillSection({ data, req }: FieldHookArgs) {
 
     if (!subsection) return
 
-    // 🔥 category = название подборки (title)
-    data.category = subsection.title || ''
+    data.category = (subsection as { title?: string }).title || ''
 
-    // 🔥 section = relationship к родительской секции подборки
-    if (subsection.section) {
-      data.section =
-        typeof subsection.section === 'object' && subsection.section !== null
-          ? (subsection.section as any).id
-          : subsection.section
+    const sectionField = (subsection as { section?: unknown }).section
+    if (sectionField) {
+      const sectionSlug = typeof sectionField === 'object' && sectionField !== null && 'slug' in sectionField
+        ? (sectionField as { slug?: string }).slug
+        : null
+      data.section = sectionSlug || ''
     }
   } catch (error) {
     console.error('❌ Ошибка автозаполнения:', error)
@@ -43,41 +65,54 @@ async function autoFillSection({ data, req }: FieldHookArgs) {
 }
 
 /**
- * Хук afterRead: преобразует subsection и section в slug'и (строки)
- * вместо огромных вложенных объектов.
+ * 🔥 ГЛАВНЫЙ ХУК: генерирует href для статьи и всех связанных статей
+ * + упрощает subsection в slug
  */
-function simplifyRelationships({ doc }: { doc: any }) {
-  // subsection → slug
-  if (doc.subsection && typeof doc.subsection === 'object') {
-    doc.subsection = doc.subsection.slug || doc.subsection.id
+function enrichWithHref({ doc }: { doc: any }): any {
+  if (!doc) return doc
+
+  // 1. Генерируем href для текущей статьи
+  doc.href = generateHref(doc)
+
+  // 2. Упрощаем subsection в slug (строку)
+  if (doc.subsection && typeof doc.subsection === 'object' && doc.subsection !== null && 'slug' in doc.subsection) {
+    doc.subsection = doc.subsection.slug
   }
 
-  // section → slug
-  if (doc.section && typeof doc.section === 'object') {
-    doc.section = doc.section.slug || doc.section.id
+  // 3. 🔥 Генерируем href для каждой связанной статьи
+  if (Array.isArray(doc.related_articles)) {
+    doc.related_articles = doc.related_articles.map((article: any) => {
+      if (article && typeof article === 'object' && 'slug' in article) {
+        return {
+          ...article,
+          href: generateHref(article), // ← автоматический href!
+        }
+      }
+      return article
+    })
   }
 
   return doc
 }
 
+// ============================================
+// 📦 КОЛЛЕКЦИЯ
+// ============================================
+
 export const Articles: CollectionConfig = {
-  slug: 'articles',
+  slug: 'Articles',
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'subsection', 'section', 'category', 'status'],
     description: 'Статьи для сайта — управляйте контентом здесь',
   },
-  versions: {
-    drafts: {
-      autosave: { interval: 100 },
-    },
-  },
+  versions: { drafts: { autosave: { interval: 100 } } },
   labels: { singular: 'Статья', plural: 'Статьи' },
 
   hooks: {
-    beforeChange: [autoFillSection],
-    beforeValidate: [autoFillSection],
-    afterRead: [simplifyRelationships], // 🔥 упрощаем ответ API
+    beforeChange: [autoFillFromSubsection],
+    beforeValidate: [autoFillFromSubsection],
+    afterRead: [enrichWithHref], // 🔥 Один хук делает всё
   },
 
   fields: [
@@ -112,7 +147,20 @@ export const Articles: CollectionConfig = {
       admin: { position: 'sidebar' },
     },
 
-    // 🔥 ПОДБОРКА (relationship)
+    // === 🔗 ПОХОЖИЕ СТАТЬИ (в основном контенте, без sidebar) ===
+
+    // === 🔥 ВИРТУАЛЬНОЕ ПОЛЕ href (только для чтения, заполняется хуком) ===
+    {
+      name: 'href',
+      type: 'text',
+      label: '🔗 Ссылка на статью (авто)',
+      admin: {
+        readOnly: true,
+        description: 'Генерируется автоматически из раздела, подборки и slug.',
+      },
+    },
+
+    // === 📂 ПОДБОРКА ===
     {
       name: 'subsection',
       type: 'relationship',
@@ -121,33 +169,20 @@ export const Articles: CollectionConfig = {
       required: true,
       admin: {
         position: 'sidebar',
-        description: 'Выберите подборку — category и section заполнятся автоматически.',
+        description: 'Выберите подборку — раздел и категория заполнятся автоматически.',
       },
     },
-
-    // 🔥 РАЗДЕЛ (relationship к sections — можно выбрать вручную, но автозаполнение приоритетнее)
     {
       name: 'section',
-      type: 'relationship',
-      relationTo: 'sections',
-      label: '📁 Раздел сайта',
-      admin: {
-        position: 'sidebar',
-        description:
-          'Автозаполняется из подборки. При необходимости можно переопределить вручную.',
-      },
+      type: 'text',
+      label: '📁 Раздел сайта (авто)',
+      admin: { position: 'sidebar', readOnly: true },
     },
-
-    // 🔥 КАТЕГОРИЯ (авто из подборки, readOnly)
     {
       name: 'category',
       type: 'text',
       label: '🏷️ Категория (авто)',
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-        description: 'Берётся автоматически из названия подборки.',
-      },
+      admin: { readOnly: true, position: 'sidebar' },
     },
 
     // === ✍️ ТЕКСТ ===
@@ -155,12 +190,14 @@ export const Articles: CollectionConfig = {
       name: 'description',
       type: 'textarea',
       label: 'Короткое описание',
+      required: true,
       admin: { rows: 3 },
     },
     {
       name: 'intro',
       type: 'textarea',
       label: 'Вступление',
+      required: true,
       admin: { rows: 5 },
     },
 
@@ -170,6 +207,7 @@ export const Articles: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
       label: 'Обложка статьи',
+      required: true,
     },
 
     // === ⏱️ МЕТА ===
@@ -177,29 +215,29 @@ export const Articles: CollectionConfig = {
       name: 'readTime',
       type: 'text',
       label: 'Время чтения',
+      required: true,
     },
     {
       name: 'author',
       type: 'text',
       label: 'Автор',
+      required: true,
       defaultValue: 'Phuquoc.Club',
     },
 
-    // === 🎯 БЛОК "КРАТКО" ===
+    // === 📋 БЛОК КРАТКО ===
     {
       name: 'kratko_items',
       type: 'array',
       label: '📋 Блок "Кратко"',
       fields: [
         {
-          name: 'icon',
-          type: 'select',
-          required: true,
+          name: 'icon', type: 'select', required: true,
           options: [
-            { label: '💰 Деньги / Цена', value: 'DollarSign' },
+            { label: '💰 Деньги', value: 'DollarSign' },
             { label: '📄 Документы', value: 'FileText' },
             { label: '📍 Местоположение', value: 'MapPin' },
-            { label: '⚠️ Важно / Внимание', value: 'ShieldAlert' },
+            { label: '⚠️ Важно', value: 'ShieldAlert' },
             { label: '⏰ Время', value: 'Clock' },
             { label: '👤 Человек', value: 'User' },
           ],
@@ -218,8 +256,7 @@ export const Articles: CollectionConfig = {
         { name: 'title', type: 'text', required: true },
         { name: 'description', type: 'textarea', admin: { rows: 6 } },
         {
-          name: 'contentType',
-          type: 'select',
+          name: 'contentType', type: 'select',
           options: [
             { label: '— Не добавлять —', value: 'none' },
             { label: '📊 Таблица', value: 'table' },
@@ -230,13 +267,11 @@ export const Articles: CollectionConfig = {
           defaultValue: 'none',
         },
         {
-          name: 'table',
-          type: 'group',
+          name: 'table', type: 'group',
           admin: { condition: (_, sibling) => sibling.contentType === 'table' },
           fields: [
             {
-              name: 'headers',
-              type: 'group',
+              name: 'headers', type: 'group',
               fields: [
                 { name: 'header1', type: 'text', required: true },
                 { name: 'header2', type: 'text', required: true },
@@ -244,8 +279,7 @@ export const Articles: CollectionConfig = {
               ],
             },
             {
-              name: 'rows',
-              type: 'array',
+              name: 'rows', type: 'array',
               fields: [
                 { name: 'cell1', type: 'text', required: true },
                 { name: 'cell2', type: 'text', required: true },
@@ -254,38 +288,9 @@ export const Articles: CollectionConfig = {
             },
           ],
         },
-        {
-          name: 'warning',
-          type: 'textarea',
-          admin: { condition: (_, sibling) => sibling.contentType === 'warning', rows: 4 },
-        },
-        {
-          name: 'checklist',
-          type: 'array',
-          admin: { condition: (_, sibling) => sibling.contentType === 'checklist' },
-          fields: [{ name: 'item', type: 'text', required: true }],
-        },
-        {
-          name: 'tips',
-          type: 'textarea',
-          admin: { condition: (_, sibling) => sibling.contentType === 'tips', rows: 4 },
-        },
-      ],
-    },
-
-    // === 🔗 СВЯЗАННЫЕ СТАТЬИ ===
-    {
-      name: 'related_articles',
-      type: 'array',
-      label: '🔗 Похожие статьи',
-      fields: [
-        { name: 'id', type: 'text' },
-        { name: 'category', type: 'text' },
-        { name: 'title', type: 'text', required: true },
-        { name: 'description', type: 'textarea', admin: { rows: 3 } },
-        { name: 'image', type: 'text' },
-        { name: 'href', type: 'text', required: true },
-        { name: 'readTime', type: 'text' },
+        { name: 'warning', type: 'textarea', admin: { condition: (_, sibling) => sibling.contentType === 'warning', rows: 4 } },
+        { name: 'checklist', type: 'array', admin: { condition: (_, sibling) => sibling.contentType === 'checklist' }, fields: [{ name: 'item', type: 'text', required: true }] },
+        { name: 'tips', type: 'textarea', admin: { condition: (_, sibling) => sibling.contentType === 'tips', rows: 4 } },
       ],
     },
 
@@ -293,11 +298,32 @@ export const Articles: CollectionConfig = {
     {
       name: 'useful_links',
       type: 'array',
-      label: '📚 Полезные ссылки',
       fields: [
         { name: 'href', type: 'text', required: true },
         { name: 'label', type: 'text', required: true },
       ],
+    },
+    {
+      name: 'related_articles',
+      type: 'relationship',
+      relationTo: 'Articles',
+      label: '🔗 Похожие статьи',
+      hasMany: true,
+      maxDepth: 1, // 🔥 Payload подгружает полные объекты статей
+      admin: {
+        description: 'Начните вводить заголовок — появится поиск по статьям.',
+      },
+      filterOptions: ({ id }): Where => {
+        if (!id || typeof id !== 'string') {
+          return { status: { equals: 'published' } }
+        }
+        return {
+          and: [
+            { id: { not_equals: id } },
+            { status: { equals: 'published' } },
+          ],
+        }
+      },
     },
 
     // === 🔍 SEO ===
@@ -306,9 +332,9 @@ export const Articles: CollectionConfig = {
       type: 'group',
       label: '🔍 SEO и мета-теги',
       fields: [
-        { name: 'title', type: 'text' },
-        { name: 'description', type: 'textarea', admin: { rows: 3 } },
-        { name: 'keywords', type: 'array', fields: [{ name: 'keyword', type: 'text' }] },
+        { name: 'title', type: 'text', label: 'SEO-заголовок', required: true },
+        { name: 'description', type: 'textarea', label: 'SEO-описание', required: true, admin: { rows: 3 } },
+        { name: 'keywords', type: 'array', required: true, minRows: 1, fields: [{ name: 'keyword', type: 'text', required: true }] },
         { name: 'noIndex', type: 'checkbox' },
       ],
     },

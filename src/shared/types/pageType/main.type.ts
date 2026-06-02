@@ -1,5 +1,4 @@
-import { ImageType } from "./global.type"
-
+import { PayloadMedia } from '../global.type'
 
 interface SectionSearch {
   placeholder: string
@@ -16,6 +15,6 @@ export interface HeroMainProps {
     /** Настройки поиска */
     search: SectionSearch
     /** Путь к изображению */
-    image: ImageType
+    image: PayloadMedia
   }
 }

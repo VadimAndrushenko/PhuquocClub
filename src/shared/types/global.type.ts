@@ -1,5 +1,9 @@
-export type ImageType = { 
+export interface PayloadMedia {
+  id?: string | number
   url: string
-  alt: string 
-} 
-
+  filename?: string
+  mimeType?: string
+  alt: string
+  width?: number
+  height?: number
+}

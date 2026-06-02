@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import type { SectionBlock } from '@/shared/types/article.type'
+import type { SectionBlock } from '@/shared/types/pageType/article.type'
 import { CircleAlert, CircleCheck, Lightbulb } from 'lucide-react'
 
 export const ContentComponents = {
@@ -31,7 +31,7 @@ export const ContentComponents = {
                       key={cellIndex}
                       className={cn(
                         'px-6 py-5 align-top text-left leading-[1.6] text-[#364153] whitespace-nowrap max-sm:px-2',
-                        cellIndex === 0 && 'font-medium text-gray-800'
+                        cellIndex === 0 && 'font-medium text-gray-800',
                       )}
                     >
                       {cell}

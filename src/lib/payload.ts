@@ -1,6 +1,6 @@
 import config from '@payload-config'
 import { getPayload, type Where } from 'payload'
-import type { PayloadArticle } from '@/shared/types/article.type'
+import type { PayloadArticle } from '@/shared/types/pageType/article.type'
 
 export const getPayloadClient = async () => {
   return await getPayload({ config })
@@ -11,7 +11,7 @@ export async function getAllArticles(): Promise<PayloadArticle[]> {
   const payload = await getPayloadClient()
 
   const { docs } = await payload.find({
-    collection: 'articles',
+    collection: 'Articles',
     where: {
       status: { equals: 'published' },
     } as Where,
@@ -24,13 +24,11 @@ export async function getAllArticles(): Promise<PayloadArticle[]> {
 }
 
 /** Получить одну статью по slug */
-export async function getArticleBySlug(
-  slug: string
-): Promise<PayloadArticle | null> {
+export async function getArticleBySlug(slug: string): Promise<PayloadArticle | null> {
   const payload = await getPayloadClient()
 
   const { docs } = await payload.find({
-    collection: 'articles',
+    collection: 'Articles',
     where: {
       // status: { equals: 'published' },
       slug: { equals: slug },
@@ -45,12 +43,12 @@ export async function getArticleBySlug(
 /** Получить связанные статьи */
 export async function getRelatedArticles(
   currentSlug: string,
-  limit = 3
+  limit = 3,
 ): Promise<PayloadArticle[]> {
   const payload = await getPayloadClient()
 
   const { docs } = await payload.find({
-    collection: 'articles',
+    collection: 'Articles',
     where: {
       status: { equals: 'published' },
       slug: { not_equals: currentSlug },

@@ -13,7 +13,7 @@ import {
 
 import ContinuePlanning from '@/components/readyBlock/ContinuePlanning'
 import BestSelections from '@/components/readyBlock/BestSelections'
-import { SectionPageProps } from '@/shared/types/section.type'
+import { SectionPageProps } from '@/shared/types/pageType/section.type'
 import CollectionsBlock from '@/components/readyBlock/CollectionsBlock'
 import Hero from '@/components/readyBlock/Hero'
 
@@ -178,7 +178,7 @@ const articles = [
   },
 
   // === ЕДА ===
-  
+
   {
     id: 21,
     href: '/food/seafood',
@@ -985,10 +985,10 @@ const collectionsData = [
     id: 1,
     href: '/food/restaurants',
     category: 'ЕДА',
-    image: { 
-      url: "http://localhost:3000/api/media/file/collection.png",
-      alt: "Collection Image" 
-    } ,
+    image: {
+      url: 'http://localhost:3000/api/media/file/collection.png',
+      alt: 'Collection Image',
+    },
     title: 'Топ рестораны',
     description: 'Лучшие места от локальной кухни до изысканных ресторанов.',
     number: 1,
@@ -997,9 +997,9 @@ const collectionsData = [
     id: 2,
     href: '/beaches/best',
     category: 'ПЛЯЖИ',
-    image: { 
-      url: "http://localhost:3000/api/media/file/collection.png",
-      alt: "Collection Image" 
+    image: {
+      url: 'http://localhost:3000/api/media/file/collection.png',
+      alt: 'Collection Image',
     },
     title: 'Лучшие пляжи',
     description: 'Самые красивые и удобные пляжи для отдыха и сноркелинга.',
@@ -1009,9 +1009,9 @@ const collectionsData = [
     id: 3,
     href: '/routes/1-day',
     category: 'МАРШРУТЫ',
-    image: { 
-      url: "http://localhost:3000/api/media/file/hero-image-article-1.jpg",
-      alt: "Collection Image" 
+    image: {
+      url: 'http://localhost:3000/api/media/file/hero-image-article-1.jpg',
+      alt: 'Collection Image',
     },
     title: 'Маршрут на 1 день',
     description: 'Оптимальный план поездки без спешки и переплат.',
@@ -1054,13 +1054,13 @@ export default async function SectionPage({ params }: SectionPageProps) {
           image: 'w-[620px] h-auth ',
         }}
       />
-      <BestSelections className={classPY} data={collectionsData}/>
+      <BestSelections className={classPY} data={collectionsData} />
       <CollectionsBlock
         collections={articles}
         categories={categories}
         title="Все подборки раздела"
         containerClass={classPY}
-        itemsPerPage={4} 
+        itemsPerPage={4}
       />
 
       <ContinuePlanning className={classPY} data={collectionsData} />

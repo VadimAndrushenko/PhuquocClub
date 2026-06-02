@@ -17,7 +17,7 @@ import {
   X 
 } from "lucide-react";
 
-import type { Article, SubSection , Section, SearchItem, PagesSearchProps, ServerData } from "@/shared/types/serchInput.type"
+import type { Article, SubSection , Section, SearchItem, PagesSearchProps, ServerData } from "@/shared/types/componentsType/serchInput.type"
 import { cn } from "@/lib/utils"
 
 

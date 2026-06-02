@@ -1,19 +1,14 @@
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import type { UsefulArticleProps } from '@/shared/types/article.type'
+import type { UsefulArticleProps } from '@/shared/types/pageType/article.type'
 
-export default function UsefulArticle({
-  containerClass = '',
-  links = [],
-}: UsefulArticleProps) {
+export default function UsefulArticle({ containerClass = '', links = [] }: UsefulArticleProps) {
   if (!links || links.length === 0) return null
 
   return (
     <section className={containerClass}>
       <div className="bg-block">
-        <div className="mb-6 text-lg font-semibold tracking-[0.12em] text-[#101828]">
-          Полезно
-        </div>
+        <div className="mb-6 text-lg font-semibold tracking-[0.12em] text-[#101828]">Полезно</div>
         <nav>
           <ul className="m-0 list-none space-y-3 p-0">
             {links.map((item, index) => (

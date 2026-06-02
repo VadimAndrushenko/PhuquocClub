@@ -23,7 +23,7 @@ export default buildConfig({
   },
   collections: [
     Users,
-    Articles,  // ← Проверь, что здесь есть
+    Articles, 
     Media,
     SubSections,
     Sections,

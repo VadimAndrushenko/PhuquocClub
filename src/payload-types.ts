@@ -68,7 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
-    articles: Article;
+    Articles: Article;
     media: Media;
     subsections: Subsection;
     sections: Section;
@@ -80,7 +80,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
-    articles: ArticlesSelect<false> | ArticlesSelect<true>;
+    Articles: ArticlesSelect<false> | ArticlesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     subsections: SubsectionsSelect<false> | SubsectionsSelect<true>;
     sections: SectionsSelect<false> | SectionsSelect<true>;
@@ -152,7 +152,7 @@ export interface User {
  * Статьи для сайта — управляйте контентом здесь
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "articles".
+ * via the `definition` "Articles".
  */
 export interface Article {
   id: number;
@@ -160,22 +160,20 @@ export interface Article {
   title: string;
   slug: string;
   /**
-   * Выберите подборку — category и section заполнятся автоматически.
+   * Генерируется автоматически из раздела, подборки и slug.
+   */
+  href?: string | null;
+  /**
+   * Выберите подборку — раздел и категория заполнятся автоматически.
    */
   subsection: number | Subsection;
-  /**
-   * Автозаполняется из подборки. При необходимости можно переопределить вручную.
-   */
-  section?: (number | null) | Section;
-  /**
-   * Берётся автоматически из названия подборки.
-   */
+  section?: string | null;
   category?: string | null;
-  description?: string | null;
-  intro?: string | null;
-  image?: (number | null) | Media;
-  readTime?: string | null;
-  author?: string | null;
+  description: string;
+  intro: string;
+  image: number | Media;
+  readTime: string;
+  author: string;
   kratko_items?:
     | {
         icon: 'DollarSign' | 'FileText' | 'MapPin' | 'ShieldAlert' | 'Clock' | 'User';
@@ -215,17 +213,6 @@ export interface Article {
         id?: string | null;
       }[]
     | null;
-  related_articles?:
-    | {
-        id?: string | null;
-        category?: string | null;
-        title: string;
-        description?: string | null;
-        image?: string | null;
-        href: string;
-        readTime?: string | null;
-      }[]
-    | null;
   useful_links?:
     | {
         href: string;
@@ -233,15 +220,17 @@ export interface Article {
         id?: string | null;
       }[]
     | null;
-  seo?: {
-    title?: string | null;
-    description?: string | null;
-    keywords?:
-      | {
-          keyword?: string | null;
-          id?: string | null;
-        }[]
-      | null;
+  /**
+   * Начните вводить заголовок — появится поиск по статьям.
+   */
+  related_articles?: (number | Article)[] | null;
+  seo: {
+    title: string;
+    description: string;
+    keywords: {
+      keyword: string;
+      id?: string | null;
+    }[];
     noIndex?: boolean | null;
   };
   updatedAt: string;
@@ -337,7 +326,7 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
-        relationTo: 'articles';
+        relationTo: 'Articles';
         value: number | Article;
       } | null)
     | ({
@@ -418,12 +407,13 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "articles_select".
+ * via the `definition` "Articles_select".
  */
 export interface ArticlesSelect<T extends boolean = true> {
   status?: T;
   title?: T;
   slug?: T;
+  href?: T;
   subsection?: T;
   section?: T;
   category?: T;
@@ -475,17 +465,6 @@ export interface ArticlesSelect<T extends boolean = true> {
         tips?: T;
         id?: T;
       };
-  related_articles?:
-    | T
-    | {
-        id?: T;
-        category?: T;
-        title?: T;
-        description?: T;
-        image?: T;
-        href?: T;
-        readTime?: T;
-      };
   useful_links?:
     | T
     | {
@@ -493,6 +472,7 @@ export interface ArticlesSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  related_articles?: T;
   seo?:
     | T
     | {

@@ -1,21 +1,10 @@
 import type { LucideIcon } from 'lucide-react'
-import { HeroData } from './blockType/hero.type'
-import { ImageType } from './global.type'
+import { HeroData } from '../blockType/hero.type'
+import { PayloadMedia } from '../global.type'
 
 // ============================================
 // 🎯 ТИПЫ ДЛЯ СЫРЫХ ДАННЫХ ИЗ PAYLOAD CMS
 // ============================================
-
-/** Изображение из коллекции media */
-export interface PayloadMedia {
-  id: string | number
-  url: string
-  filename: string
-  mimeType: string
-  alt?: string
-  width?: number
-  height?: number
-}
 
 /** Элемент блока "Кратко" */
 export interface PayloadKratkoItem {
@@ -65,7 +54,7 @@ export interface PayloadSectionBlock {
 }
 
 /** Любой блок контента */
-export type PayloadContentBlock = PayloadSectionBlock 
+export type PayloadContentBlock = PayloadSectionBlock
 
 /** Связанная статья */
 export interface PayloadRelatedArticle {
@@ -73,7 +62,7 @@ export interface PayloadRelatedArticle {
   category?: string
   title: string
   description?: string
-  image?: string
+  image: PayloadMedia
   href: string
   readTime?: string
 }
@@ -106,9 +95,9 @@ export interface PayloadArticle {
   author: string
   description: string
   intro: string
-  image: PayloadMedia 
+  image: PayloadMedia
   kratko_items?: PayloadKratkoItem[]
-  content_blocks?: any[]  // теперь array, не blocks
+  content_blocks?: any[] // теперь array, не blocks
   related_articles?: PayloadRelatedArticle[]
   useful_links?: PayloadUsefulLink[]
   seo: PayloadSEO
@@ -132,7 +121,7 @@ export type HeroArticleData = {
   author: string
   updatedAt?: string
   createdAt?: string
-  image: ImageType
+  image: PayloadMedia
 }
 
 /** Элемент блока "Кратко" для компонента */
@@ -165,7 +154,7 @@ export interface RelatedArticle {
   category: string
   title: string
   description: string
-  image: string
+  image: PayloadMedia
   href: string
   readTime?: string
 }
@@ -178,7 +167,7 @@ export interface UsefulLink {
 
 /** Результат трансформации статьи */
 export interface TransformedArticleData {
-  heroData: HeroArticleData        
+  heroData: HeroArticleData
   kratkoItems: KratkoItem[]
   sectionBlocks: SectionBlock[]
   relatedArticles: RelatedArticle[]

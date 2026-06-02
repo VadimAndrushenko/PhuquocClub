@@ -1,4 +1,4 @@
-import { ImageType } from "./global.type"
+import { PayloadMedia } from '../global.type'
 
 /** Поиск для секции */
 interface SectionSearch {
@@ -8,15 +8,15 @@ interface SectionSearch {
 
 /** Данные для Hero на странице раздела */
 export interface HeroSectionProps {
-  containerClass?: string 
+  containerClass?: string
   dataSection: {
     title: string
     description: string
     intro: string
     category: string
     section: string
-    search: SectionSearch 
-    image: ImageType
+    search: SectionSearch
+    image: PayloadMedia
   }
 }
 

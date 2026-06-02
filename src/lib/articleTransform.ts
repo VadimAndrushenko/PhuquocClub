@@ -20,7 +20,7 @@ import type {
   PayloadRelatedArticle,
   PayloadUsefulLink,
   HeroArticleData,
-} from '@/shared/types/article.type'
+} from '@/shared/types/pageType/article.type'
 
 const iconMap: Record<string, LucideIcon> = {
   DollarSign,
@@ -35,15 +35,13 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
   // ============================================
   // 🎯 ДАННЫЕ ДЛЯ HERO КОМПОНЕНТА
   // ============================================
-  console.log(article );
-  
 
   // Формируем объект для Hero
   const heroData: HeroArticleData = {
     title: article.title || 'Заголовок пуст',
     description: article.description || 'пуст',
     intro: article.intro || 'пуст',
-    category: article.category , 
+    category: article.category,
     image: {
       url: article.image.url,
       alt: article.image.alt || article.title,
@@ -53,20 +51,18 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
     updatedAt: article.updatedAt,
     createdAt: article.createdAt,
     section: article.section,
-    subsection: article.subsection.slug ,
-    slug: article.slug ,
+    subsection: article.subsection,
+    slug: article.slug,
   }
 
   // ============================================
   // 📋 БЛОК "КРАТКО"
   // ============================================
-  const kratkoItems: KratkoItem[] = (article.kratko_items || []).map(
-    (item: PayloadKratkoItem) => ({
-      icon: iconMap[item.icon] || FileText,
-      label: item.label,
-      value: item.value,
-    })
-  )
+  const kratkoItems: KratkoItem[] = (article.kratko_items || []).map((item: PayloadKratkoItem) => ({
+    icon: iconMap[item.icon] || FileText,
+    label: item.label,
+    value: item.value,
+  }))
 
   // ============================================
   // 🧱 СЕКЦИИ СТАТЬИ
@@ -82,9 +78,7 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
       if (block.contentType === 'table' && block.table) {
         const { headers, rows } = block.table
         result.table = {
-          headers: [headers.header1, headers.header2, headers.header3].filter(
-            Boolean
-          ) as string[],
+          headers: [headers.header1, headers.header2, headers.header3].filter(Boolean) as string[],
           rows: rows?.map((r) => [r.cell1, r.cell2, r.cell3]) || [],
         }
       } else if (block.contentType === 'warning') {
@@ -96,36 +90,24 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
       }
 
       return result
-    }
+    },
   )
 
   // ============================================
   // 📚 ПОЛЕЗНЫЕ ССЫЛКИ
   // ============================================
-  const usefulLinks: UsefulLink[] = (article.useful_links || []).map(
-    (link: PayloadUsefulLink) => ({
-      href: link.href,
-      label: link.label,
-    })
-  )
+  const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link: PayloadUsefulLink) => ({
+    href: link.href,
+    label: link.label,
+  }))
 
   // ============================================
   // 🔗 СВЯЗАННЫЕ СТАТЬИ
   // ============================================
-  const relatedArticles: RelatedArticle[] = (article.related_articles || []).map(
-    (a: PayloadRelatedArticle) => ({
-      id: a.id || '',
-      category: a.category || '',
-      title: a.title,
-      description: a.description || '',
-      image: a.image || '/collection.png',
-      href: a.href,
-      readTime: a.readTime,
-    })
-  )
+  const relatedArticles: RelatedArticle[] = article.related_articles || []
 
   return {
-    heroData,      
+    heroData,
     kratkoItems,
     sectionBlocks,
     relatedArticles,

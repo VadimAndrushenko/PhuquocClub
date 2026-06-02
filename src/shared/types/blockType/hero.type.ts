@@ -1,4 +1,4 @@
-import type { ImageType } from '../global.type'
+import type { PayloadMedia } from '../global.type'
 
 // ============================================
 // 🖼️ ТИПЫ ДАННЫХ
@@ -23,7 +23,7 @@ export interface HeroData {
   /** Категория (бейдж) */
   category?: string
   /** Изображение */
-  image: ImageType
+  image: PayloadMedia
   /** Раздел (для хлебных крошек) */
   section?: string
   /** Подраздел (для хлебных крошек) */
