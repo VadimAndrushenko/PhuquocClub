@@ -37,7 +37,6 @@ export default function Hero({
 
   // Показываем мета-блок только если есть что показывать
   const showMeta = dataHero?.readTime || updatedLabel || dataHero?.author
-
   return (
     <Tag
       className={cn(
@@ -56,7 +55,7 @@ export default function Hero({
           >
             {dataHero.category}
           </div>
-        )}
+        )}        
 
         {/* Хлебные крошки */}
         {dataHero?.section && (

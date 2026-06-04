@@ -1,5 +1,4 @@
-import type { AppMedia } from '@/shared/types'
-import { SearchConfig } from '../componentsType/serchInput.type'
+import type { AppMedia, SearchConfig } from '@/shared/types'
 
 // ============================================
 // 🖼️ ТИПЫ ДАННЫХ

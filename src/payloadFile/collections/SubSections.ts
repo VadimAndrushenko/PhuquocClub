@@ -18,14 +18,6 @@ interface ContinueSelectionDoc {
   title?: string
   slug?: string
   status?: 'draft' | 'published'
-  continuePlanning?: BestArticleMinimal[]
-}
-
-interface ContinueSelectionDoc {
-  id?: string | number
-  title?: string
-  slug?: string
-  status?: 'draft' | 'published'
 }
 
 interface SubsectionDoc {
@@ -38,7 +30,6 @@ interface SubsectionDoc {
   intro?: string
   image?: AppMedia | null
   href?: string
-  sectionTitle?: string
   status?: 'draft' | 'published'
   bestSelection?: string | number | BestSelectionDoc | null
   continueSelection?: string | number | ContinueSelectionDoc | null
@@ -50,43 +41,13 @@ interface SubsectionDoc {
 // 🔧 ХУКИ
 // ============================================
 
-async function autoFillFromSection({ data, req }: any): Promise<void> {
-  if (!data?.section) {
-    data.category = ''
-    data.sectionTitle = ''
-    return
-  }
-
-  try {
-    const sectionId =
-      typeof data.section === 'object' && data.section !== null && 'id' in data.section
-        ? (data.section as { id: string }).id
-        : data.section
-
-    const section = await req.payload.findByID({
-      collection: 'sections',
-      id: sectionId as string,
-      depth: 0,
-    })
-
-    if (!section) return
-
-    data.category = section.title || ''
-    data.sectionTitle = section.title || ''
-  } catch (error) {
-    console.error('❌ Ошибка автозаполнения:', error)
-  }
-}
-
 async function enrichSubsection({ doc, req }: { doc: any; req: any }): Promise<any> {
   if (!doc) return doc
 
-  // 🔥 ЗАЩИТА ОТ РЕКУРСИИ: если этот вызов вложенный — пропускаем тяжёлый парсинг
   if (req?.context?.skipEnrich) {
     return doc
   }
 
-  // 1. Упрощаем section в slug (как в Articles.ts)
   if (doc.section && typeof doc.section === 'object' && doc.section !== null) {
     if ('slug' in doc.section) {
       doc.section = doc.section.slug
@@ -95,7 +56,6 @@ async function enrichSubsection({ doc, req }: { doc: any; req: any }): Promise<a
     }
   }
 
-  // 2. Генерируем href
   const sectionSlug = typeof doc.section === 'string' ? doc.section : ''
   const subsectionSlug = typeof doc.slug === 'string' ? doc.slug : ''
   doc.href =
@@ -119,20 +79,39 @@ export const SubSections: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'slug', 'section', 'status'],
+    defaultColumns: ['title', 'slug', 'section', 'category', 'status'],
   },
   versions: {
     drafts: {
       autosave: {
-        interval: 2000, // 2 секунды - автосохранение
+        interval: 2000,
       },
     },
     maxPerDoc: 50,
   },
 
   hooks: {
-    beforeChange: [autoFillFromSection],
-    beforeValidate: [autoFillFromSection],
+    afterChange: [
+      async ({ doc, req }) => {
+        const articles = await req.payload.find({
+          collection: 'Articles',
+          where: {
+            subsection: {
+              equals: doc.id,
+            },
+          },
+          pagination: false,
+        })
+
+        for (const article of articles.docs) {
+          await req.payload.update({
+            collection: 'Articles',
+            id: article.id,
+            data: {},
+          })
+        }
+      },
+    ],
     afterRead: [enrichSubsection],
   },
 
@@ -172,22 +151,23 @@ export const SubSections: CollectionConfig = {
       required: true,
       admin: {
         position: 'sidebar',
-        description: 'Выберите раздел — category заполнится автоматически.',
+        description: 'Выберите раздел вручную.',
+      },
+    },
+    {
+      name: 'category',
+      type: 'text',
+      label: '🏷️ Категория',
+      required: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Введите категорию вручную.',
       },
     },
     {
       name: 'href',
       type: 'text',
       label: '🔗 Ссылка (авто)',
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-      },
-    },
-    {
-      name: 'category',
-      type: 'text',
-      label: '🏷️ Категория (авто)',
       admin: {
         readOnly: true,
         position: 'sidebar',
@@ -214,8 +194,6 @@ export const SubSections: CollectionConfig = {
       label: 'Обложка подборки',
       required: true,
     },
-
-    // === 🔥 ВЫБОР ПОДБОРКИ ИЗ BestSelections ===
     {
       name: 'bestSelection',
       type: 'relationship',
@@ -226,8 +204,6 @@ export const SubSections: CollectionConfig = {
         description: 'Выберите подборку — bestArticles заполнится автоматически',
       },
     },
-
-    // === 🔗 ПРОДОЛЖИТЬ ЧИТАТЬ (как bestSelection) ===
     {
       name: 'continueSelection',
       type: 'relationship',
@@ -238,7 +214,6 @@ export const SubSections: CollectionConfig = {
         description: 'Выберите подборку — continuePlanning заполнится автоматически',
       },
     },
-
     {
       name: 'search',
       type: 'group',
@@ -279,7 +254,6 @@ export const SubSections: CollectionConfig = {
         },
       ],
     },
-
     {
       name: 'seo',
       type: 'group',

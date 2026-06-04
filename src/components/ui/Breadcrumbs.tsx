@@ -18,6 +18,9 @@ export default async function Breadcrumbs({ URL }: { URL: BreadcrumbURLProps }) 
     article ? getArticleTitle(article) : Promise.resolve(''),
   ])
 
+  console.log(sectionTitle);
+  
+
   const isSectionLast = !subsection && !article
   const isSubsectionLast = subsection && !article
 
@@ -30,18 +33,17 @@ export default async function Breadcrumbs({ URL }: { URL: BreadcrumbURLProps }) 
           </Link>
         </li>
 
-        {section && (
-          <li className="flex items-center">
-            <ChevronRight size={16} className="text-[#98A2B3]" />
-            {isSectionLast ? (
-              <span className="text-main font-medium">{sectionTitle}</span>
-            ) : (
-              <Link href={`/${section}`} className="transition-colors hover:text-main">
-                {sectionTitle}
-              </Link>
-            )}
-          </li>
-        )}
+        
+        <li className="flex items-center">
+          <ChevronRight size={16} className="text-[#98A2B3]" />
+          {isSectionLast ? (
+            <span className="text-main font-medium">{sectionTitle}</span>
+          ) : (
+            <Link href={`/${section}`} className="transition-colors hover:text-main">
+              {sectionTitle}
+            </Link>
+          )}
+        </li>
 
         {subsection && (
           <li className="flex items-center">

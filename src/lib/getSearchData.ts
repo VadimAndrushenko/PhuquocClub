@@ -60,18 +60,25 @@ function buildSearchText(title: string, description?: string | null): string {
 // 🔥 ГЛАВНАЯ ФУНКЦИЯ
 // ============================================
 
-// 🔥 Глобальный кэш для данных поиска
+// 🔥 Глобальный кэш для данных поиска с TTL (30 секунд)
+const CACHE_TTL = 30 * 1000 // 30 секунд
 let searchCache: SearchItem[] | null = null
+let cacheTimestamp: number | null = null
 let cachePromise: Promise<SearchItem[]> | null = null
 
-export async function getSearchData(): Promise<SearchItem[]> {
-  // 🔥 Возвращаем кэш если есть
-  if (searchCache) {
-    return searchCache
+function isCacheValid(): boolean {
+  if (!searchCache || !cacheTimestamp) return false
+  return Date.now() - cacheTimestamp < CACHE_TTL
+}
+
+export async function getSearchData(forceRefresh = false): Promise<SearchItem[]> {
+  // 🔥 Возвращаем кэш если он ещё валиден и не запрошено принудительное обновление
+  if (!forceRefresh && isCacheValid()) {
+    return searchCache!
   }
 
-  // 🔥 Если уже идёт запрос — ждём его
-  if (cachePromise) {
+  // 🔥 Если уже идёт запрос — ждём его (если не forceRefresh)
+  if (!forceRefresh && cachePromise) {
     return cachePromise
   }
 
@@ -79,14 +86,14 @@ export async function getSearchData(): Promise<SearchItem[]> {
     try {
       const [sectionsRes, subSectionsRes, articlesRes] = await Promise.all([
         fetch(`${BASE_URL}/api/sections?where[status][equals]=published&depth=0&pagination=false`, {
-          cache: 'force-cache',
+          next: { revalidate: 3 },
         }),
         fetch(
           `${BASE_URL}/api/subsections?where[status][equals]=published&depth=1&pagination=false`,
-          { cache: 'force-cache' },
+          { next: { revalidate: 3 } },
         ),
         fetch(`${BASE_URL}/api/Articles?where[status][equals]=published&depth=0&pagination=false`, {
-          cache: 'force-cache',
+          next: { revalidate: 3 },
         }),
       ])
 
@@ -127,7 +134,7 @@ export async function getSearchData(): Promise<SearchItem[]> {
           searchTagText: sub.searchSettings?.searchTagText || sub.title,
           searchIcon: sub.searchSettings?.searchIcon as SearchItem['searchIcon'],
         })
-      })
+      })  
 
       // Articles
       const articles = articlesData.docs || []
@@ -135,14 +142,15 @@ export async function getSearchData(): Promise<SearchItem[]> {
         items.push({
           title: article.title,
           description: article.description ?? null,
-          href: article.href || `/${article.section}/${article.subsection}/${article.slug}`,
+          href: `/${article.section}/${article.subsection}/${article.slug}`,
           type: 'article',
           searchText: buildSearchText(article.title, article.description),
         })
       })
 
-      // 🔥 Сохраняем в кэш
+      // 🔥 Сохраняем в кэш с timestamp
       searchCache = items
+      cacheTimestamp = Date.now()
       cachePromise = null
       return items
     } catch (error) {

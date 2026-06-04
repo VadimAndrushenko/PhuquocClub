@@ -36,7 +36,6 @@ export const autoFillFromSubsection = async ({ data, req }: any) => {
 
     if (!subsectionId) return
 
-    // 🔥 Загружаем subsection с depth: 1 чтобы получить section
     const subsection = await req.payload.findByID({
       collection: 'subsections',
       id: subsectionId,
@@ -45,17 +44,13 @@ export const autoFillFromSubsection = async ({ data, req }: any) => {
 
     if (!subsection) return
 
-    data.category = (subsection as { title?: string }).title || ''
+    data.category = (subsection as { category?: string }).category || ''
 
-    // 🔥 Получаем section из subsection
     const sectionField = (subsection as { section?: unknown }).section
     if (sectionField) {
-      // Если section уже строка (slug) — используем её
       if (typeof sectionField === 'string') {
         data.section = sectionField
-      }
-      // Если section объект — берём slug
-      else if (
+      } else if (
         typeof sectionField === 'object' &&
         sectionField !== null &&
         'slug' in sectionField
@@ -274,23 +269,29 @@ export const Articles: CollectionConfig = {
       required: true,
       admin: {
         position: 'sidebar',
-        description: 'Выберите подборку — раздел и категория заполнятся автоматически.',
+        description: 'Выберите подборку. Раздел и категория подтянутся автоматически.',
       },
     },
     {
       name: 'section',
       type: 'text',
       label: '📁 Раздел сайта (авто)',
-      admin: { position: 'sidebar', readOnly: true },
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Заполняется автоматически из выбранной подборки.',
+      },
     },
     {
       name: 'category',
       type: 'text',
       label: '🏷️ Категория (авто)',
-      admin: { readOnly: true, position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Берётся из поля category в subsections.',
+      },
     },
-
-    // === 🔥 ВИРТУАЛЬНОЕ ПОЛЕ href (только для чтения, заполняется хуком) ===
     {
       name: 'href',
       type: 'text',
@@ -298,41 +299,47 @@ export const Articles: CollectionConfig = {
       admin: {
         position: 'sidebar',
         readOnly: true,
-        description: 'Генерируется автоматически из раздела, подборки и slug.',
+        description: 'Генерируется автоматически из section, subsection и slug.',
       },
     },
-
-    // === ✍️ ТЕКСТ ===
     {
       name: 'description',
       type: 'textarea',
       label: 'Короткое описание',
       required: true,
-      admin: { rows: 3 },
+      admin: {
+        rows: 3,
+        description: 'Краткий анонс статьи для карточек и превью.',
+      },
     },
     {
       name: 'intro',
       type: 'textarea',
       label: 'Вступление',
       required: true,
-      admin: { rows: 5 },
+      admin: {
+        rows: 5,
+        description: 'Первый текстовый блок статьи, который задаёт контекст.',
+      },
     },
-
-    // === 🖼️ МЕДИА ===
     {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
       label: 'Обложка статьи',
       required: true,
+      admin: {
+        description: 'Главное изображение статьи для карточек, превью и SEO.',
+      },
     },
-
-    // === ⏱️ МЕТА ===
     {
       name: 'readTime',
       type: 'text',
       label: 'Время чтения',
       required: true,
+      admin: {
+        description: 'Например: 5 мин, 8 мин, 12 мин.',
+      },
     },
     {
       name: 'author',
@@ -340,18 +347,25 @@ export const Articles: CollectionConfig = {
       label: 'Автор',
       required: true,
       defaultValue: 'Phuquoc.Club',
+      admin: {
+        description: 'Имя автора статьи.',
+      },
     },
-
-    // === 📋 БЛОК КРАТКО ===
     {
       name: 'kratko_items',
       type: 'array',
       label: '📋 Блок "Кратко"',
+      admin: {
+        description: 'Короткие факты и ключевые данные по статье.',
+      },
       fields: [
         {
           name: 'icon',
           type: 'select',
           required: true,
+          admin: {
+            description: 'Выберите подходящую иконку для пункта.',
+          },
           options: [
             { label: '💰 Деньги', value: 'DollarSign' },
             { label: '📄 Документы', value: 'FileText' },
@@ -361,22 +375,34 @@ export const Articles: CollectionConfig = {
             { label: '👤 Человек', value: 'User' },
           ],
         },
-        { name: 'label', type: 'text', required: true },
-        { name: 'value', type: 'text', required: true },
+        { name: 'label', type: 'text', required: true, admin: { description: 'Название пункта.' } },
+        { name: 'value', type: 'text', required: true, admin: { description: 'Значение пункта.' } },
       ],
     },
-
-    // === 🧱 БЛОКИ КОНТЕНТА ===
     {
       name: 'content_blocks',
       type: 'array',
       label: '📝 Содержание статьи',
+      admin: {
+        description: 'Основные смысловые блоки статьи.',
+      },
       fields: [
-        { name: 'title', type: 'text', required: true },
-        { name: 'description', type: 'textarea', admin: { rows: 6 } },
+        { name: 'title', type: 'text', required: true, admin: { description: 'Заголовок блока.' } },
+        {
+          name: 'description',
+          type: 'textarea',
+          admin: {
+            rows: 6,
+            description: 'Основной текст блока.',
+          },
+        },
         {
           name: 'contentType',
           type: 'select',
+          defaultValue: 'none',
+          admin: {
+            description: 'Тип дополнительного контента внутри блока.',
+          },
           options: [
             { label: '— Не добавлять —', value: 'none' },
             { label: '📊 Таблица', value: 'table' },
@@ -384,64 +410,83 @@ export const Articles: CollectionConfig = {
             { label: '✅ Чек-лист', value: 'checklist' },
             { label: '💡 Совет', value: 'tips' },
           ],
-          defaultValue: 'none',
         },
+        // 🔥 ТАБЛИЦА (показывается только когда contentType === 'table')
         {
           name: 'table',
           type: 'group',
-          admin: { condition: (_, sibling) => sibling.contentType === 'table' },
+          admin: {
+            condition: (_, sibling) => sibling.contentType === 'table',
+            description: 'Настройте заголовки и строки таблицы.',
+          },
           fields: [
             {
               name: 'headers',
               type: 'group',
               fields: [
-                { name: 'header1', type: 'text', required: true },
-                { name: 'header2', type: 'text', required: true },
-                { name: 'header3', type: 'text', required: true },
+                { name: 'header1', type: 'text', required: true, label: 'Заголовок 1' },
+                { name: 'header2', type: 'text', required: true, label: 'Заголовок 2' },
+                { name: 'header3', type: 'text', required: true, label: 'Заголовок 3' },
               ],
             },
             {
               name: 'rows',
               type: 'array',
+              label: 'Строки таблицы',
               fields: [
-                { name: 'cell1', type: 'text', required: true },
-                { name: 'cell2', type: 'text', required: true },
-                { name: 'cell3', type: 'text', required: true },
+                { name: 'cell1', type: 'text', required: true, label: 'Ячейка 1' },
+                { name: 'cell2', type: 'text', required: true, label: 'Ячейка 2' },
+                { name: 'cell3', type: 'text', required: true, label: 'Ячейка 3' },
               ],
             },
           ],
         },
+        // 🔥 ПРЕДУПРЕЖДЕНИЕ (когда contentType === 'warning')
         {
           name: 'warning',
           type: 'textarea',
-          admin: { condition: (_, sibling) => sibling.contentType === 'warning', rows: 4 },
+          admin: {
+            condition: (_, sibling) => sibling.contentType === 'warning',
+            rows: 4,
+            description: 'Текст важного предупреждения.',
+          },
         },
+        // 🔥 ЧЕК-ЛИСТ (когда contentType === 'checklist')
         {
           name: 'checklist',
           type: 'array',
-          admin: { condition: (_, sibling) => sibling.contentType === 'checklist' },
-          fields: [{ name: 'item', type: 'text', required: true }],
+          label: 'Пункты чек-листа',
+          admin: {
+            condition: (_, sibling) => sibling.contentType === 'checklist',
+            description: 'Добавьте пункты чек-листа.',
+          },
+          fields: [
+            { name: 'item', type: 'text', required: true, label: 'Текст пункта' },
+          ],
         },
+        // 🔥 СОВЕТ (когда contentType === 'tips')
         {
           name: 'tips',
           type: 'textarea',
-          admin: { condition: (_, sibling) => sibling.contentType === 'tips', rows: 4 },
+          admin: {
+            condition: (_, sibling) => sibling.contentType === 'tips',
+            rows: 4,
+            description: 'Текст полезного совета.',
+          },
         },
       ],
     },
-
-    // === 📚 ПОЛЕЗНЫЕ ССЫЛКИ ===
     {
       name: 'useful_links',
       type: 'array',
+      admin: {
+        description: 'Ссылки на полезные внешние материалы.',
+      },
       fields: [
-        { name: 'href', type: 'text', required: true },
-        { name: 'label', type: 'text', required: true },
+        { name: 'href', type: 'text', required: true, admin: { description: 'Ссылка.' } },
+        { name: 'label', type: 'text', required: true, admin: { description: 'Название ссылки.' } },
       ],
     },
-
-    // === 🔗 ПОХОЖИЕ СТАТЬИ (в основном контенте, без sidebar) ===
-
     {
       name: 'related_articles',
       type: 'relationship',
@@ -449,35 +494,51 @@ export const Articles: CollectionConfig = {
       label: '🔗 Похожие статьи',
       hasMany: true,
       admin: {
-        description: 'Начните вводить заголовок — появится поиск по статьям.',
+        description: 'Выберите статьи, которые нужно показать в блоке похожих.',
       },
-      filterOptions: ({ id }: any) => ({
-        id: { not_equals: id },
-      }),
     },
-
-    // === 🔍 SEO ===
     {
       name: 'seo',
       type: 'group',
       label: '🔍 SEO и мета-теги',
+      admin: {
+        description: 'Параметры для поиска и отображения в выдаче.',
+      },
       fields: [
-        { name: 'title', type: 'text', label: 'SEO-заголовок', required: true },
+        {
+          name: 'title',
+          type: 'text',
+          label: 'SEO-заголовок',
+          required: true,
+          admin: { description: 'Заголовок для поисковиков и соцсетей.' },
+        },
         {
           name: 'description',
           type: 'textarea',
           label: 'SEO-описание',
           required: true,
-          admin: { rows: 3 },
+          admin: {
+            rows: 3,
+            description: 'Краткое описание страницы для поиска.',
+          },
         },
         {
           name: 'keywords',
           type: 'array',
           required: true,
           minRows: 1,
+          admin: {
+            description: 'Ключевые слова через отдельные элементы списка.',
+          },
           fields: [{ name: 'keyword', type: 'text', required: true }],
         },
-        { name: 'noIndex', type: 'checkbox' },
+        {
+          name: 'noIndex',
+          type: 'checkbox',
+          admin: {
+            description: 'Включи, если страницу не нужно индексировать.',
+          },
+        },
       ],
     },
   ],

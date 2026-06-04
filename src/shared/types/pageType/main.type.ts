@@ -1,9 +1,8 @@
-import type { AppMedia } from '@/shared/types'
-import { SearchTag } from '../componentsType/serchInput.type'
+import type { AppMedia, SearchTag } from '@/shared/types'
 
 interface SectionSearch {
   placeholder: string
-  tags: SearchTag
+  tags: SearchTag[]
 }
 
 export interface HeroMainProps {

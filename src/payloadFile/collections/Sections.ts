@@ -61,38 +61,6 @@ export const Sections: CollectionConfig = {
       label: 'Описание раздела',
     },
     {
-      name: 'image',
-      type: 'upload',
-      relationTo: 'media',
-      label: 'Обложка раздела',
-    },
-
-    // === 🔥 ВЫБОР ПОДБОРКИ ИЗ BestSelections ===
-    {
-      name: 'bestSelection',
-      type: 'relationship',
-      relationTo: 'bestSelections',
-      label: '⭐ Подборка лучших статей',
-      hasMany: false,
-      admin: {
-        description: 'Выберите подборку — лучшие статьи отобразятся на странице раздела',
-      },
-    },
-
-    // === 🔗 ПРОДОЛЖИТЬ ЧИТАТЬ (как в subsections) ===
-    {
-      name: 'continueSelection',
-      type: 'relationship',
-      relationTo: 'continueSelections',
-      label: '📖 Подборка "Продолжить чтение"',
-      hasMany: false,
-      admin: {
-        description: 'Выберите подборку — статьи отобразятся в блоке "Продолжить чтение"',
-      },
-    },
-
-    // === 🔍 НАСТРОЙКИ ПОИСКА ===
-    {
       name: 'search',
       type: 'group',
       label: '🔍 Настройки поиска',
@@ -132,6 +100,40 @@ export const Sections: CollectionConfig = {
         },
       ],
     },
+    {
+      name: 'image',
+      type: 'upload',
+      relationTo: 'media',
+      required: true,
+      label: 'Обложка раздела',
+    },
+
+    // === 🔥 ВЫБОР ПОДБОРКИ ИЗ BestSelections ===
+    {
+      name: 'bestSelection',
+      type: 'relationship',
+      relationTo: 'bestSelections',
+      label: '⭐ Подборка лучших статей',
+      hasMany: false,
+      admin: {
+        description: 'Выберите подборку — лучшие статьи отобразятся на странице раздела',
+      },
+    },
+
+    // === 🔗 ПРОДОЛЖИТЬ ЧИТАТЬ (как в subsections) ===
+    {
+      name: 'continueSelection',
+      type: 'relationship',
+      relationTo: 'continueSelections',
+      label: '📖 Подборка "Продолжить чтение"',
+      hasMany: false,
+      admin: {
+        description: 'Выберите подборку — статьи отобразятся в блоке "Продолжить чтение"',
+      },
+    },
+
+    // === 🔍 НАСТРОЙКИ ПОИСКА ===
+    
 
     // === 🔍 SEO И МЕТА-ТЕГИ ===
     {

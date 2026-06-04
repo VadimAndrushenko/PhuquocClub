@@ -29,7 +29,7 @@ interface CollectionsBlockProps {
   containerClass?: string
   title?: string
   itemsPerPage?: number
-  categories?: CategoryType[]
+  haveCategories?: boolean
 }
 
 type CategoryType =
@@ -64,12 +64,15 @@ export default function CollectionsBlock({
   containerClass = '',
   title,
   itemsPerPage = 4,
-  categories = [],
+  haveCategories = false,
 }: CollectionsBlockProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | ''>('')
   const [isAnimating, setIsAnimating] = useState(false)
   const gridRef = useRef<HTMLDivElement>(null)
+
+  
+  const categories:CategoryType[] = haveCategories ? [...new Set(collections.map((a) => a.category).filter(Boolean))] as string[] : []
 
   // Трансформируем Article[] → CollectionsCardAccentData[]
   const transformedCollections: CollectionsCardAccentData[] = Array.isArray(collections)

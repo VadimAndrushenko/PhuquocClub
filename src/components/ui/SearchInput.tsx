@@ -36,7 +36,7 @@ const typeLabel: Record<'section' | 'subSection' | 'article', string> = {
 
 export default function SearchInput({ search, onClose }: SearchInputProps) {
   // 🔥 Используем глобальное состояние — данные загружаются 1 раз на всё приложение
-  const { searchItems, isLoading, refreshSearch } = useSearch()
+  const { searchItems, isLoading } = useSearch()
 
   const [query, setQuery] = useState('')
   const wrapperRef = useRef<HTMLDivElement | null>(null)

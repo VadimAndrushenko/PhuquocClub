@@ -1,10 +1,9 @@
-import type { AppMedia, PageParams, SectionPageParams } from '@/shared/types'
-import { SearchTag } from '../componentsType/serchInput.type'
+import type { AppMedia, PageParams, SectionPageParams, SearchTag } from '@/shared/types'
 
 /** Поиск для секции */
 interface SectionSearch {
   placeholder: string
-  tags: SearchTag
+  tags: SearchTag[]
 }
 
 /** Данные для Hero на странице раздела */

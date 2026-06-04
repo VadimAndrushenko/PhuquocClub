@@ -164,33 +164,81 @@ export interface Article {
   title: string;
   slug: string;
   /**
-   * Выберите подборку — раздел и категория заполнятся автоматически.
+   * Выберите подборку. Раздел и категория подтянутся автоматически.
    */
   subsection: number | Subsection;
+  /**
+   * Заполняется автоматически из выбранной подборки.
+   */
   section?: string | null;
+  /**
+   * Берётся из поля category в subsections.
+   */
   category?: string | null;
   /**
-   * Генерируется автоматически из раздела, подборки и slug.
+   * Генерируется автоматически из section, subsection и slug.
    */
   href?: string | null;
+  /**
+   * Краткий анонс статьи для карточек и превью.
+   */
   description: string;
+  /**
+   * Первый текстовый блок статьи, который задаёт контекст.
+   */
   intro: string;
+  /**
+   * Главное изображение статьи для карточек, превью и SEO.
+   */
   image: number | Media;
+  /**
+   * Например: 5 мин, 8 мин, 12 мин.
+   */
   readTime: string;
+  /**
+   * Имя автора статьи.
+   */
   author: string;
+  /**
+   * Короткие факты и ключевые данные по статье.
+   */
   kratko_items?:
     | {
+        /**
+         * Выберите подходящую иконку для пункта.
+         */
         icon: 'DollarSign' | 'FileText' | 'MapPin' | 'ShieldAlert' | 'Clock' | 'User';
+        /**
+         * Название пункта.
+         */
         label: string;
+        /**
+         * Значение пункта.
+         */
         value: string;
         id?: string | null;
       }[]
     | null;
+  /**
+   * Основные смысловые блоки статьи.
+   */
   content_blocks?:
     | {
+        /**
+         * Заголовок блока.
+         */
         title: string;
+        /**
+         * Основной текст блока.
+         */
         description?: string | null;
+        /**
+         * Тип дополнительного контента внутри блока.
+         */
         contentType?: ('none' | 'table' | 'warning' | 'checklist' | 'tips') | null;
+        /**
+         * Настройте заголовки и строки таблицы.
+         */
         table?: {
           headers: {
             header1: string;
@@ -206,35 +254,68 @@ export interface Article {
               }[]
             | null;
         };
+        /**
+         * Текст важного предупреждения.
+         */
         warning?: string | null;
+        /**
+         * Добавьте пункты чек-листа.
+         */
         checklist?:
           | {
               item: string;
               id?: string | null;
             }[]
           | null;
+        /**
+         * Текст полезного совета.
+         */
         tips?: string | null;
         id?: string | null;
       }[]
     | null;
+  /**
+   * Ссылки на полезные внешние материалы.
+   */
   useful_links?:
     | {
+        /**
+         * Ссылка.
+         */
         href: string;
+        /**
+         * Название ссылки.
+         */
         label: string;
         id?: string | null;
       }[]
     | null;
   /**
-   * Начните вводить заголовок — появится поиск по статьям.
+   * Выберите статьи, которые нужно показать в блоке похожих.
    */
   related_articles?: (number | Article)[] | null;
+  /**
+   * Параметры для поиска и отображения в выдаче.
+   */
   seo: {
+    /**
+     * Заголовок для поисковиков и соцсетей.
+     */
     title: string;
+    /**
+     * Краткое описание страницы для поиска.
+     */
     description: string;
+    /**
+     * Ключевые слова через отдельные элементы списка.
+     */
     keywords: {
       keyword: string;
       id?: string | null;
     }[];
+    /**
+     * Включи, если страницу не нужно индексировать.
+     */
     noIndex?: boolean | null;
   };
   updatedAt: string;
@@ -251,11 +332,14 @@ export interface Subsection {
   title: string;
   slug: string;
   /**
-   * Выберите раздел — category заполнится автоматически.
+   * Выберите раздел вручную.
    */
   section: number | Section;
+  /**
+   * Введите категорию вручную.
+   */
+  category: string;
   href?: string | null;
-  category?: string | null;
   description: string;
   intro: string;
   image: number | Media;
@@ -304,15 +388,6 @@ export interface Section {
    */
   slug: string;
   description?: string | null;
-  image?: (number | null) | Media;
-  /**
-   * Выберите подборку — лучшие статьи отобразятся на странице раздела
-   */
-  bestSelection?: (number | null) | BestSelection;
-  /**
-   * Выберите подборку — статьи отобразятся в блоке "Продолжить чтение"
-   */
-  continueSelection?: (number | null) | ContinueSelection;
   search?: {
     placeholder?: string | null;
     tags?:
@@ -323,6 +398,15 @@ export interface Section {
         }[]
       | null;
   };
+  image: number | Media;
+  /**
+   * Выберите подборку — лучшие статьи отобразятся на странице раздела
+   */
+  bestSelection?: (number | null) | BestSelection;
+  /**
+   * Выберите подборку — статьи отобразятся в блоке "Продолжить чтение"
+   */
+  continueSelection?: (number | null) | ContinueSelection;
   seo: {
     title: string;
     description: string;
@@ -618,8 +702,8 @@ export interface SubsectionsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   section?: T;
-  href?: T;
   category?: T;
+  href?: T;
   description?: T;
   intro?: T;
   image?: T;
@@ -662,9 +746,6 @@ export interface SectionsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   description?: T;
-  image?: T;
-  bestSelection?: T;
-  continueSelection?: T;
   search?:
     | T
     | {
@@ -677,6 +758,9 @@ export interface SectionsSelect<T extends boolean = true> {
               id?: T;
             };
       };
+  image?: T;
+  bestSelection?: T;
+  continueSelection?: T;
   seo?:
     | T
     | {

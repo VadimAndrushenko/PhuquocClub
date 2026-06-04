@@ -90,13 +90,16 @@ export default async function SectionPage({ params }: SectionPageProps) {
       {/* 📚 Все subsections секции */}
       <CollectionsBlock
         collections={rawSubsections}
+        haveCategories={true}
         title={`Все подборки раздела: ${heroData.title}`}
         containerClass={classPY}
         itemsPerPage={6}
       />
 
       {/* 🔗 Продолжить чтение из continueSelection */}
-      <ContinuePlanning className={classPY} data={continuePlanning} />
+      {continuePlanning.length > 0 && (
+        <ContinuePlanning className={classPY} data={continuePlanning} />
+      )}
     </div>
   )
 }
