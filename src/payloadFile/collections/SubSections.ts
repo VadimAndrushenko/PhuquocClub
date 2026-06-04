@@ -121,6 +121,14 @@ export const SubSections: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'section', 'status'],
   },
+  versions: {
+    drafts: {
+      autosave: {
+        interval: 2000, // 2 секунды - автосохранение
+      },
+    },
+    maxPerDoc: 50,
+  },
 
   hooks: {
     beforeChange: [autoFillFromSection],

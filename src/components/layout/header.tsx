@@ -6,6 +6,7 @@ import { useScrollHeader } from '@/hooks/useScrollHeader'
 import { cn } from '@/lib/utils'
 import Logo from '../ui/Logo'
 import BurgerButton from '../ui/BurgerButton'
+import { useSearch } from '@/contexts/SearchContext'
 
 import {
   LifeBuoy,
@@ -34,7 +35,6 @@ const menuItems = [
 ]
 
 export function Header() {
-
   const { showHeader } = useScrollHeader()
   const pathname = usePathname()
   const router = useRouter()
@@ -163,7 +163,6 @@ export function Header() {
         </div>
       </div>
 
-
       <div
         className={cn(
           'fixed inset-0 bg-black/70 backdrop-blur-md flex items-start justify-center pt-28 px-4 transition-opacity duration-300',
@@ -178,14 +177,14 @@ export function Header() {
           )}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* <SearchInput /> */}
-          <SearchInput />
+          <div className="relative">
+            <SearchInput onClose={closeSearch} />
+          </div>
           <p className="text-center text-white/70 text-sm mt-6">
             Нажмите ESC или кликните по тёмному фону чтобы закрыть
           </p>
         </div>
       </div>
-
     </header>
   )
 }

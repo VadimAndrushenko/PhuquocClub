@@ -34,9 +34,9 @@ const typeLabel: Record<'section' | 'subSection' | 'article', string> = {
   article: 'Статья',
 }
 
-export default function SearchInput({ search }: SearchInputProps) {
+export default function SearchInput({ search, onClose }: SearchInputProps) {
   // 🔥 Используем глобальное состояние — данные загружаются 1 раз на всё приложение
-  const { searchItems, isLoading } = useSearch()
+  const { searchItems, isLoading, refreshSearch } = useSearch()
 
   const [query, setQuery] = useState('')
   const wrapperRef = useRef<HTMLDivElement | null>(null)
@@ -104,7 +104,10 @@ export default function SearchInput({ search }: SearchInputProps) {
                   key={`${item.type}-${item.href}`}
                   href={item.href}
                   className="block border-b border-zinc-100 px-4 py-3 last:border-b-0 hover:bg-zinc-50 text-left"
-                  onClick={() => setQuery('')}
+                  onClick={() => {
+                    setQuery('')
+                    onClose?.()
+                  }}
                 >
                   <div className="text-xs text-zinc-500 flex items-center gap-2">
                     {typeLabel[item.type]}

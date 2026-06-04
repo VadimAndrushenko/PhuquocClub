@@ -217,7 +217,14 @@ export const Articles: CollectionConfig = {
     defaultColumns: ['title', 'subsection', 'section', 'category', 'status'],
     description: 'Статьи для сайта — управляйте контентом здесь',
   },
-  versions: { drafts: { autosave: { interval: 100 } } },
+  versions: {
+    drafts: {
+      autosave: {
+        interval: 2000, // 2 секунды - автосохранение
+      },
+    },
+    maxPerDoc: 50,
+  },
   labels: { singular: 'Статья', plural: 'Статьи' },
 
   hooks: {

@@ -151,3 +151,97 @@ export async function getAllSubsections() {
 
   return docs
 }
+
+// ============================================
+// 📁 СЕКЦИИ
+// ============================================
+
+/**
+ * Получить секцию по slug
+ */
+export async function getSectionBySlugs(sectionSlug: string) {
+  const payload = await getPayloadClient()
+
+  const { docs } = await payload.find({
+    collection: 'sections',
+    where: {
+      slug: { equals: sectionSlug },
+      status: { equals: 'published' },
+    },
+    depth: 3, // 🔥 Важно: нужно загрузить bestSelection и continueSelection с статьями
+    limit: 1,
+  })
+
+  return docs[0]
+}
+
+/**
+ * 🔥 Получить ВСЕ subsections секции
+ * Фильтрация: section (как ID в БД) = ID секции
+ */
+export async function getSubsectionsBySection(sectionSlug: string) {
+  const payload = await getPayloadClient()
+
+  // 1. Находим секцию по slug → получаем её ID
+  const { docs: sections } = await payload.find({
+    collection: 'sections',
+    where: { slug: { equals: sectionSlug } },
+    limit: 1,
+  })
+
+  if (!sections[0]) return []
+
+  const sectionId = sections[0].id
+
+  // 2. Ищем ВСЕ subsections этой секции по ID
+  const { docs } = await payload.find({
+    collection: 'subsections',
+    where: {
+      section: { equals: sectionId },
+      status: { equals: 'published' },
+    },
+    depth: 2,
+    limit: 1000,
+    sort: '-createdAt',
+  })
+
+  return docs.map((subsection) => {
+    const imageUrl =
+      typeof subsection.image === 'object' && subsection.image !== null && 'url' in subsection.image
+        ? subsection.image.url || '/'
+        : '/'
+
+    const imageAlt =
+      typeof subsection.image === 'object' && subsection.image !== null && 'alt' in subsection.image
+        ? subsection.image.alt || subsection.title
+        : subsection.title
+
+    return {
+      href: subsection.href || '/',
+      category: subsection.category || '',
+      image: {
+        url: imageUrl,
+        alt: imageAlt,
+      },
+      title: subsection.title || '',
+      description: subsection.description || '',
+      readTime: undefined, // у subsection нет readTime
+    }
+  })
+}
+
+/**
+ * Все опубликованные секции (для generateStaticParams)
+ */
+export async function getAllSections() {
+  const payload = await getPayloadClient()
+
+  const { docs } = await payload.find({
+    collection: 'sections',
+    where: { status: { equals: 'published' } },
+    depth: 1,
+    limit: 1000,
+  })
+
+  return docs
+}

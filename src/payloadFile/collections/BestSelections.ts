@@ -120,6 +120,14 @@ export const BestSelections: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'status'],
   },
+  versions: {
+    drafts: {
+      autosave: {
+        interval: 2000, // 2 секунды - автосохранение
+      },
+    },
+    maxPerDoc: 50,
+  },
 
   access: {
     read: () => true,

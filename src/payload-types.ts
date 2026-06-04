@@ -289,6 +289,7 @@ export interface Subsection {
   };
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -296,6 +297,7 @@ export interface Subsection {
  */
 export interface Section {
   id: number;
+  status: 'draft' | 'published';
   title: string;
   /**
    * Например: on-island, before-trip. Только латиница и дефисы.
@@ -303,9 +305,37 @@ export interface Section {
   slug: string;
   description?: string | null;
   image?: (number | null) | Media;
-  status?: ('draft' | 'published') | null;
+  /**
+   * Выберите подборку — лучшие статьи отобразятся на странице раздела
+   */
+  bestSelection?: (number | null) | BestSelection;
+  /**
+   * Выберите подборку — статьи отобразятся в блоке "Продолжить чтение"
+   */
+  continueSelection?: (number | null) | ContinueSelection;
+  search?: {
+    placeholder?: string | null;
+    tags?:
+      | {
+          title: string;
+          icon: 'utensilsCrossed' | 'map' | 'waves' | 'bus' | 'dollarSign' | 'fileText' | 'lifeBuoy';
+          id?: string | null;
+        }[]
+      | null;
+  };
+  seo: {
+    title: string;
+    description: string;
+    keywords?:
+      | {
+          keyword?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -316,6 +346,7 @@ export interface Media {
   alt: string;
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
   url?: string | null;
   thumbnailURL?: string | null;
   filename?: string | null;
@@ -340,6 +371,7 @@ export interface BestSelection {
   bestArticles: (number | Article)[];
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -355,6 +387,7 @@ export interface ContinueSelection {
   continuePlanning: (number | Article)[];
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -565,6 +598,7 @@ export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
   url?: T;
   thumbnailURL?: T;
   filename?: T;
@@ -617,19 +651,47 @@ export interface SubsectionsSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sections_select".
  */
 export interface SectionsSelect<T extends boolean = true> {
+  status?: T;
   title?: T;
   slug?: T;
   description?: T;
   image?: T;
-  status?: T;
+  bestSelection?: T;
+  continueSelection?: T;
+  search?:
+    | T
+    | {
+        placeholder?: T;
+        tags?:
+          | T
+          | {
+              title?: T;
+              icon?: T;
+              id?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        keywords?:
+          | T
+          | {
+              keyword?: T;
+              id?: T;
+            };
+      };
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -641,6 +703,7 @@ export interface BestSelectionsSelect<T extends boolean = true> {
   bestArticles?: T;
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -652,6 +715,7 @@ export interface ContinueSelectionsSelect<T extends boolean = true> {
   continuePlanning?: T;
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

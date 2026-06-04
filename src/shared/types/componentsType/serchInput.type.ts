@@ -1,4 +1,4 @@
-import { SearchConfig, SearchIconType } from ".."
+import { SearchConfig, SearchIconType } from '..'
 
 export interface SectionData {
   id: number
@@ -41,4 +41,5 @@ export interface SearchData {
 
 export interface SearchInputProps {
   search?: SearchConfig
+  onClose?: () => void
 }
