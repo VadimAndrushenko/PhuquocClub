@@ -53,86 +53,104 @@ interface PayloadResponse<T> {
 // ============================================
 
 function buildSearchText(title: string, description?: string | null): string {
-  return `${title} ${description ?? ""}`.toLowerCase()
+  return `${title} ${description ?? ''}`.toLowerCase()
 }
 
 // ============================================
 // 🔥 ГЛАВНАЯ ФУНКЦИЯ
 // ============================================
 
+// 🔥 Глобальный кэш для данных поиска
+let searchCache: SearchItem[] | null = null
+let cachePromise: Promise<SearchItem[]> | null = null
+
 export async function getSearchData(): Promise<SearchItem[]> {
-  try {
-    const [sectionsRes, subSectionsRes, articlesRes] = await Promise.all([
-      fetch(
-        `${BASE_URL}/api/sections?where[status][equals]=published&depth=0&pagination=false`,
-        { cache: 'no-store' }
-      ),
-      fetch(
-        `${BASE_URL}/api/subsections?where[status][equals]=published&depth=1&pagination=false`,
-        { cache: 'no-store' }
-      ),
-      fetch(
-        `${BASE_URL}/api/Articles?where[status][equals]=published&depth=0&pagination=false`,
-        { cache: 'no-store' }
-      ),
-    ])
-
-    if (!sectionsRes.ok || !subSectionsRes.ok || !articlesRes.ok) {
-      throw new Error('Failed to fetch search data')
-    }
-
-    // 🔥 ЯВНАЯ ТИПИЗАЦИЯ — решает ошибку "never[]"
-    const sectionsData = (await sectionsRes.json()) as PayloadResponse<PayloadSection>
-    const subSectionsData = (await subSectionsRes.json()) as PayloadResponse<PayloadSubSection>
-    const articlesData = (await articlesRes.json()) as PayloadResponse<PayloadArticle>
-
-    const items: SearchItem[] = []
-
-    // Sections
-    const sections = sectionsData.docs || []
-    sections.forEach((section) => {
-      items.push({
-        title: section.title,
-        description: section.description ?? null,
-        href: `/${section.slug}`,
-        type: "section",
-        searchText: buildSearchText(section.title, section.description),
-      })
-    })
-
-    // SubSections
-    const subSections = subSectionsData.docs || []
-    subSections.forEach((sub) => {
-      const sectionSlug = typeof sub.section === 'string' 
-        ? sub.section 
-        : sub.section?.slug || ''
-      
-      items.push({
-        title: sub.title,
-        description: sub.description ?? null,
-        href: sub.href || `/${sectionSlug}/${sub.slug}`,
-        type: "subSection",
-        searchText: buildSearchText(sub.title, sub.description),
-        searchTagText: sub.searchSettings?.searchTagText || sub.title,
-        searchIcon: sub.searchSettings?.searchIcon as SearchItem['searchIcon'],
-      })
-    })
-
-    // Articles
-    const articles = articlesData.docs || []
-    articles.forEach((article) => {
-      items.push({
-        title: article.title,
-        description: article.description ?? null,
-        href: article.href || `/${article.section}/${article.subsection}/${article.slug}`,
-        type: "article",
-        searchText: buildSearchText(article.title, article.description),
-      })
-    })
-
-    return items
-  } catch (error) {
-    console.error('❌ Ошибка загрузки данных для поиска:', error)
-    return []
+  // 🔥 Возвращаем кэш если есть
+  if (searchCache) {
+    return searchCache
   }
+
+  // 🔥 Если уже идёт запрос — ждём его
+  if (cachePromise) {
+    return cachePromise
+  }
+
+  cachePromise = (async () => {
+    try {
+      const [sectionsRes, subSectionsRes, articlesRes] = await Promise.all([
+        fetch(`${BASE_URL}/api/sections?where[status][equals]=published&depth=0&pagination=false`, {
+          cache: 'force-cache',
+        }),
+        fetch(
+          `${BASE_URL}/api/subsections?where[status][equals]=published&depth=1&pagination=false`,
+          { cache: 'force-cache' },
+        ),
+        fetch(`${BASE_URL}/api/Articles?where[status][equals]=published&depth=0&pagination=false`, {
+          cache: 'force-cache',
+        }),
+      ])
+
+      if (!sectionsRes.ok || !subSectionsRes.ok || !articlesRes.ok) {
+        throw new Error('Failed to fetch search data')
+      }
+
+      // 🔥 ЯВНАЯ ТИПИЗАЦИЯ — решает ошибку "never[]"
+      const sectionsData = (await sectionsRes.json()) as PayloadResponse<PayloadSection>
+      const subSectionsData = (await subSectionsRes.json()) as PayloadResponse<PayloadSubSection>
+      const articlesData = (await articlesRes.json()) as PayloadResponse<PayloadArticle>
+
+      const items: SearchItem[] = []
+
+      // Sections
+      const sections = sectionsData.docs || []
+      sections.forEach((section) => {
+        items.push({
+          title: section.title,
+          description: section.description ?? null,
+          href: `/${section.slug}`,
+          type: 'section',
+          searchText: buildSearchText(section.title, section.description),
+        })
+      })
+
+      // SubSections
+      const subSections = subSectionsData.docs || []
+      subSections.forEach((sub) => {
+        const sectionSlug = typeof sub.section === 'string' ? sub.section : sub.section?.slug || ''
+
+        items.push({
+          title: sub.title,
+          description: sub.description ?? null,
+          href: sub.href || `/${sectionSlug}/${sub.slug}`,
+          type: 'subSection',
+          searchText: buildSearchText(sub.title, sub.description),
+          searchTagText: sub.searchSettings?.searchTagText || sub.title,
+          searchIcon: sub.searchSettings?.searchIcon as SearchItem['searchIcon'],
+        })
+      })
+
+      // Articles
+      const articles = articlesData.docs || []
+      articles.forEach((article) => {
+        items.push({
+          title: article.title,
+          description: article.description ?? null,
+          href: article.href || `/${article.section}/${article.subsection}/${article.slug}`,
+          type: 'article',
+          searchText: buildSearchText(article.title, article.description),
+        })
+      })
+
+      // 🔥 Сохраняем в кэш
+      searchCache = items
+      cachePromise = null
+      return items
+    } catch (error) {
+      console.error('❌ Ошибка загрузки данных для поиска:', error)
+      cachePromise = null
+      return []
+    }
+  })()
+
+  return cachePromise
 }

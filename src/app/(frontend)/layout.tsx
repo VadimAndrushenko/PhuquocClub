@@ -5,6 +5,7 @@ import './globals.css'
 import { cn } from '@/lib/utils'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
+import { SearchProvider } from '@/contexts/SearchContext'
 
 // ===============================
 // Fonts
@@ -49,12 +50,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       )}
     >
       <body className="min-h-screen flex flex-col bg-background text-main">
-        {/* Header */}
-        <Header/>
-        {/* Main content */}
-        <main className="relative flex-1">{children}</main>
-        {/* Footer */}
-        <Footer />
+          {/* Main content */}
+        <SearchProvider>
+          {/* Header */}
+          <Header />
+          <main className="relative flex-1">{children}</main>
+          {/* Footer */}
+          <Footer />
+        </SearchProvider>
       </body>
     </html>
   )

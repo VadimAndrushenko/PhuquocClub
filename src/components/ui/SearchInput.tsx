@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { useMemo, useState, useRef, useEffect } from "react"
-import Link from "next/link"
-import { Search, X } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useMemo, useState, useRef, useEffect, useCallback } from 'react'
+import Link from 'next/link'
+import { Search, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import {
   LifeBuoy,
   Map,
@@ -13,10 +13,10 @@ import {
   UtensilsCrossed,
   Waves,
   type LucideIcon,
-} from "lucide-react"
-import { getSearchData } from "@/lib/getSearchData"
-import type { SearchItem, SearchInputProps } from "@/shared/types/componentsType/serchInput.type"
-import { SearchIconType } from "@/shared/types"
+} from 'lucide-react'
+import { useSearch } from '@/contexts/SearchContext'
+import type { SearchItem, SearchInputProps } from '@/shared/types/componentsType/serchInput.type'
+import { SearchIconType } from '@/shared/types'
 
 const iconMap: Record<SearchIconType, LucideIcon> = {
   utensilsCrossed: UtensilsCrossed,
@@ -28,57 +28,44 @@ const iconMap: Record<SearchIconType, LucideIcon> = {
   lifeBuoy: LifeBuoy,
 }
 
-const typeLabel: Record<"section" | "subSection" | "article", string> = {
-  section: "Раздел",
-  subSection: "Подраздел",
-  article: "Статья",
+const typeLabel: Record<'section' | 'subSection' | 'article', string> = {
+  section: 'Раздел',
+  subSection: 'Подраздел',
+  article: 'Статья',
 }
 
 export default function SearchInput({ search }: SearchInputProps) {
-  // 🔥 searchItems загружается напрямую как SearchItem[]
-  const [searchItems, setSearchItems] = useState<SearchItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [query, setQuery] = useState("")
+  // 🔥 Используем глобальное состояние — данные загружаются 1 раз на всё приложение
+  const { searchItems, isLoading } = useSearch()
+
+  const [query, setQuery] = useState('')
   const wrapperRef = useRef<HTMLDivElement | null>(null)
 
-  const placeholder = search?.placeholder || "Поиск..."
+  const placeholder = search?.placeholder || 'Поиск...'
   const tags = search?.tags || []
 
-  useEffect(() => {
-    let mounted = true
-
-    getSearchData().then((items) => {
-      if (mounted) {
-        setSearchItems(items)
-        setIsLoading(false)
-      }
-    })
-
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  // Текстовый поиск — просто фильтрация
+  // Текстовый поиск — просто фильтрация (оптимизировано)
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return []
+    if (!q || !searchItems.length) return []
     return searchItems.filter((item) => item.searchText.includes(q))
   }, [query, searchItems])
 
-  const showDropdown = query.trim().length > 0
+  const showDropdown = query.trim().length > 0 && !isLoading
 
   // Клик вне — закрыть dropdown
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      setQuery('')
+    }
+  }, [])
+
   useEffect(() => {
     if (!showDropdown) return
-    function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setQuery("")
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [showDropdown])
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showDropdown, handleClickOutside])
 
   return (
     <>
@@ -95,7 +82,7 @@ export default function SearchInput({ search }: SearchInputProps) {
 
         {showDropdown && (
           <button
-            onClick={() => setQuery("")}
+            onClick={() => setQuery('')}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground cursor-pointer hover:text-zinc-700"
           >
             <X size={20} />
@@ -104,10 +91,10 @@ export default function SearchInput({ search }: SearchInputProps) {
 
         <div
           className={cn(
-            "absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg transition-all duration-300 origin-top",
+            'absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg transition-all duration-300 origin-top',
             showDropdown
-              ? "opacity-100 translate-y-0 visible"
-              : "opacity-0 -translate-y-15 invisible"
+              ? 'opacity-100 translate-y-0 visible'
+              : 'opacity-0 -translate-y-15 invisible',
           )}
         >
           <div className="max-h-80 overflow-y-auto">
@@ -117,13 +104,12 @@ export default function SearchInput({ search }: SearchInputProps) {
                   key={`${item.type}-${item.href}`}
                   href={item.href}
                   className="block border-b border-zinc-100 px-4 py-3 last:border-b-0 hover:bg-zinc-50 text-left"
-                  onClick={() => setQuery("")}
+                  onClick={() => setQuery('')}
                 >
                   <div className="text-xs text-zinc-500 flex items-center gap-2">
                     {typeLabel[item.type]}
                     {item.searchIcon && (
                       <>
-                        
                         {item.searchTagText && (
                           <span className="text-zinc-700">{item.searchTagText}</span>
                         )}
@@ -132,9 +118,7 @@ export default function SearchInput({ search }: SearchInputProps) {
                   </div>
                   <div className="font-medium text-zinc-950">{item.title}</div>
                   {item.description && (
-                    <p className="text-zinc-600 text-sm mt-0.5 line-clamp-2">
-                      {item.description}
-                    </p>
+                    <p className="text-zinc-600 text-sm mt-0.5 line-clamp-2">{item.description}</p>
                   )}
                 </Link>
               ))
