@@ -1,49 +1,44 @@
-import type { LucideIcon } from 'lucide-react';
+import { SearchConfig, SearchIconType } from ".."
+
+export interface SectionData {
+  id: number
+  title: string
+  slug: string
+  description?: string | null
+}
+
+export interface SubSectionData {
+  id: number
+  title: string
+  slug: string
+  href: string
+  description?: string | null
+}
+
+export interface ArticleData {
+  id: number
+  title: string
+  slug: string
+  href: string
+  description?: string | null
+}
 
 export interface SearchItem {
   title: string
-  description?: string
+  description?: string | null
   href: string
-  type: "article" | "section" | "subSection"
+  type: 'section' | 'subSection' | 'article'
   searchText: string
+  searchTagText?: string
+  searchIcon?: SearchIconType
 }
 
-export interface Section {
-  title: string
-  description?: string
-  slug: string
+export interface SearchData {
+  sections: SectionData[]
+  subSections: SubSectionData[]
+  articles: ArticleData[]
 }
 
-export interface SubSection {
-  title: string
-  description?: string
-  slug: string
-  section: string
+export interface SearchInputProps {
+  search?: SearchConfig
 }
-
-export interface Article {
-  title: string
-  description: string
-  slug: string
-  section: string
-  subsection: string
-}
-
-
-
-export interface PagesSearchProps {
-  isSmall?: boolean;
-  placeholder: string;
-  classMore?: string;
-  tags?: boolean
-  // arrTags?: { 
-  //   label: string;
-  //   icon: LucideIcon 
-  // }[];
-};
-
-export interface ServerData {
-  articles: Article[]
-  sections: Section[]
-  subSections: SubSection[]
-} 

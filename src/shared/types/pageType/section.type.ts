@@ -1,9 +1,10 @@
-import { PayloadMedia } from '../global.type'
+import type { AppMedia, PageParams, SectionPageParams } from '@/shared/types'
+import { SearchTag } from '../componentsType/serchInput.type'
 
 /** Поиск для секции */
 interface SectionSearch {
   placeholder: string
-  tags: boolean
+  tags: SearchTag
 }
 
 /** Данные для Hero на странице раздела */
@@ -16,16 +17,12 @@ export interface HeroSectionProps {
     category: string
     section: string
     search: SectionSearch
-    image: PayloadMedia
+    image: AppMedia
   }
 }
 
 // =========================
 
 export interface SectionPageProps {
-  params: Promise<{
-    section: string
-    subSection: string
-    article: string
-  }>
+  params: PageParams<string>
 }

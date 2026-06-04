@@ -1,9 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import SearchInput from '@/components/ui/SearchInput'
 import { useScrollHeader } from '@/hooks/useScrollHeader'
 import { cn } from '@/lib/utils'
 import Logo from '../ui/Logo'
@@ -22,6 +20,8 @@ import {
   Map as MapIcon,
 } from 'lucide-react'
 
+import SearchInput from '../ui/SearchInput'
+
 const menuItems = [
   { label: 'На острове', path: '/on-island', icon: Plane },
   { label: 'Жильё', path: '/accommodation', icon: Hotel },
@@ -34,6 +34,7 @@ const menuItems = [
 ]
 
 export function Header() {
+
   const { showHeader } = useScrollHeader()
   const pathname = usePathname()
   const router = useRouter()
@@ -162,28 +163,29 @@ export function Header() {
         </div>
       </div>
 
-      {isSearchOpen && (
+
+      <div
+        className={cn(
+          'fixed inset-0 bg-black/70 backdrop-blur-md flex items-start justify-center pt-28 px-4 transition-opacity duration-300',
+          isSearchVisible ? 'opacity-100 z-[100]' : 'opacity-0 pointer-events-none',
+        )}
+        onClick={closeSearch}
+      >
         <div
           className={cn(
-            'fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-start justify-center pt-28 px-4 transition-opacity duration-300',
-            isSearchVisible ? 'opacity-100' : 'opacity-0',
+            'w-full max-w-2xl transition-all duration-300',
+            isSearchVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
           )}
-          onClick={closeSearch}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div
-            className={cn(
-              'w-full max-w-2xl transition-all duration-300',
-              isSearchVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
-            )}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SearchInput placeholder="Поиск..." classMore="shadow-2xl" />
-            <p className="text-center text-white/70 text-sm mt-6">
-              Нажмите ESC или кликните по тёмному фону чтобы закрыть
-            </p>
-          </div>
+          {/* <SearchInput /> */}
+          <SearchInput />
+          <p className="text-center text-white/70 text-sm mt-6">
+            Нажмите ESC или кликните по тёмному фону чтобы закрыть
+          </p>
         </div>
-      )}
+      </div>
+
     </header>
   )
 }

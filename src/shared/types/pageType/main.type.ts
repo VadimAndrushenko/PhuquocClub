@@ -1,8 +1,9 @@
-import { PayloadMedia } from '../global.type'
+import type { AppMedia } from '@/shared/types'
+import { SearchTag } from '../componentsType/serchInput.type'
 
 interface SectionSearch {
   placeholder: string
-  tags: boolean
+  tags: SearchTag
 }
 
 export interface HeroMainProps {
@@ -15,6 +16,6 @@ export interface HeroMainProps {
     /** Настройки поиска */
     search: SectionSearch
     /** Путь к изображению */
-    image: PayloadMedia
+    image: AppMedia
   }
 }

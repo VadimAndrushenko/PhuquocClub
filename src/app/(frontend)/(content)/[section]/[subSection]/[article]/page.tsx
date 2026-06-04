@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getArticleBySlug } from '@/lib/payload'
+import { getArticleBySlug } from '@/lib/payload/payload'
 import { transformArticle } from '@/lib/articleTransform'
 import type { ArticlePageProps } from '@/shared/types/pageType/article.type'
 

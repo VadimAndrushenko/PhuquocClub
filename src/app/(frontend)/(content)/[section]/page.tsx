@@ -1037,10 +1037,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
       url: '/ImageWithFallback.jpg',
       alt: 'Закат на Фукуоке',
     },
-    search: {
-      placeholder: 'Поиск по сайту: пляжи, отели, еда, транспорт...',
-      tags: true,
-    },
+
   }
 
   return (

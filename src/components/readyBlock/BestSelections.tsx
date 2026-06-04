@@ -1,64 +1,42 @@
-import { CollectionsCard } from '@/components/ui/InfoCard';
-import { cn } from '@/lib/utils';
+import { CollectionsCard } from '@/components/ui/InfoCard'
+import { cn } from '@/lib/utils'
+import type { CollectionCardData } from '@/shared/types/componentsType/infoCard.type'
+import type { BestArticleMinimal } from '@/shared/types'
 
-const collectionsData = [
-  {
-    id: 1,
-    href: '/food/restaurants',
-    category: 'ЕДА',
-    image: { 
-      url: "http://localhost:3000/api/media/file/collection.png",
-      alt: "Collection Image" 
-    } ,
-    title: 'Топ рестораны',
-    description: 'Лучшие места от локальной кухни до изысканных ресторанов.',
-    number: 1,
-  },
-  {
-    id: 2,
-    href: '/beaches/best',
-    category: 'ПЛЯЖИ',
-    image: { 
-      url: "http://localhost:3000/api/media/file/collection.png",
-      alt: "Collection Image" 
-    },
-    title: 'Лучшие пляжи',
-    description: 'Самые красивые и удобные пляжи для отдыха и сноркелинга.',
-    number: 2,
-  },
-  {
-    id: 3,
-    href: '/routes/1-day',
-    category: 'МАРШРУТЫ',
-    image: { 
-      url: "http://localhost:3000/api/media/file/hero-image-article-1.jpg",
-      alt: "Collection Image" 
-    },
-    title: 'Маршрут на 1 день',
-    description: 'Оптимальный план поездки без спешки и переплат.',
-    number: 3,
-  },
-]
+function transformArticleToCard(article: BestArticleMinimal): CollectionCardData {
+  const imageUrl = article.image?.url || ''
+  const imageAlt = article.image?.alt || ''
+
+  return {
+    href: article.href || '',
+    category: article.category || '',
+    image: { url: imageUrl, alt: imageAlt },
+    title: article.title || '',
+    description: article.description || '',
+  }
+}
 
 export default function BestSelections({
   data,
-  className = "", 
+  className = '',
 }: {
-  data?: any
-  className?: string 
-} ) {
+  data: CollectionCardData[] | BestArticleMinimal[]
+  className?: string
+}) {
+  const transformedData: CollectionCardData[] = Array.isArray(data)
+    ? data
+        .filter((item): item is BestArticleMinimal => typeof item === 'object' && item !== null)
+        .map(transformArticleToCard)
+    : data
 
   return (
-    <section className={cn("rounded-3xl", className)}>
+    <section className={cn('rounded-3xl', className)}>
       <div className="">
         <div className="flex items-center gap-2">
           <h2 className="title">Лучшие подборки</h2>
         </div>
-        <CollectionsCard 
-            heightInPx={280}
-            data={data}
-        />
+        <CollectionsCard heightInPx={280} data={transformedData} />
       </div>
     </section>
-  );
+  )
 }

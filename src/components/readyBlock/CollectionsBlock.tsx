@@ -3,26 +3,60 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
 import { ChevronDown, Filter, Check, X } from 'lucide-react'
 import { CollectionsCardAccent } from '../ui/InfoCard'
+import type { CollectionsCardAccentData } from '@/shared/types/componentsType/infoCard.type'
+import type { Article } from '@/shared/types'
 
-interface Collection {
-  id: string | number
-  href: string
-  category?: string
-  image?: string
-  title: string
-  description: string
-  readTime?: string
+function transformArticleToAccentCard(article: Article): CollectionsCardAccentData {
+  const imageUrl =
+    typeof article.image === 'object' && article.image !== null ? article.image.url : undefined
+  const imageAlt =
+    typeof article.image === 'object' && article.image !== null ? article.image.alt : undefined
+
+  return {
+    href: article.href || '',
+    category: article.category || '',
+    image: { url: imageUrl || '', alt: imageAlt || '' },
+    title: article.title || '',
+    description: article.description || '',
+    readTime: article.readTime,
+  }
 }
 
 interface CollectionsBlockProps {
-  collections: Collection[]
+  collections: CollectionsCardAccentData[] | Article[]
   containerClass?: string
   title?: string
   itemsPerPage?: number
-  categories?: string[]
+  categories?: CategoryType[]
+}
+
+type CategoryType =
+  | 'ТРАНСПОРТ'
+  | 'ЕДА'
+  | 'ПЛЯЖИ'
+  | 'БЕЗОПАСНОСТЬ'
+  | 'ПРАКТИКА'
+  | 'МАРШРУТЫ'
+  | 'РАЗВЛЕЧЕНИЯ'
+  | 'ДОКУМЕНТЫ'
+  | 'ШОПИНГ'
+  | 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ'
+
+type PageNumber = number | '...'
+
+const CATEGORY_ICONS: Record<CategoryType, string> = {
+  ТРАНСПОРТ: '🚗',
+  ЕДА: '🍽️',
+  ПЛЯЖИ: '🏖️',
+  БЕЗОПАСНОСТЬ: '🛡️',
+  ПРАКТИКА: '💡',
+  МАРШРУТЫ: '🗺️',
+  РАЗВЛЕЧЕНИЯ: '🎯',
+  ДОКУМЕНТЫ: '📄',
+  ШОПИНГ: '🛍️',
+  ДОСТОПРИМЕЧАТЕЛЬНОСТИ: '🏛️',
 }
 
 export default function CollectionsBlock({
@@ -33,15 +67,22 @@ export default function CollectionsBlock({
   categories = [],
 }: CollectionsBlockProps) {
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType | ''>('')
   const [isAnimating, setIsAnimating] = useState(false)
   const gridRef = useRef<HTMLDivElement>(null)
 
-  if (!collections || collections.length === 0) return null
+  // Трансформируем Article[] → CollectionsCardAccentData[]
+  const transformedCollections: CollectionsCardAccentData[] = Array.isArray(collections)
+    ? collections
+        .filter((item): item is Article => typeof item === 'object' && item !== null)
+        .map(transformArticleToAccentCard)
+    : []
+
+  if (!transformedCollections || transformedCollections.length === 0) return null
 
   const filteredCollections = selectedCategory
-    ? collections.filter((collection) => collection.category === selectedCategory)
-    : collections
+    ? transformedCollections.filter((collection) => collection.category === selectedCategory)
+    : transformedCollections
 
   const totalPages = Math.ceil(filteredCollections.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -62,7 +103,7 @@ export default function CollectionsBlock({
     }, 300)
   }
 
-  const handleCategoryChange = (category: string) => {
+  const handleCategoryChange = (category: CategoryType | '') => {
     if (isAnimating) return
     setIsAnimating(true)
 
@@ -95,23 +136,9 @@ export default function CollectionsBlock({
   }, [isDropdownOpen])
 
   // Подсчет количества подборок в каждой категории
-  const getCategoryCount = (category: string) => {
+  const getCategoryCount = (category: CategoryType | '') => {
     if (!category) return collections.length
     return collections.filter((c) => c.category === category).length
-  }
-
-  // Иконки для категорий (опционально)
-  const categoryIcons: Record<string, string> = {
-    'ТРАНСПОРТ': '🚗',
-    'ЕДА': '🍽️',
-    'ПЛЯЖИ': '🏖️',
-    'БЕЗОПАСНОСТЬ': '🛡️',
-    'ПРАКТИКА': '💡',
-    'МАРШРУТЫ': '🗺️',
-    'РАЗВЛЕЧЕНИЯ': '🎯',
-    'ДОКУМЕНТЫ': '📄',
-    'ШОПИНГ': '🛍️',
-    'ДОСТОПРИМЕЧАТЕЛЬНОСТИ': '🏛️',
   }
 
   return (
@@ -135,20 +162,22 @@ export default function CollectionsBlock({
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               disabled={isAnimating}
               className={cn(
-                "w-full flex items-center justify-between gap-3 px-5 py-3.5 rounded-2xl",
-                "bg-white border-2 transition-all duration-300",
-                "shadow-sm hover:shadow-md",
+                'w-full flex items-center justify-between gap-3 px-5 py-3.5 rounded-2xl',
+                'bg-white border-2 transition-all duration-300',
+                'shadow-sm hover:shadow-md',
                 isDropdownOpen
-                  ? "border-main shadow-main/20"
-                  : "border-gray-100 hover:border-gray-200",
-                isAnimating && "opacity-50 cursor-not-allowed"
+                  ? 'border-main shadow-main/20'
+                  : 'border-gray-100 hover:border-gray-200',
+                isAnimating && 'opacity-50 cursor-not-allowed',
               )}
             >
               <div className="flex items-center gap-3">
-                <div className={cn(
-                  "flex items-center justify-center w-9 h-9 rounded-xl transition-colors",
-                  isDropdownOpen ? "bg-main text-white" : "bg-gray-50 text-paragraph"
-                )}>
+                <div
+                  className={cn(
+                    'flex items-center justify-center w-9 h-9 rounded-xl transition-colors',
+                    isDropdownOpen ? 'bg-main text-white' : 'bg-gray-50 text-paragraph',
+                  )}
+                >
                   <Filter size={18} />
                 </div>
                 <div className="text-left">
@@ -184,8 +213,8 @@ export default function CollectionsBlock({
                 <ChevronDown
                   size={20}
                   className={cn(
-                    "text-paragraph transition-transform duration-300",
-                    isDropdownOpen && "rotate-180 text-main"
+                    'text-paragraph transition-transform duration-300',
+                    isDropdownOpen && 'rotate-180 text-main',
                   )}
                 />
               </div>
@@ -194,14 +223,14 @@ export default function CollectionsBlock({
             {/* Выпадающий список */}
             <div
               className={cn(
-                "absolute top-full left-0 right-0 mt-2 z-50",
-                "bg-white rounded-2xl border border-gray-100",
-                "shadow-xl shadow-black/5",
-                "transition-all duration-300 origin-top",
-                "overflow-hidden",
+                'absolute top-full left-0 right-0 mt-2 z-50',
+                'bg-white rounded-2xl border border-gray-100',
+                'shadow-xl shadow-black/5',
+                'transition-all duration-300 origin-top',
+                'overflow-hidden',
                 isDropdownOpen
-                  ? "opacity-100 scale-100 translate-y-0"
-                  : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+                  ? 'opacity-100 scale-100 translate-y-0'
+                  : 'opacity-0 scale-95 -translate-y-2 pointer-events-none',
               )}
             >
               {/* Заголовок */}
@@ -220,43 +249,43 @@ export default function CollectionsBlock({
                     setIsDropdownOpen(false)
                   }}
                   className={cn(
-                    "w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl",
-                    "transition-all duration-200",
-                    "hover:bg-gray-50",
-                    !selectedCategory && "bg-main/5 hover:bg-main/10"
+                    'w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl',
+                    'transition-all duration-200',
+                    'hover:bg-gray-50',
+                    !selectedCategory && 'bg-main/5 hover:bg-main/10',
                   )}
                 >
                   <div className="flex items-center gap-3 flex-1">
-                    <div className={cn(
-                      "flex items-center justify-center w-10 h-10 rounded-xl text-lg",
-                      !selectedCategory ? "bg-main text-white" : "bg-gray-100"
-                    )}>
+                    <div
+                      className={cn(
+                        'flex items-center justify-center w-10 h-10 rounded-xl text-lg',
+                        !selectedCategory ? 'bg-main text-white' : 'bg-gray-100',
+                      )}
+                    >
                       📚
                     </div>
                     <div className="text-left flex-1">
-                      <div className={cn(
-                        "font-semibold",
-                        !selectedCategory ? "text-main" : "text-paragraph"
-                      )}>
+                      <div
+                        className={cn(
+                          'font-semibold',
+                          !selectedCategory ? 'text-main' : 'text-paragraph',
+                        )}
+                      >
                         Все категории
                       </div>
-                      <div className="text-xs text-paragraph">
-                        Показать все подборки
-                      </div>
+                      <div className="text-xs text-paragraph">Показать все подборки</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "text-xs font-semibold px-2.5 py-1 rounded-full",
-                      !selectedCategory
-                        ? "bg-main text-white"
-                        : "bg-gray-100 text-paragraph"
-                    )}>
+                    <span
+                      className={cn(
+                        'text-xs font-semibold px-2.5 py-1 rounded-full',
+                        !selectedCategory ? 'bg-main text-white' : 'bg-gray-100 text-paragraph',
+                      )}
+                    >
                       {getCategoryCount('')}
                     </span>
-                    {!selectedCategory && (
-                      <Check size={18} className="text-main" />
-                    )}
+                    {!selectedCategory && <Check size={18} className="text-main" />}
                   </div>
                 </button>
 
@@ -272,46 +301,52 @@ export default function CollectionsBlock({
                       setIsDropdownOpen(false)
                     }}
                     className={cn(
-                      "w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl max-[400px]:px-2 ",
-                      "transition-all duration-200",
-                      "hover:bg-gray-50",
-                      selectedCategory === category && "bg-main/5 hover:bg-main/10"
+                      'w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl max-[400px]:px-2 ',
+                      'transition-all duration-200',
+                      'hover:bg-gray-50',
+                      selectedCategory === category && 'bg-main/5 hover:bg-main/10',
                     )}
                   >
                     <div className="flex items-center gap-3 flex-1">
-                      <div className={cn(
-                        "flex items-center justify-center w-10 aspect-square rounded-xl text-lg max-[400px]:w-8",
-                        selectedCategory === category
-                          ? "bg-main text-white"
-                          : "bg-gray-100"
-                      )}>
-                        {categoryIcons[category] || '📄'}
+                      <div
+                        className={cn(
+                          'flex items-center justify-center w-10 aspect-square rounded-xl text-lg max-[400px]:w-8',
+                          selectedCategory === category ? 'bg-main text-white' : 'bg-gray-100',
+                        )}
+                      >
+                        {CATEGORY_ICONS[category] || '📄'}
                       </div>
                       <div className="text-left flex-1">
-                        <div className={cn(
-                          "font-semibold max-[400px]:text-sm",
-                          selectedCategory === category ? "text-main" : "text-paragraph"
-                        )}>
+                        <div
+                          className={cn(
+                            'font-semibold max-[400px]:text-sm',
+                            selectedCategory === category ? 'text-main' : 'text-paragraph',
+                          )}
+                        >
                           {category}
                         </div>
                         <div className="text-xs text-paragraph">
                           {getCategoryCount(category)}{' '}
-                          {declOfNum(getCategoryCount(category), ['подборка', 'подборки', 'подборок'])}
+                          {declOfNum(getCategoryCount(category), [
+                            'подборка',
+                            'подборки',
+                            'подборок',
+                          ])}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={cn(
-                        "text-xs font-semibold px-2.5 py-1 rounded-full",
-                        selectedCategory === category
-                          ? "bg-main text-white"
-                          : "bg-gray-100 text-paragraph"
-                      )}>
+                      <span
+                        className={cn(
+                          'text-xs font-semibold px-2.5 py-1 rounded-full',
+                          selectedCategory === category
+                            ? 'bg-main text-white'
+                            : 'bg-gray-100 text-paragraph',
+                        )}
+                      >
                         {getCategoryCount(category)}
                       </span>
-                      {selectedCategory === category && (
-                        <Check size={18} className="text-main" />
-                      )}
+                      {selectedCategory === category && <Check size={18} className="text-main" />}
                     </div>
                   </button>
                 ))}
@@ -340,7 +375,7 @@ export default function CollectionsBlock({
         <div
           className={cn(
             'grid grid-cols-1 sm:grid-cols-2 gap-6 transition-all duration-300',
-            isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+            isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100',
           )}
         >
           {currentCollections.length === 0 ? (
@@ -356,17 +391,7 @@ export default function CollectionsBlock({
               )}
             </div>
           ) : (
-            currentCollections.map((collection) => (
-              <CollectionsCardAccent
-                key={collection.id}
-                image={collection.image}
-                href={collection.href}
-                category={collection.category}
-                title={collection.title}
-                description={collection.description}
-                readTime={collection.readTime}
-              />
-            ))
+            <CollectionsCardAccent data={currentCollections} />
           )}
         </div>
       </div>
@@ -382,7 +407,7 @@ export default function CollectionsBlock({
               className={cn(
                 'shrink-0 mr-2 flex items-center justify-center rounded-full bg-main border border-main text-white transition-all duration-200 hover:bg-white hover:text-main hover:-translate-y-1 shadow-sm',
                 'w-8 h-8 sm:w-10 sm:h-10',
-                isAnimating && 'opacity-50 cursor-not-allowed'
+                isAnimating && 'opacity-50 cursor-not-allowed',
               )}
               aria-label="Предыдущая страница"
             >
@@ -411,12 +436,12 @@ export default function CollectionsBlock({
                     currentPage === page
                       ? 'bg-main text-white shadow-md scale-105'
                       : 'bg-white border border-gray-200 text-paragraph hover:bg-gray-50 hover:border-gray-300 hover:-translate-y-1',
-                    isAnimating && 'opacity-50 cursor-not-allowed'
+                    isAnimating && 'opacity-50 cursor-not-allowed',
                   )}
                 >
                   {page}
                 </button>
-              )
+              ),
             )}
           </div>
 
@@ -428,7 +453,7 @@ export default function CollectionsBlock({
               className={cn(
                 'shrink-0 ml-2 flex items-center justify-center rounded-full bg-main border border-main text-white transition-all duration-200 hover:bg-white hover:text-main hover:-translate-y-1 shadow-sm',
                 'w-8 h-8 sm:w-10 sm:h-10',
-                isAnimating && 'opacity-50 cursor-not-allowed'
+                isAnimating && 'opacity-50 cursor-not-allowed',
               )}
               aria-label="Следующая страница"
             >
@@ -442,10 +467,7 @@ export default function CollectionsBlock({
 }
 
 // 📐 Умное отображение номеров страниц
-function getPageNumbers(
-  current: number,
-  total: number,
-): (number | string)[] {
+function getPageNumbers(current: number, total: number): PageNumber[] {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1)
   }
@@ -462,8 +484,6 @@ function getPageNumbers(
 function declOfNum(number: number, titles: [string, string, string]): string {
   const cases = [2, 0, 1, 1, 1, 2]
   return titles[
-    number % 100 > 4 && number % 100 < 20
-      ? 2
-      : cases[number % 10 < 5 ? number % 10 : 5]
+    number % 100 > 4 && number % 100 < 20 ? 2 : cases[number % 10 < 5 ? number % 10 : 5]
   ]
 }

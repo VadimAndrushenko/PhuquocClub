@@ -8,19 +8,18 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
+import type { Article } from '@/payload-types'
 import type {
-  PayloadArticle,
   TransformedArticleData,
-  KratkoItem,
   SectionBlock,
-  RelatedArticle,
-  UsefulLink,
-  PayloadKratkoItem,
-  PayloadContentBlock,
-  PayloadRelatedArticle,
-  PayloadUsefulLink,
   HeroArticleData,
+  KratkoItem,
+  ContentBlock,
+  UsefulLink,
+  RelatedArticle,
 } from '@/shared/types/pageType/article.type'
+import { AppMedia } from '@/shared/types'
+
 
 const iconMap: Record<string, LucideIcon> = {
   DollarSign,
@@ -31,7 +30,7 @@ const iconMap: Record<string, LucideIcon> = {
   User,
 }
 
-export function transformArticle(article: PayloadArticle): TransformedArticleData {
+export function transformArticle(article: Article): TransformedArticleData {
   // ============================================
   // 🎯 ДАННЫЕ ДЛЯ HERO КОМПОНЕНТА
   // ============================================
@@ -41,24 +40,21 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
     title: article.title || 'Заголовок пуст',
     description: article.description || 'пуст',
     intro: article.intro || 'пуст',
-    category: article.category,
-    image: {
-      url: article.image.url,
-      alt: article.image.alt || article.title,
-    },
+    category: article.category || '',
+    image: article.image as AppMedia,
     readTime: article.readTime || '',
     author: article.author || 'Phuquoc.Club',
     updatedAt: article.updatedAt,
     createdAt: article.createdAt,
-    section: article.section,
-    subsection: article.subsection,
-    slug: article.slug,
+    section: article.section || '',
+    subsection: typeof article.subsection === 'string' ? article.subsection : '',
+    slug: article.slug || '',
   }
 
   // ============================================
   // 📋 БЛОК "КРАТКО"
   // ============================================
-  const kratkoItems: KratkoItem[] = (article.kratko_items || []).map((item: PayloadKratkoItem) => ({
+  const kratkoItems: KratkoItem[] = (article.kratko_items || []).map((item) => ({
     icon: iconMap[item.icon] || FileText,
     label: item.label,
     value: item.value,
@@ -67,11 +63,11 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
   // ============================================
   // 🧱 СЕКЦИИ СТАТЬИ
   // ============================================
-  const sectionBlocks: SectionBlock[] = (article.content_blocks || []).map(
-    (block: PayloadContentBlock) => {
+  const sectionBlocks: SectionBlock[] = ((article.content_blocks as ContentBlock[]) || []).map(
+    (block) => {
       const result: SectionBlock = {
         title: block.title,
-        description: block.description,
+        description: block.description || '',
         typeContent: block.contentType === 'none' ? undefined : block.contentType,
       }
 
@@ -82,11 +78,11 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
           rows: rows?.map((r) => [r.cell1, r.cell2, r.cell3]) || [],
         }
       } else if (block.contentType === 'warning') {
-        result.warning = block.warning
+        result.warning = block.warning || undefined
       } else if (block.contentType === 'checklist') {
         result.checklist = block.checklist?.map((c) => c.item) || []
       } else if (block.contentType === 'tips') {
-        result.tips = block.tips
+        result.tips = block.tips || undefined
       }
 
       return result
@@ -96,7 +92,7 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
   // ============================================
   // 📚 ПОЛЕЗНЫЕ ССЫЛКИ
   // ============================================
-  const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link: PayloadUsefulLink) => ({
+  const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link) => ({
     href: link.href,
     label: link.label,
   }))
@@ -104,7 +100,21 @@ export function transformArticle(article: PayloadArticle): TransformedArticleDat
   // ============================================
   // 🔗 СВЯЗАННЫЕ СТАТЬИ
   // ============================================
-  const relatedArticles: RelatedArticle[] = article.related_articles || []
+  const relatedArticles: RelatedArticle[] = (article.related_articles || []).map((item) => ({
+    id: typeof item === 'number' ? item : item.id,
+    category:
+      typeof item === 'object' && item !== null && 'category' in item ? item.category || '' : '',
+    title: typeof item === 'object' && item !== null && 'title' in item ? item.title || '' : '',
+    description:
+      typeof item === 'object' && item !== null && 'description' in item ? item.description || '' : '',
+    image:
+      typeof item === 'object' && item !== null && 'image' in item
+        ? (item.image as AppMedia)
+        : { id: 0 },
+    href: typeof item === 'object' && item !== null && 'href' in item ? item.href || '' : '',
+    readTime:
+      typeof item === 'object' && item !== null && 'readTime' in item ? item.readTime || '' : undefined,
+  }))
 
   return {
     heroData,

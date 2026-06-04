@@ -35,6 +35,7 @@ export const metadata: Metadata = {
 // ===============================
 // Root Layout
 // ===============================
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -49,8 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-screen flex flex-col bg-background text-main">
         {/* Header */}
-        <Header />
-
+        <Header/>
         {/* Main content */}
         <main className="relative flex-1">{children}</main>
         {/* Footer */}

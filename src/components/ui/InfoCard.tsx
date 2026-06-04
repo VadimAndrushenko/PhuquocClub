@@ -3,13 +3,12 @@ import { type LucideIcon, ArrowRight, Clock, UtensilsCrossed } from 'lucide-reac
 import Image from 'next/image'
 import Slider from './Slider'
 import { cn } from '@/lib/utils'
-import { PayloadMedia } from '@/shared/types/global.type'
-import {
+import type {
+  TripPlanningProps,
   CollectionsCardAccentData,
   CollectionsCardAccentProps,
-  CollectionsCardData,
+  CollectionCardData,
   CollectionsCardProps,
-  TripPlanningProps,
 } from '@/shared/types/componentsType/infoCard.type'
 
 function TripPlanning({ arr }: TripPlanningProps) {
@@ -90,57 +89,75 @@ function PopularCards() {
 function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
   return (
     <Slider cols={{ sm: 2, lg: 3 }} gap="2rem">
-      {data.map((item: CollectionsCardData, i: number) => (
-        <div
-          style={{ height: `${heightInPx}px` }}
-          key={i}
-          className={`group relative rounded-[22px] p-6  overflow-hidden  `}
-        >
-          <Image
-            src={item.image.url || '/collection.png'}
-            alt={item.image.alt || 'Collection'}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            priority
-            unoptimized={process.env.NODE_ENV === 'development'}
-          />
+      {data.map((item: CollectionCardData, i: number) => {
+        const imgUrl =
+          item.image && typeof item.image === 'object' && item.image !== null
+            ? item.image.url
+            : undefined
+        const imgAlt =
+          item.image && typeof item.image === 'object' && item.image !== null
+            ? item.image.alt
+            : undefined
+        const hasImage = imgUrl && imgAlt
 
-          <div className="relative z-10 flex h-full flex-col justify-between text-white">
-            <div className="flex items-start justify-between">
-              <div className="p-2 rounded-full text-xs font-semibold uppercase text-white flex items-center gap-x-1 bg-[#3c383d79] backdrop-blur-sm border border-white/20">
-                <UtensilsCrossed size={20} />
+        return (
+          <div
+            style={{ height: `${heightInPx}px` }}
+            key={i}
+            className={`group relative rounded-[22px] p-6 overflow-hidden`}
+          >
+            {hasImage ? (
+              <Image
+                src={imgUrl}
+                alt={imgAlt}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                priority
+                unoptimized={process.env.NODE_ENV === 'development'}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full bg-gray-200">
+                <span className="text-gray-500">Изображение отсутствует</span>
+              </div>
+            )}
+
+            <div className="relative z-10 flex h-full flex-col justify-between text-white">
+              <div className="flex items-start justify-between">
+                {item.category && (
+                  <span className="font-bold text-white text-[11px] leading-normal uppercase py-1.5 px-3.5 rounded-full text-xs items-center gap-x-1 bg-[#3c383d79] backdrop-blur-sm border border-white/20">
+                    {item.category}
+                  </span>
+                )}
+
+                <span className="font-bold text-xl leading-[1.4] text-white/50">{i + 1}</span>
               </div>
 
-              <span className="font-bold text-xl leading-[1.4] text-white/50">01</span>
-            </div>
+              <div className="flex items-end justify-between gap-6">
+                <div>
+                  <h3 className="font-bold text-2xl leading-[1.33333] mb-2">{item.title}</h3>
+                  <p className="text-sm leading-[1.42857] opacity-80">{item.description}</p>
+                </div>
 
-            <div className="flex items-end justify-between gap-6">
-              <div>
-                <h3 className="font-bold text-2xl leading-[1.33333] mb-2">Топ рестораны</h3>
-                <p className="text-sm leading-[1.42857] opacity-80">
-                  Лучшие места от локальной кухни до изысканных ресторанов.
-                </p>
+                <Link
+                  href={item.href}
+                  className="flex shrink-0 items-center justify-center h-11 w-11 rounded-full bg-white text-black group/btn"
+                >
+                  <ArrowRight className="transition-transform duration-300 group-hover/btn:translate-x-1" />
+                </Link>
               </div>
-
-              <Link
-                href="/"
-                className="flex shrink-0 items-center justify-center h-11 w-11 rounded-full bg-white text-black group/btn"
-              >
-                <ArrowRight className="transition-transform duration-300 group-hover/btn:translate-x-1" />
-              </Link>
             </div>
+
+            {bg && <div className={cn(bg, 'absolute inset-0')}></div>}
           </div>
-
-          {bg && <div className={cn(bg, 'absolute inset-0')}></div>}
-        </div>
-      ))}
+        )
+      })}
     </Slider>
   )
 }
 
 function CollectionsCardAccent({ data, className = '' }: CollectionsCardAccentProps) {
   return (
-    <Slider cols={{ 520: 2, lg: 3 }}>
+    <>
       {data.map((item: CollectionsCardAccentData) => (
         <Link
           key={item.href}
@@ -156,13 +173,25 @@ function CollectionsCardAccent({ data, className = '' }: CollectionsCardAccentPr
           )}
 
           <div className="relative h-55 w-full">
-            <Image
-              src={item.image.url}
-              alt={item.image.alt}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-              unoptimized={process.env.NODE_ENV === 'development'}
-            />
+            {item.image &&
+            typeof item.image === 'object' &&
+            item.image !== null &&
+            item.image.url &&
+            item.image.alt ? (
+              <Image
+                src={item.image.url}
+                alt={item.image.alt}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                unoptimized={process.env.NODE_ENV === 'development'}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full bg-gray-200">
+                <span className="text-gray-500">
+                  проверте изоброжения и alt(описания для картинки)
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="p-6 flex flex-col flex-1">
@@ -190,7 +219,7 @@ function CollectionsCardAccent({ data, className = '' }: CollectionsCardAccentPr
           </div>
         </Link>
       ))}
-    </Slider>
+    </>
   )
 }
 

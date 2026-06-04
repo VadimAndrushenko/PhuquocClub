@@ -72,6 +72,8 @@ export interface Config {
     media: Media;
     subsections: Subsection;
     sections: Section;
+    bestSelections: BestSelection;
+    continueSelections: ContinueSelection;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -84,6 +86,8 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     subsections: SubsectionsSelect<false> | SubsectionsSelect<true>;
     sections: SectionsSelect<false> | SectionsSelect<true>;
+    bestSelections: BestSelectionsSelect<false> | BestSelectionsSelect<true>;
+    continueSelections: ContinueSelectionsSelect<false> | ContinueSelectionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -160,15 +164,15 @@ export interface Article {
   title: string;
   slug: string;
   /**
-   * Генерируется автоматически из раздела, подборки и slug.
-   */
-  href?: string | null;
-  /**
    * Выберите подборку — раздел и категория заполнятся автоматически.
    */
   subsection: number | Subsection;
   section?: string | null;
   category?: string | null;
+  /**
+   * Генерируется автоматически из раздела, подборки и slug.
+   */
+  href?: string | null;
   description: string;
   intro: string;
   image: number | Media;
@@ -243,21 +247,46 @@ export interface Article {
  */
 export interface Subsection {
   id: number;
-  /**
-   * Например: "Транспорт", "Лучшие пляжи"
-   */
+  status: 'draft' | 'published';
   title: string;
-  /**
-   * Например: transport, beaches, restaurants. Только латиница и дефисы.
-   */
   slug: string;
   /**
-   * В каком разделе сайта отображается эта подборка
+   * Выберите раздел — category заполнится автоматически.
    */
   section: number | Section;
-  description?: string | null;
-  image?: (number | null) | Media;
-  status?: ('draft' | 'published') | null;
+  href?: string | null;
+  category?: string | null;
+  description: string;
+  intro: string;
+  image: number | Media;
+  /**
+   * Выберите подборку — bestArticles заполнится автоматически
+   */
+  bestSelection?: (number | null) | BestSelection;
+  /**
+   * Выберите подборку — continuePlanning заполнится автоматически
+   */
+  continueSelection?: (number | null) | ContinueSelection;
+  search?: {
+    placeholder?: string | null;
+    tags?:
+      | {
+          title: string;
+          icon: 'utensilsCrossed' | 'map' | 'waves' | 'bus' | 'dollarSign' | 'fileText' | 'lifeBuoy';
+          id?: string | null;
+        }[]
+      | null;
+  };
+  seo: {
+    title: string;
+    description: string;
+    keywords?:
+      | {
+          keyword?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -296,6 +325,36 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bestSelections".
+ */
+export interface BestSelection {
+  id: number;
+  status: 'draft' | 'published';
+  title: string;
+  /**
+   * В БД хранятся только ID. Данные формируются автоматически.
+   */
+  bestArticles: (number | Article)[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "continueSelections".
+ */
+export interface ContinueSelection {
+  id: number;
+  status: 'draft' | 'published';
+  title: string;
+  /**
+   * В БД хранятся только ID. Данные формируются автоматически.
+   */
+  continuePlanning: (number | Article)[];
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -340,6 +399,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'sections';
         value: number | Section;
+      } | null)
+    | ({
+        relationTo: 'bestSelections';
+        value: number | BestSelection;
+      } | null)
+    | ({
+        relationTo: 'continueSelections';
+        value: number | ContinueSelection;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -413,10 +480,10 @@ export interface ArticlesSelect<T extends boolean = true> {
   status?: T;
   title?: T;
   slug?: T;
-  href?: T;
   subsection?: T;
   section?: T;
   category?: T;
+  href?: T;
   description?: T;
   intro?: T;
   image?: T;
@@ -513,12 +580,41 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "subsections_select".
  */
 export interface SubsectionsSelect<T extends boolean = true> {
+  status?: T;
   title?: T;
   slug?: T;
   section?: T;
+  href?: T;
+  category?: T;
   description?: T;
+  intro?: T;
   image?: T;
-  status?: T;
+  bestSelection?: T;
+  continueSelection?: T;
+  search?:
+    | T
+    | {
+        placeholder?: T;
+        tags?:
+          | T
+          | {
+              title?: T;
+              icon?: T;
+              id?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        keywords?:
+          | T
+          | {
+              keyword?: T;
+              id?: T;
+            };
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -532,6 +628,28 @@ export interface SectionsSelect<T extends boolean = true> {
   description?: T;
   image?: T;
   status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bestSelections_select".
+ */
+export interface BestSelectionsSelect<T extends boolean = true> {
+  status?: T;
+  title?: T;
+  bestArticles?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "continueSelections_select".
+ */
+export interface ContinueSelectionsSelect<T extends boolean = true> {
+  status?: T;
+  title?: T;
+  continuePlanning?: T;
   updatedAt?: T;
   createdAt?: T;
 }

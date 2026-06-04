@@ -2,9 +2,8 @@ import Image from 'next/image'
 import { CalendarDays, Clock3, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Breadcrumbs from '../ui/Breadcrumbs'
-import SearchInput from '../ui/SearchInput'
 import type { HeroProps } from '@/shared/types/blockType/hero.type'
-import { PayloadMedia } from '@/shared/types/global.type'
+import SearchInput from '../ui/SearchInput'
 
 // ============================================
 // 🔧 ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -135,22 +134,22 @@ export default function Hero({
 
         {/* Интро */}
         {dataHero?.intro && (
-          <p className={cn('font-normal sm:text-lg leading-[1.6] text-[#4A5565]', classes.intro)}>
+          <p className={cn('font-normal text-wrap sm:text-lg leading-[1.6] text-[#4A5565]', classes.intro)}>
             {dataHero.intro}
           </p>
         )}
 
         {/* Поиск */}
         {dataHero?.search && (
-          <div className={classes.search}>
-            <SearchInput placeholder={dataHero.search.placeholder} tags={dataHero.search.tags} />
+          <div className={classes?.search}>
+            <SearchInput search={dataHero?.search}/>
           </div>
         )}
       </div>
 
       {/* Правая часть: картинка */}
       <div className={cn('max-lg:hidden', classes.imageWrapper)}>
-        {dataHero.image.url ? (
+        {dataHero.image.url && dataHero.image.alt ? (
           <Image
             className={cn('rounded-4xl', classes.image)}
             src={dataHero.image.url}

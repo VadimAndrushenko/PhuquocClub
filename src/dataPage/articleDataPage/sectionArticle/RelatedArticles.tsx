@@ -11,7 +11,10 @@ export default function RelatedArticles({ articles, containerClass = '' }: Relat
         <h2 className="title flex-1">Похожие статьи</h2>
       </div>
 
-      <CollectionsCardAccent data={articles} />
+      <Slider cols={{ 520: 2, lg: 3 }}>
+        <CollectionsCardAccent data={articles} />
+      </Slider>
+      
     </section>
   )
 }

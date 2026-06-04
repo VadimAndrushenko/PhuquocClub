@@ -51,7 +51,19 @@ const heroData = {
   description: 'Всё что нужно туристу - быстро и понятно',
   search: {
     placeholder: 'Поиск по сайту: пляжи, отели, еда, транспорт...',
-    tags: true,
+    "tags": [
+      {
+        "id": "6a20022558d21eefe10183ce",
+        "title": "где хавать ",
+        "icon": "utensilsCrossed"
+      },
+
+      {
+        "id": "6a20022f58d21eefe10183d0",
+        "title": "виза",
+        "icon": "fileText"
+      }
+    ]
   },
   image: {
     url: '/hero-image.jpg',

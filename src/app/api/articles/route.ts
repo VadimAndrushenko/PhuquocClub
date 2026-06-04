@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadClient } from '@/lib/payload'
+import { getPayloadClient } from '@/lib/payload/payload'
+
+import type { Where } from 'payload'
+import { ArticlesApiResponse } from '@/shared/types/apiType/api.type'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    
+
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '6')
     const category = searchParams.get('category')
@@ -12,7 +15,7 @@ export async function GET(request: NextRequest) {
     const payload = await getPayloadClient()
 
     // Формируем where условие
-    const where: any = {
+    const where: Where = {
       status: { equals: 'published' },
     }
 
@@ -21,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { docs, totalDocs, totalPages } = await payload.find({
-      collection: 'articles',
+      collection: 'Articles',
       where,
       depth: 2,
       page,
@@ -40,17 +43,16 @@ export async function GET(request: NextRequest) {
       readTime: article.readTime,
     }))
 
-    return NextResponse.json({
+    const response: ArticlesApiResponse = {
       docs: articles,
       totalDocs,
       totalPages,
       page,
-    })
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Ошибка API:', error)
-    return NextResponse.json(
-      { error: 'Ошибка загрузки статей' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Ошибка загрузки статей' }, { status: 500 })
   }
 }

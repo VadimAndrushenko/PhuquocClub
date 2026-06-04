@@ -3,6 +3,9 @@ import type { CollectionConfig } from 'payload'
 
 export const Sections: CollectionConfig = {
   slug: 'sections',  // ← ВАЖНО: именно 'sections'
+  access: {
+    read: () => true,
+  },
   labels: {
     singular: 'Раздел',
     plural: 'Разделы',

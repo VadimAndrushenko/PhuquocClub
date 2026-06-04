@@ -1,34 +1,31 @@
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import Link from "next/link"
+import { ChevronRight } from "lucide-react"
+import { getSectionTitle, getSubsectionTitle, getArticleTitle } from '@/lib/payload/getBreadcrumbsTitles'
 
 interface BreadcrumbURLProps {
-  section?: string;
-  subsection?: string;
-  article?: string;
+  section?: string
+  subsection?: string
+  article?: string
 }
 
-function formatLabel(value: string) {
-  return value.replace(/-/g, " ");
-}
+export default async function Breadcrumbs({ URL }: { URL: BreadcrumbURLProps }) {
+  const { section, subsection, article } = URL
 
-export default function Breadcrumbs({ URL }: { URL: BreadcrumbURLProps }) {
-  const { section, subsection, article } = URL;
+  // 🔥 Параллельные запросы к БД (с кешем)
+  const [sectionTitle, subsectionTitle, articleTitle] = await Promise.all([
+    section ? getSectionTitle(section) : Promise.resolve(''),
+    subsection ? getSubsectionTitle(subsection) : Promise.resolve(''),
+    article ? getArticleTitle(article) : Promise.resolve(''),
+  ])
 
-  // Определяем, какой элемент последний
-  const isSectionLast = !subsection && !article;
-  const isSubsectionLast = subsection && !article;
+  const isSectionLast = !subsection && !article
+  const isSubsectionLast = subsection && !article
 
   return (
-    <nav
-      
-      aria-label="breadcrumb"
-    >
+    <nav aria-label="breadcrumb">
       <ul className="mb-6 flex flex-wrap items-center gap-2 text-sm text-paragraph max-[450px]:gap-0.75 max-[400px]:text-[3.3vw]">
         <li>
-          <Link
-            href="/"
-            className="transition-colors hover:text-main"
-          >
+          <Link href="/" className="transition-colors hover:text-main">
             Главная
           </Link>
         </li>
@@ -37,15 +34,10 @@ export default function Breadcrumbs({ URL }: { URL: BreadcrumbURLProps }) {
           <li className="flex items-center">
             <ChevronRight size={16} className="text-[#98A2B3]" />
             {isSectionLast ? (
-              <span className="text-main font-medium">
-                {formatLabel(section)}
-              </span>
+              <span className="text-main font-medium">{sectionTitle}</span>
             ) : (
-              <Link
-                href={`/${section}`}
-                className="transition-colors hover:text-main"
-              >
-                {formatLabel(section)}
+              <Link href={`/${section}`} className="transition-colors hover:text-main">
+                {sectionTitle}
               </Link>
             )}
           </li>
@@ -55,15 +47,13 @@ export default function Breadcrumbs({ URL }: { URL: BreadcrumbURLProps }) {
           <li className="flex items-center">
             <ChevronRight size={16} className="text-[#98A2B3]" />
             {isSubsectionLast ? (
-              <span className="text-main font-medium">
-                {formatLabel(subsection)}
-              </span>
+              <span className="text-main font-medium">{subsectionTitle}</span>
             ) : (
               <Link
                 href={`/${section}/${subsection}`}
                 className="transition-colors hover:text-main"
               >
-                {formatLabel(subsection)}
+                {subsectionTitle}
               </Link>
             )}
           </li>
@@ -72,12 +62,10 @@ export default function Breadcrumbs({ URL }: { URL: BreadcrumbURLProps }) {
         {article && (
           <li className="flex items-center">
             <ChevronRight size={16} className="text-[#98A2B3]" />
-            <span className="text-main font-medium">
-              {formatLabel(article)}
-            </span>
+            <span className="text-main font-medium">{articleTitle}</span>
           </li>
         )}
       </ul>
     </nav>
-  );
+  )
 }
