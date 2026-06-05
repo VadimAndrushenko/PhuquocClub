@@ -6,13 +6,12 @@ export const Media: CollectionConfig = {
     read: () => true,
   },
   upload: {
-    staticDir: 'public/media',
     mimeTypes: ['image/*'],
   },
   versions: {
     drafts: {
       autosave: {
-        interval: 2000, // 2 секунды - автосохранение
+        interval: 2000,
       },
     },
     maxPerDoc: 50,

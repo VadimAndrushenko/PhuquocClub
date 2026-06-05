@@ -17,9 +17,12 @@ const dirname = path.dirname(filename)
 
 // 🔥 Определяем serverURL из переменной окружения
 const serverURL =
-  process.env.NEXT_PUBLIC_SERVER_URL || process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000'
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  (process.env.VERCEL_ENV === 'production' && process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000')
 
 export default buildConfig({
   serverURL,
