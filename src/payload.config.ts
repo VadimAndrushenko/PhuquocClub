@@ -12,6 +12,7 @@ import { SubSections } from './payloadFile/collections/SubSections'
 import { Sections } from './payloadFile/collections/Sections'
 import { BestSelections } from './payloadFile/collections/BestSelections'
 import { ContinueSelections } from './payloadFile/collections/ContinueSelections'
+import { CollectionsPage } from './payloadFile/globals/CollectionsPage'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -36,6 +37,8 @@ export default buildConfig({
   },
 
   collections: [Users, Articles, Media, SubSections, Sections, BestSelections, ContinueSelections],
+
+  globals: [CollectionsPage],
 
   editor: lexicalEditor(),
 

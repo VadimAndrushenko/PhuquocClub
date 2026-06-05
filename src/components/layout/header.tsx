@@ -28,7 +28,7 @@ const menuItems = [
   { label: 'Жильё', path: '/accommodation', icon: Hotel },
   { label: 'Еда', path: '/food', icon: UtensilsCrossed },
   { label: 'Что посмотреть', path: '/on-island/sights', icon: MapPin },
-  { label: 'Транспорт', path: '/transport', icon: Car },
+  { label: 'Подборки', path: '/collections', icon: MapIcon },
   { label: 'Цены', path: '/prices', icon: DollarSign },
   { label: 'Советы', path: '/tips', icon: Lightbulb },
   { label: 'Маршруты', path: '/catalog', icon: MapIcon },

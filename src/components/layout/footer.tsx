@@ -36,6 +36,7 @@ const footerNavSections = {
     { href: '/accommodation', label: 'Жильё' },
     { href: '/food', label: 'Еда' },
     { href: '/transport', label: 'Транспорт' },
+    { href: '/collections', label: 'Подборки' },
     { href: '/on-island/beaches', label: 'Пляжи' },
     { href: '/on-island/entertainment', label: 'Развлечения' },
   ],

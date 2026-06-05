@@ -152,6 +152,59 @@ export async function getAllSubsections() {
   return docs
 }
 
+/**
+ * 🔥 ВСЕ опубликованные подборки в виде карточек (для страницы «Подборки»)
+ */
+export async function getAllSubsectionsCards() {
+  const payload = await getPayloadClient()
+
+  const { docs } = await payload.find({
+    collection: 'subsections',
+    where: { status: { equals: 'published' } },
+    depth: 2,
+    limit: 1000,
+    sort: '-createdAt',
+  })
+
+  return docs.map((subsection) => {
+    const imageUrl =
+      typeof subsection.image === 'object' && subsection.image !== null && 'url' in subsection.image
+        ? subsection.image.url || '/'
+        : '/'
+
+    const imageAlt =
+      typeof subsection.image === 'object' && subsection.image !== null && 'alt' in subsection.image
+        ? subsection.image.alt || subsection.title
+        : subsection.title
+
+    return {
+      href: subsection.href || '/',
+      category: subsection.category || '',
+      image: {
+        url: imageUrl,
+        alt: imageAlt,
+      },
+      title: subsection.title || '',
+      description: subsection.description || '',
+      readTime: undefined,
+    }
+  })
+}
+
+/**
+ * Получить настройки страницы «Подборки» (Global)
+ */
+export async function getCollectionsPage() {
+  const payload = await getPayloadClient()
+
+  const data = await payload.findGlobal({
+    slug: 'collectionsPage',
+    depth: 3,
+  })
+
+  return data
+}
+
 // ============================================
 // 📁 СЕКЦИИ
 // ============================================

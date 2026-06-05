@@ -97,8 +97,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    collectionsPage: CollectionsPage;
+  };
+  globalsSelect: {
+    collectionsPage: CollectionsPageSelect<false> | CollectionsPageSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -840,6 +844,88 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "collectionsPage".
+ */
+export interface CollectionsPage {
+  id: number;
+  status: 'draft' | 'published';
+  title: string;
+  description?: string | null;
+  image: number | Media;
+  search?: {
+    placeholder?: string | null;
+    tags?:
+      | {
+          title: string;
+          icon: 'utensilsCrossed' | 'map' | 'waves' | 'bus' | 'dollarSign' | 'fileText' | 'lifeBuoy';
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Опционально — лучшие статьи отобразятся вверху страницы.
+   */
+  bestSelection?: (number | null) | BestSelection;
+  /**
+   * Опционально — статьи отобразятся в блоке «Продолжить чтение».
+   */
+  continueSelection?: (number | null) | ContinueSelection;
+  seo: {
+    title: string;
+    description: string;
+    keywords?:
+      | {
+          keyword?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "collectionsPage_select".
+ */
+export interface CollectionsPageSelect<T extends boolean = true> {
+  status?: T;
+  title?: T;
+  description?: T;
+  image?: T;
+  search?:
+    | T
+    | {
+        placeholder?: T;
+        tags?:
+          | T
+          | {
+              title?: T;
+              icon?: T;
+              id?: T;
+            };
+      };
+  bestSelection?: T;
+  continueSelection?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        keywords?:
+          | T
+          | {
+              keyword?: T;
+              id?: T;
+            };
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
