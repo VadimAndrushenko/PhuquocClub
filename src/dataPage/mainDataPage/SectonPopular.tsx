@@ -1,17 +1,18 @@
-import Link from "next/link";
-import { cn } from '@/lib/utils';
-import { PopularCards } from "@/components/ui/InfoCard";
+import { cn } from '@/lib/utils'
+import { PopularCards } from '@/components/ui/InfoCard'
+import type { BestArticleMinimal } from '@/shared/types'
 
 export default function Popular({
-    containerClass = "" 
+  data,
+  containerClass = '',
 }: {
-    containerClass?: string 
-} ) {
-
+  data: BestArticleMinimal[]
+  containerClass?: string
+}) {
   return (
-    <section className={cn("", containerClass)}>
+    <section className={cn('', containerClass)}>
       <h2 className="title">Популярные</h2>
-      <PopularCards/>
+      <PopularCards data={data} />
     </section>
-  );
+  )
 }

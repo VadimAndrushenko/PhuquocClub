@@ -27,6 +27,8 @@ export interface BestArticleMinimal {
   status: 'draft' | 'published'
   description: string
   category?: string
+  readTime?: string
+  icon?: string // 🔥 Для Planning и Urgent блоков
 }
 
 // ============================================

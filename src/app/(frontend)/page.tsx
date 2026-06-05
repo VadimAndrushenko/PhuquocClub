@@ -3,82 +3,78 @@ import Planning from '@/dataPage/mainDataPage/SectonPlanning'
 import Popular from '@/dataPage/mainDataPage/SectonPopular'
 import Urgent from '@/dataPage/mainDataPage/SectonUrgent'
 import HeroMain from '@/dataPage/mainDataPage/HeroMain'
-import { SearchIconType, SearchTag } from '@/shared/types'
+import { getHomePage } from '@/lib/payload/payload'
+import { transformHomePage } from '@/lib/homePageTransform'
+import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 
 const classContent = 'py-10 max-sm:py-8 container'
 
+// ============================================
+// 📄 МЕТАДАННЫЕ
+// ============================================
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getHomePage()
 
-const collectionsData = [
-  {
-    id: 1,
-    href: '/food/restaurants',
-    category: 'ЕДА',
-    image: { 
-      url: "http://localhost:3000/api/media/file/collection.png",
-      alt: "Collection Image" 
-    } ,
-    title: 'Топ рестораны',
-    description: 'Лучшие места от локальной кухни до изысканных ресторанов.',
-    number: 1,
-  },
-  {
-    id: 2,
-    href: '/beaches/best',
-    category: 'ПЛЯЖИ',
-    image: { 
-      url: "http://localhost:3000/api/media/file/collection.png",
-      alt: "Collection Image" 
-    },
-    title: 'Лучшие пляжи',
-    description: 'Самые красивые и удобные пляжи для отдыха и сноркелинга.',
-    number: 2,
-  },
-  {
-    id: 3,
-    href: '/routes/1-day',
-    category: 'МАРШРУТЫ',
-    image: { 
-      url: "http://localhost:3000/api/media/file/hero-image-article-1.jpg",
-      alt: "Collection Image" 
-    },
-    title: 'Маршрут на 1 день',
-    description: 'Оптимальный план поездки без спешки и переплат.',
-    number: 3,
-  },
-]
+  if (!page) {
+    return {
+      title: 'Гид по Фукуоку',
+      description: 'Всё что нужно туристу - быстро и понятно',
+    }
+  }
 
-const heroData = {
-  title: 'Гид по Фукуоку',
-  description: 'Всё что нужно туристу - быстро и понятно',
-  search: {
-    placeholder: 'Поиск по сайту: пляжи, отели, еда, транспорт...',
-    tags: [
-      {
-        id: '6a20022558d21eefe10183ce',
-        title: 'где хавать ',
-        icon: 'utensilsCrossed' as SearchIconType
-      },
-      {
-        id: '6a20022f58d21eefe10183d0',
-        title: 'виза',
-        icon: 'fileText' as SearchIconType
-      }
-    ] as SearchTag[]
-  },
-  image: {
-    url: '/hero-image.jpg',
-    alt: 'Гид по Фукуоку'
+  return {
+    title: page.seo?.title ?? 'Гид по Фукуоку',
+    description: page.seo?.description ?? 'Всё что нужно туристу - быстро и понятно',
+    keywords: page.seo?.keywords?.map((k: { keyword?: string | null }) => k.keyword || '') || [],
   }
 }
 
-export default function Home() {
+// ============================================
+// 🎯 СТРАНИЦА
+// ============================================
+
+export default async function Home() {
+  const page = await getHomePage()
+
+  if (!page || page.status !== 'published') {
+    // В продакшене показываем 404, в деве можно показать дефолт
+    if (process.env.NODE_ENV === 'production') {
+      notFound()
+    }
+  }
+
+  const { heroData, popularArticles, planningArticles, collectionsData, urgentArticles } =
+    page ? transformHomePage(page) : getFallbackData()
+
   return (
     <div>
-      <HeroMain containerClass={classContent} dataMain={heroData}/>
-      <Popular containerClass={classContent} />
-      <Planning containerClass={classContent} />
+      <HeroMain containerClass={classContent} dataMain={heroData} />
+      <Popular containerClass={classContent} data={popularArticles} />
+      <Planning containerClass={classContent} data={planningArticles} />
       <Collections containerClass={classContent} data={collectionsData} />
-      <Urgent containerClass={classContent} />
+      <Urgent containerClass={classContent} data={urgentArticles} />
     </div>
   )
+}
+
+// ============================================
+// 🔧 FALLBACK ДАННЫЕ (если глобал не настроен)
+// ============================================
+function getFallbackData() {
+  return {
+    heroData: {
+      title: 'Гид по Фукуоку',
+      description: 'Всё что нужно туристу - быстро и понятно',
+      image: { url: '/hero-image.jpg', alt: 'Гид по Фукуоку' },
+      search: {
+        placeholder: 'Поиск по сайту: пляжи, отели, еда, транспорт...',
+        tags: [] as Array<{ id?: string | number | null; title: string; icon: any }>,
+      },
+    },
+    popularArticles: [],
+    planningArticles: [],
+    collectionsData: [],
+    urgentArticles: [],
+  }
 }

@@ -1,59 +1,62 @@
 
-import { Sun, BookType, Wallet, House } from "lucide-react";
+import { Sun, BookType, Wallet, House, Plane, Map, Waves, Utensils } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { TripPlanning } from '@/components/ui/InfoCard'
+import type { BestArticleMinimal } from '@/shared/types'
 
-import { cn } from '@/lib/utils';
-import { TripPlanning } from "@/components/ui/InfoCard";
+interface InfoCard {
+  icon: LucideIcon
+  title: string
+  description: string
+  href: string
+  titleLink?: string
+}
 
-const infoCards = [
-  {
-    icon: Sun,
-    title: "Когда ехать",
-    description: "Погода по месяцам, сезон дождей и лучшее время для отдыха.",
-    href: "/when-to-go",
-    titleLink: "Подробнее",
-  },
-  {
-    icon: BookType,
-    title: "Виза",
-    description: "Нужна ли виза, на какой срок можно находиться и как продлить.",
-    href: "/visa",
-    titleLink: "Подробнее",
-  },
-  {
-    icon: Wallet,
-    title: "Бюджет",
-    description: "Сколько стоит отдых на Пхукете: перелёт, жильё, еда, транспорт и экскурсии.",
-    href: "/budget",
-    titleLink: "Подробнее",
-  },
-  {
-    icon: House,
-    title: "Где жить",
-    description: "Районы острова, типы жилья и советы по выбору лучшего варианта.",
-    href: "/where-to-live",
-    titleLink: "Подробнее",
-  },
-];
+// Маппинг названий иконок на компоненты
+const iconMap: Record<string, LucideIcon> = {
+  Sun,
+  BookType,
+  Wallet,
+  House,
+  Plane,
+  Map,
+  Waves,
+  Utensils,
+}
+
+// Маппинг статей на карточки с иконками
+function mapArticlesToCards(articles: BestArticleMinimal[]): InfoCard[] {
+  return articles.slice(0, 4).map((article) => {
+    const IconComponent = article.icon ? iconMap[article.icon] : Sun
+    return {
+      icon: IconComponent || Sun,
+      title: article.title || '',
+      description: article.description || '',
+      href: article.href || '/',
+      titleLink: 'Подробнее',
+    }
+  })
+}
 
 export default function Urgent({
-    containerClass = "" 
+  data,
+  containerClass = '',
 }: {
-    containerClass?: string 
-} ) {
-    
+  data: BestArticleMinimal[]
+  containerClass?: string
+}) {
+  const infoCards = mapArticlesToCards(data)
+
   return (
-    <section className="bg-urgent bg-cover bg-centerpy-20">
-      <div className={cn("",containerClass)}>
-        
+    <section className="bg-urgent bg-cover bg-center py-20">
+      <div className={cn('', containerClass)}>
         <div className="flex items-center gap-2 mb-4">
           <h2 className="title text-white">Срочно нужно</h2>
         </div>
 
-        <TripPlanning
-          arr={infoCards}
-        />
-
+        <TripPlanning arr={infoCards} />
       </div>
     </section>
-  );
+  )
 }

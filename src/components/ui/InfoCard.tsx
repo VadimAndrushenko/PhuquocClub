@@ -10,6 +10,7 @@ import type {
   CollectionCardData,
   CollectionsCardProps,
 } from '@/shared/types/componentsType/infoCard.type'
+import type { BestArticleMinimal } from '@/shared/types'
 
 function TripPlanning({ arr }: TripPlanningProps) {
   return (
@@ -18,70 +19,86 @@ function TripPlanning({ arr }: TripPlanningProps) {
         const Icon = item.icon
 
         return (
-          <div
+          <Link
             key={item.href}
-            className="flex flex-col p-6 rounded-[22px] min-h-[210px] shadow-[0_4px_24px_0_rgba(0,0,0,0.02)] bg-white"
+            href={item.href}
+            className="group flex flex-col p-6 rounded-[22px] min-h-[210px] shadow-[0_4px_24px_0_rgba(0,0,0,0.02)] bg-white hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.08)] transition-all duration-500 ease-out"
           >
             <div className="flex items-center gap-4 mb-4">
-              <span className="flex items-center justify-center bg-[#004E4A0D] rounded-[14px] px-3 w-12 h-12">
-                <Icon size={24} />
+              <span className="flex items-center justify-center bg-[#004E4A0D] rounded-[14px] px-3 w-12 h-12 group-hover:scale-110 transition-transform duration-300">
+                <Icon size={24} className="group-hover:text-accent transition-colors" />
               </span>
 
-              <h3 className="font-bold text-[22px] leading-[1.16667]">{item.title}</h3>
+              <h3 className="font-bold text-[22px] leading-[1.16667] group-hover:text-accent transition-colors">
+                {item.title}
+              </h3>
             </div>
 
-            <p className="text-sm text-paragraph">{item.description}</p>
+            <p className="text-sm text-paragraph flex-1">{item.description}</p>
 
-            <Link href={item.href} className="font-semibold flex items-center gap-1 group mt-auto">
+            <div className="font-semibold flex items-center gap-1 mt-auto group-hover:text-accent transition-colors">
               {item.titleLink ?? 'Подробнее'}
               <ArrowRight
                 size={16}
                 className="transition-transform duration-300 group-hover:translate-x-1"
               />
-            </Link>
-          </div>
+            </div>
+          </Link>
         )
       })}
     </Slider>
   )
 }
 
-function PopularCards() {
+function PopularCards({ data }: { data: BestArticleMinimal[] }) {
   return (
     <Slider cols={{ md: 2, xl: 3 }} gap="2rem">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="flex gap-6 p-3 justify-between items-center bg-white rounded-[20px] w-[50wv] shadow-[0_4px_24px_0_rgba(0,0,0,0.04)]"
-        >
-          <div className="p-3 pr-0 flex flex-col h-full">
-            <span className="text-accent font-bold text-xs leading-snug tracking-wider mb-3">
-              ТРАНСПОРТ
-            </span>
-            <h3 className="font-bold text-xl leading-tight mb-2">Как арендовать байк на Фукуоке</h3>
-            <p
-              className="
+      {data.slice(0, 3).map((item, i) => {
+        const imgUrl = item.image?.url || ''
+        const imgAlt = item.image?.alt || item.title || ''
+
+        return (
+          <Link
+            key={item.id}
+            href={item.href || '#'}
+            className="group flex gap-6 p-3 justify-between items-center bg-white rounded-[20px] shadow-[0_4px_24px_0_rgba(0,0,0,0.04)] hover:-translate-y-3 hover:shadow-[0_10px_40px_0_rgba(0,0,0,0.1)] transition-all duration-500 ease-out overflow-hidden"
+          >
+            <div className="p-3 pr-0 flex flex-col h-full flex-1">
+              <span className="text-accent font-bold text-xs leading-snug tracking-wider mb-3 uppercase">
+                {item.category || 'КАТЕГОРИЯ'}
+              </span>
+              <h3 className="font-bold text-xl leading-tight mb-2 group-hover:text-accent transition-colors">
+                {item.title}
+              </h3>
+              <p
+                className="
                         text-paragraph max-h-[60px] overflow-y-auto 
-                        [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] mb-2
+                        [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] mb-2 flex-1
                     "
-            >
-              Условия аренды, цены, документы и важные советы для безопасной езды.
-            </p>
-            <span className="flex gap-1.5 text-[#90A1B9] font-medium text-xs leading-[1.33333] mt-auto">
-              <Clock size={14} />6 мин чтения
-            </span>
-          </div>
-          <div className="relative w-[90px] h-[120px] sm:w-[110px] sm:h-[196px] shrink-0">
-            <Image
-              src="/ImageWithFallback.png"
-              alt="WithFallback"
-              fill
-              className="object-cover rounded-xl"
-              unoptimized={process.env.NODE_ENV === 'development'}
-            />
-          </div>
-        </div>
-      ))}
+              >
+                {item.description}
+              </p>
+              <span className="flex gap-1.5 text-[#90A1B9] font-medium text-xs leading-[1.33333] mt-auto">
+                <Clock size={14} />
+                {item.readTime || '5 мин чтения'}
+              </span>
+            </div>
+            <div className="relative w-[90px] h-[120px] sm:w-[110px] sm:h-[196px] shrink-0 overflow-hidden rounded-xl">
+              {imgUrl ? (
+                <Image
+                  src={imgUrl}
+                  alt={imgAlt}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
+                  unoptimized={process.env.NODE_ENV === 'development'}
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-200 rounded-xl" />
+              )}
+            </div>
+          </Link>
+        )
+      })}
     </Slider>
   )
 }
@@ -101,17 +118,18 @@ function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
         const hasImage = imgUrl && imgAlt
 
         return (
-          <div
+          <Link
+            href={item.href}
+            key={item.id || i}
+            className="group relative rounded-[22px] overflow-hidden hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] transition-all duration-500 ease-out block"
             style={{ height: `${heightInPx}px` }}
-            key={i}
-            className={`group relative rounded-[22px] p-6 overflow-hidden`}
           >
             {hasImage ? (
               <Image
                 src={imgUrl}
                 alt={imgAlt}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
                 priority
                 unoptimized={process.env.NODE_ENV === 'development'}
               />
@@ -121,7 +139,7 @@ function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
               </div>
             )}
 
-            <div className="relative z-10 flex h-full flex-col justify-between text-white">
+            <div className="relative z-10 flex h-full flex-col justify-between text-white p-6">
               <div className="flex items-start justify-between">
                 {item.category && (
                   <span className="font-bold text-white text-[11px] leading-normal uppercase py-1.5 px-3.5 rounded-full text-xs items-center gap-x-1 bg-[#3c383d79] backdrop-blur-sm border border-white/20">
@@ -129,26 +147,27 @@ function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
                   </span>
                 )}
 
-                <span className="font-bold text-xl leading-[1.4] text-white/50">{i + 1}</span>
+                <span className="font-bold text-xl leading-[1.4] text-white/50">
+                  {item.number || i + 1}
+                </span>
               </div>
 
               <div className="flex items-end justify-between gap-6">
                 <div>
-                  <h3 className="font-bold text-2xl leading-[1.33333] mb-2">{item.title}</h3>
+                  <h3 className="font-bold text-2xl leading-[1.33333] mb-2 group-hover:text-white transition-colors">
+                    {item.title}
+                  </h3>
                   <p className="text-sm leading-[1.42857] opacity-80">{item.description}</p>
                 </div>
 
-                <Link
-                  href={item.href}
-                  className="flex shrink-0 items-center justify-center h-11 w-11 rounded-full bg-white text-black group/btn"
-                >
+                <div className="flex shrink-0 items-center justify-center h-11 w-11 rounded-full bg-white text-black group/btn hover:bg-accent hover:text-white transition-all">
                   <ArrowRight className="transition-transform duration-300 group-hover/btn:translate-x-1" />
-                </Link>
+                </div>
               </div>
             </div>
 
             {bg && <div className={cn(bg, 'absolute inset-0')}></div>}
-          </div>
+          </Link>
         )
       })}
     </Slider>

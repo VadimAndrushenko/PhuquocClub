@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import type { AppMedia, } from '@/shared/types'
+import type { AppMedia } from '@/shared/types'
 
 // ==============================
 // TripPlanning TYPES
@@ -25,6 +25,8 @@ export interface CollectionCardData {
   image: AppMedia
   title: string
   description: string
+  number?: number
+  id?: number | string
 }
 
 export interface CollectionsCardProps {
@@ -40,7 +42,7 @@ export interface CollectionsCardProps {
 export interface CollectionsCardAccentData {
   href: string
   category: string
-  image: AppMedia 
+  image: AppMedia
   title: string
   description: string
   readTime?: string

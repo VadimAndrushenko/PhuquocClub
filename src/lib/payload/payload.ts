@@ -191,16 +191,146 @@ export async function getAllSubsectionsCards() {
   })
 }
 
+// ============================================
+// 🏠 GLOBAL: HOME PAGE
+// ============================================
+
 /**
- * Получить настройки страницы «Подборки» (Global)
+ * Вспомогательная: извлечь минимальные данные из статей
  */
-export async function getCollectionsPage() {
+async function extractMinimalArticles(articleRefs: any[], payload: any) {
+  const articles: any[] = []
+
+  for (const ref of articleRefs) {
+    try {
+      const id = typeof ref === 'object' && ref !== null ? ref.id || ref.value : ref
+      if (!id) continue
+
+      const article = await payload.findByID({
+        collection: 'Articles',
+        id,
+        depth: 1, // 🔥 depth: 1 чтобы подтянулось изображение
+      })
+
+      if (!article) continue
+
+      const img = article.image as any
+      // 🔥 Исправлено: берём url напрямую из image объекта
+      const imageUrl = img?.url || img?.thumbnailURL || null
+      const imageAlt = img?.alt || article.title || ''
+
+      articles.push({
+        id: article.id,
+        title: article.title || null,
+        href: article.href || '/',
+        image: imageUrl ? { url: imageUrl, alt: imageAlt } : null,
+        status: article.status || 'published',
+        description: article.description || '',
+        category: article.category || undefined,
+        readTime: article.readTime || undefined,
+      })
+    } catch (error) {
+      console.error('❌ Ошибка извлечения статьи:', error)
+    }
+  }
+
+  return articles
+}
+
+/**
+ * Вспомогательная: извлечь минимальные данные из subsections
+ */
+async function extractMinimalSubsections(subsectionRefs: any[], payload: any) {
+  const collections: any[] = []
+
+  for (let index = 0; index < subsectionRefs.length; index++) {
+    try {
+      const ref = subsectionRefs[index]
+      const id = typeof ref === 'object' && ref !== null ? ref.id || ref.value : ref
+      if (!id) continue
+
+      const subsection = await payload.findByID({
+        collection: 'subsections',
+        id,
+        depth: 1, // 🔥 depth: 1 чтобы подтянулось изображение
+      })
+
+      if (!subsection) continue
+
+      const img = subsection.image as any
+      const imageUrl = img?.url || img?.thumbnailURL || null
+      const imageAlt = img?.alt || subsection.title || ''
+
+      const sectionSlug =
+        typeof subsection.section === 'object' && subsection.section !== null
+          ? (subsection.section as any).slug || ''
+          : String(subsection.section || '')
+
+      collections.push({
+        id: subsection.id,
+        href: subsection.href || `/${sectionSlug}/${subsection.slug || ''}`,
+        category: subsection.category || '',
+        image: imageUrl ? { url: imageUrl, alt: imageAlt } : null,
+        title: subsection.title || '',
+        description: subsection.description || '',
+        number: index + 1,
+      })
+    } catch (error) {
+      console.error('❌ Ошибка извлечения подборки:', error)
+    }
+  }
+
+  return collections
+}
+
+/**
+ * Получить настройки главной страницы (Global)
+ */
+export async function getHomePage() {
   const payload = await getPayloadClient()
 
   const data = await payload.findGlobal({
-    slug: 'collectionsPage',
+    slug: 'homePage',
     depth: 3,
   })
+
+  // 🔥 Извлекаем данные из статей напрямую (т.к. хуки отключены)
+  if (data) {
+    // Popular Articles
+    if (data.popularArticles && Array.isArray(data.popularArticles)) {
+      ;(data as any)._popularArticlesData = await extractMinimalArticles(
+        data.popularArticles,
+        payload,
+      )
+    }
+
+    // Planning Articles + Icons
+    if (data.planningBlock?.articles && Array.isArray(data.planningBlock.articles)) {
+      const articles = await extractMinimalArticles(data.planningBlock.articles, payload)
+      // Добавляем иконки
+      const icons = data.planningBlock.icons || []
+      ;(data as any)._planningArticlesData = articles.map((article, i) => ({
+        ...article,
+        icon: icons[i]?.icon || 'Sun',
+      }))
+    }
+
+    // Collections (Subsections)
+    if (data.collections && Array.isArray(data.collections)) {
+      ;(data as any)._collectionsData = await extractMinimalSubsections(data.collections, payload)
+    }
+
+    // Urgent Articles + Icons
+    if (data.urgentBlock?.articles && Array.isArray(data.urgentBlock.articles)) {
+      const articles = await extractMinimalArticles(data.urgentBlock.articles, payload)
+      // Добавляем иконки
+      const icons = data.urgentBlock.icons || []
+      ;(data as any)._urgentArticlesData = articles.map((article, i) => ({
+        ...article,
+        icon: icons[i]?.icon || 'Sun',
+      }))
+    }
+  }
 
   return data
 }

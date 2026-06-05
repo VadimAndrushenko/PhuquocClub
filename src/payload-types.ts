@@ -99,9 +99,11 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     collectionsPage: CollectionsPage;
+    homePage: HomePage;
   };
   globalsSelect: {
     collectionsPage: CollectionsPageSelect<false> | CollectionsPageSelect<true>;
+    homePage: HomePageSelect<false> | HomePageSelect<true>;
   };
   locale: null;
   widgets: {
@@ -889,6 +891,80 @@ export interface CollectionsPage {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homePage".
+ */
+export interface HomePage {
+  id: number;
+  status: 'draft' | 'published';
+  heroSection: {
+    title: string;
+    description: string;
+    image: number | Media;
+    search?: {
+      placeholder?: string | null;
+      tags?:
+        | {
+            title: string;
+            icon: 'utensilsCrossed' | 'map' | 'waves' | 'bus' | 'dollarSign' | 'fileText' | 'lifeBuoy';
+            id?: string | null;
+          }[]
+        | null;
+    };
+  };
+  /**
+   * Выберите 3 статьи для блока "Популярные". Извлекутся: title, description, image, category, readTime.
+   */
+  popularArticles?: (number | Article)[] | null;
+  planningBlock?: {
+    /**
+     * Выберите 4 статьи для блока "Планирование".
+     */
+    articles?: (number | Article)[] | null;
+    /**
+     * Добавьте иконки для каждой статьи (в том же порядке).
+     */
+    icons?:
+      | {
+          icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils';
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Выберите подборки для блока "Подборки". Извлекутся: title, description, image, category.
+   */
+  collections?: (number | Subsection)[] | null;
+  urgentBlock?: {
+    /**
+     * Выберите 4 статьи для блока "Срочное".
+     */
+    articles?: (number | Article)[] | null;
+    /**
+     * Добавьте иконки для каждой статьи (в том же порядке).
+     */
+    icons?:
+      | {
+          icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils';
+          id?: string | null;
+        }[]
+      | null;
+  };
+  seo: {
+    title: string;
+    description: string;
+    keywords?:
+      | {
+          keyword?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collectionsPage_select".
  */
 export interface CollectionsPageSelect<T extends boolean = true> {
@@ -910,6 +986,72 @@ export interface CollectionsPageSelect<T extends boolean = true> {
       };
   bestSelection?: T;
   continueSelection?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        keywords?:
+          | T
+          | {
+              keyword?: T;
+              id?: T;
+            };
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homePage_select".
+ */
+export interface HomePageSelect<T extends boolean = true> {
+  status?: T;
+  heroSection?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        search?:
+          | T
+          | {
+              placeholder?: T;
+              tags?:
+                | T
+                | {
+                    title?: T;
+                    icon?: T;
+                    id?: T;
+                  };
+            };
+      };
+  popularArticles?: T;
+  planningBlock?:
+    | T
+    | {
+        articles?: T;
+        icons?:
+          | T
+          | {
+              icon?: T;
+              id?: T;
+            };
+      };
+  collections?: T;
+  urgentBlock?:
+    | T
+    | {
+        articles?: T;
+        icons?:
+          | T
+          | {
+              icon?: T;
+              id?: T;
+            };
+      };
   seo?:
     | T
     | {

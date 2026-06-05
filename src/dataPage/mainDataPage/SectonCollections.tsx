@@ -1,25 +1,22 @@
-import { CollectionsCard } from '@/components/ui/InfoCard';
-import { cn } from '@/lib/utils';
+import { CollectionsCard } from '@/components/ui/InfoCard'
+import { cn } from '@/lib/utils'
+import type { CollectionCardData } from '@/lib/homePageTransform'
 
-export default function BestSelections({
+export default function Collections({
   data,
-  containerClass = "", 
+  containerClass = '',
 }: {
-  data?: any
+  data: CollectionCardData[]
   containerClass?: string 
-} ) {
-
+}) {
   return (
-    <section className={cn("rounded-3xl", containerClass)}>
+    <section className={cn('rounded-3xl', containerClass)}>
       <div className="">
         <div className="flex items-center gap-2">
           <h2 className="title">Лучшие подборки</h2>
         </div>
-        <CollectionsCard 
-            heightInPx={280}
-            data={data}
-        />
+        <CollectionsCard heightInPx={280} data={data} />
       </div>
     </section>
-  );
+  )
 }
