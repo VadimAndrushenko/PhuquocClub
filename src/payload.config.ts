@@ -16,7 +16,10 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 // 🔥 Определяем serverURL из переменной окружения
-const serverURL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+const serverURL =
+  process.env.NEXT_PUBLIC_SERVER_URL || process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : 'http://localhost:3000'
 
 export default buildConfig({
   serverURL,
@@ -45,19 +48,21 @@ export default buildConfig({
     },
   }),
 
-  // 🔥 CORS для продакшена (если фронт на другом домене)
+  // 🔥 CORS для продакшена
   cors: [
     serverURL,
     'http://localhost:3000',
-    process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : '',
-    'https://phuquoc.club', // Твой продакшен домен
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
+    'https://phuquoc-club.vercel.app',
+    'https://phuquoc.club',
   ].filter(Boolean),
 
   // 🔥 CSRF защита
   csrf: [
     serverURL,
     'http://localhost:3000',
-    process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : '',
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
+    'https://phuquoc-club.vercel.app',
     'https://phuquoc.club',
   ].filter(Boolean),
 })
