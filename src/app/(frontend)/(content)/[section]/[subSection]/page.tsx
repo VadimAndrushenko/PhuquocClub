@@ -91,7 +91,10 @@ export default async function SubSectionPage({ params }: SubSectionPageProps) {
         }}
       />
 
-      <BestSelections className={classPY} data={bestCollectionData} />
+      {/* ⭐ Лучшие подборки из bestSelection */}
+      {bestCollectionData.length > 0 && (
+        <BestSelections className={classPY} data={bestCollectionData} />
+      )}
 
       <CollectionsBlock
         collections={rawArticle}
@@ -100,7 +103,10 @@ export default async function SubSectionPage({ params }: SubSectionPageProps) {
         itemsPerPage={4}
       />
 
-      <ContinuePlanning className={classPY} data={continuePlanning} />
+      {/* 🔗 Продолжить чтение из continueSelection */}
+      {continuePlanning.length > 0 && (
+        <ContinuePlanning className={classPY} data={continuePlanning} />
+      )}
     </div>
   )
 }
