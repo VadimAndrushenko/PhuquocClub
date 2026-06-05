@@ -3,6 +3,7 @@ import Planning from '@/dataPage/mainDataPage/SectonPlanning'
 import Popular from '@/dataPage/mainDataPage/SectonPopular'
 import Urgent from '@/dataPage/mainDataPage/SectonUrgent'
 import HeroMain from '@/dataPage/mainDataPage/HeroMain'
+import { SearchIconType, SearchTag } from '@/shared/types'
 
 const classContent = 'py-10 max-sm:py-8 container'
 
@@ -51,19 +52,18 @@ const heroData = {
   description: 'Всё что нужно туристу - быстро и понятно',
   search: {
     placeholder: 'Поиск по сайту: пляжи, отели, еда, транспорт...',
-    "tags": [
+    tags: [
       {
-        "id": "6a20022558d21eefe10183ce",
-        "title": "где хавать ",
-        "icon": "utensilsCrossed"
+        id: '6a20022558d21eefe10183ce',
+        title: 'где хавать ',
+        icon: 'utensilsCrossed' as SearchIconType
       },
-
       {
-        "id": "6a20022f58d21eefe10183d0",
-        "title": "виза",
-        "icon": "fileText"
+        id: '6a20022f58d21eefe10183d0',
+        title: 'виза',
+        icon: 'fileText' as SearchIconType
       }
-    ]
+    ] as SearchTag[]
   },
   image: {
     url: '/hero-image.jpg',

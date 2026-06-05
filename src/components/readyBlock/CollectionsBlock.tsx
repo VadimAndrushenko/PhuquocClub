@@ -72,7 +72,7 @@ export default function CollectionsBlock({
   const gridRef = useRef<HTMLDivElement>(null)
 
   
-  const categories:CategoryType[] = haveCategories ? [...new Set(collections.map((a) => a.category).filter(Boolean))] as string[] : []
+  const categories = haveCategories ? [...new Set(collections.map((a) => a.category).filter(Boolean))] as string[] : []
 
   // Трансформируем Article[] → CollectionsCardAccentData[]
   const transformedCollections: CollectionsCardAccentData[] = Array.isArray(collections)

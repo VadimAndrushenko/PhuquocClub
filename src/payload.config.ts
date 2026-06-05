@@ -1,5 +1,5 @@
 import { buildConfig } from 'payload'
-import { sqliteAdapter } from '@payloadcms/db-sqlite'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -35,9 +35,13 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
 
-  db: sqliteAdapter({
-    client: {
-      url: process.env.DATABASE_URL!,
+  db: postgresAdapter({
+    pool: {
+      connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL!,
+      max: 20,
+      min: 5,
+      idleTimeoutMillis: 300000,
+      connectionTimeoutMillis: 10000,
     },
   }),
 
@@ -45,9 +49,15 @@ export default buildConfig({
   cors: [
     serverURL,
     'http://localhost:3000',
+    process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : '',
     'https://phuquoc.club', // Твой продакшен домен
-  ],
+  ].filter(Boolean),
 
   // 🔥 CSRF защита
-  csrf: [serverURL, 'http://localhost:3000', 'https://phuquoc.club'],
+  csrf: [
+    serverURL,
+    'http://localhost:3000',
+    process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : '',
+    'https://phuquoc.club',
+  ].filter(Boolean),
 })
