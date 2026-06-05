@@ -43,6 +43,7 @@ type CategoryType =
   | 'ДОКУМЕНТЫ'
   | 'ШОПИНГ'
   | 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ'
+  | string
 
 type PageNumber = number | '...'
 
@@ -72,9 +73,8 @@ export default function CollectionsBlock({
   const gridRef = useRef<HTMLDivElement>(null)
 
   
-  const categories = haveCategories ? [...new Set(collections.map((a) => a.category).filter(Boolean))] as string[] : []
+  const categories: CategoryType[] = haveCategories ? [...new Set(collections.map((a) => a.category).filter(Boolean))] as string[] : []
 
-  // Трансформируем Article[] → CollectionsCardAccentData[]
   const transformedCollections: CollectionsCardAccentData[] = Array.isArray(collections)
     ? collections
         .filter((item): item is Article => typeof item === 'object' && item !== null)
