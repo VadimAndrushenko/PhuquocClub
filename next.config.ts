@@ -8,7 +8,12 @@ const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [new URL('http://localhost:3000/**'), new URL('https://phuquoc.club/**')],
+    remotePatterns: [
+      new URL('http://localhost:3000/**'),
+      new URL('https://phuquoc.club/**'),
+      new URL('https://phuquoc-club.vercel.app/**'),
+      new URL('https://**/*.vercel.app/**'),
+    ],
   },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
