@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
       new URL('https://phuquoc.club/**'),
       new URL('https://phuquoc-club.vercel.app/**'),
       new URL('https://**/*.vercel.app/**'),
+      new URL('https://*.public.blob.vercel-storage.com/**'),
     ],
   },
   webpack: (webpackConfig) => {

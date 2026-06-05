@@ -25,6 +25,9 @@ const serverURL =
       ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000')
 
+// 🔥 Для Vercel Blob - правильный URL для медиа
+const mediaURL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+
 export default buildConfig({
   serverURL,
 
