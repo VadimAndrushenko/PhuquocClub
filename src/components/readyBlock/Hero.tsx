@@ -148,7 +148,7 @@ export default function Hero({
 
       {/* Правая часть: картинка */}
       <div className={cn('max-lg:hidden', classes.imageWrapper)}>
-        {dataHero.image.url && dataHero.image.alt ? (
+        {dataHero.image?.url && dataHero?.image.alt ? (
           <Image
             className={cn('rounded-4xl', classes.image)}
             src={dataHero.image.url}
@@ -159,7 +159,7 @@ export default function Hero({
             unoptimized={process.env.NODE_ENV === 'development'}
           />
         ) : (
-          <div className="bg-red-100 text-red-500 p-4 rounded">проверте url картинки</div>
+          <div className="bg-red-100 text-red-500 p-4 rounded">проверте url или alt картинки</div>
         )}
       </div>
     </Tag>
