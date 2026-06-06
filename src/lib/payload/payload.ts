@@ -13,19 +13,24 @@ export const getPayloadClient = async () => {
 
 /** Получить все опубликованные статьи */
 export async function getAllArticles(): Promise<Article[]> {
-  const payload = await getPayloadClient()
+  try {
+    const payload = await getPayloadClient()
 
-  const { docs } = await payload.find({
-    collection: 'Articles',
-    where: {
-      status: { equals: 'published' },
-    } as Where,
-    depth: 2,
-    limit: 100,
-    sort: '-createdAt',
-  })
+    const { docs } = await payload.find({
+      collection: 'Articles',
+      where: {
+        status: { equals: 'published' },
+      } as Where,
+      depth: 2,
+      limit: 100,
+      sort: '-createdAt',
+    })
 
-  return docs as Article[]
+    return docs as Article[]
+  } catch (error) {
+    console.error('❌ Ошибка getAllArticles:', error)
+    return [] // 🔥 Возвращаем пустой массив при ошибке БД
+  }
 }
 
 /** Получить одну статью по slug */
@@ -140,16 +145,21 @@ export async function getArticlesBySubsection(subsectionSlug: string) {
  * Все опубликованные подборки (для generateStaticParams)
  */
 export async function getAllSubsections() {
-  const payload = await getPayloadClient()
+  try {
+    const payload = await getPayloadClient()
 
-  const { docs } = await payload.find({
-    collection: 'subsections',
-    where: { status: { equals: 'published' } },
-    depth: 1,
-    limit: 1000,
-  })
+    const { docs } = await payload.find({
+      collection: 'subsections',
+      where: { status: { equals: 'published' } },
+      depth: 1,
+      limit: 1000,
+    })
 
-  return docs
+    return docs
+  } catch (error) {
+    console.error('❌ Ошибка getAllSubsections:', error)
+    return [] // 🔥 Возвращаем пустой массив при ошибке БД
+  }
 }
 
 /**
@@ -732,16 +742,21 @@ export async function getSubsectionsBySection(sectionSlug: string) {
  * Все опубликованные секции (для generateStaticParams)
  */
 export async function getAllSections() {
-  const payload = await getPayloadClient()
+  try {
+    const payload = await getPayloadClient()
 
-  const { docs } = await payload.find({
-    collection: 'sections',
-    where: { status: { equals: 'published' } },
-    depth: 1,
-    limit: 1000,
-  })
+    const { docs } = await payload.find({
+      collection: 'sections',
+      where: { status: { equals: 'published' } },
+      depth: 1,
+      limit: 1000,
+    })
 
-  return docs
+    return docs
+  } catch (error) {
+    console.error('❌ Ошибка getAllSections:', error)
+    return [] // 🔥 Возвращаем пустой массив при ошибке БД
+  }
 }
 
 // ============================================

@@ -18,18 +18,13 @@ import type { SubSectionPageProps } from '@/shared/types/pageType/subSection.typ
 // ============================================
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
-
-// ⚠️ ВРЕМЕННО: Отключаем generateStaticParams если нет БД
-// Раскомментируйте когда добавите POSTGRES_URL в Vercel
-/*
 export async function generateStaticParams() {
   try {
     const subsections = await getAllSubsections()
 
     return subsections
       .filter((sub) => {
-        const sectionSlug =
-          typeof sub.section === 'string' ? sub.section : ''
+        const sectionSlug = typeof sub.section === 'string' ? sub.section : ''
         return sectionSlug && sub.slug
       })
       .map((sub) => ({
@@ -38,13 +33,12 @@ export async function generateStaticParams() {
       }))
   } catch (error) {
     console.error('❌ Ошибка generateStaticParams для subsections:', error)
+    // 🔥 Возвращаем пустой массив - страницы будут сгенерированы on-demand но останутся статическими!
     return []
   }
 }
-*/
 
-// 🔥 Динамическая генерация (работает без БД на билде)
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-static'
 export const revalidate = 30
 
 // ============================================

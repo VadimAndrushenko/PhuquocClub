@@ -23,10 +23,6 @@ function declOfNum(number: number, titles: [string, string, string]): string {
 // ============================================
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
-
-// ⚠️ ВРЕМЕННО: Отключаем generateStaticParams если нет БД
-// Раскомментируйте когда добавите POSTGRES_URL в Vercel
-/*
 export async function generateStaticParams() {
   try {
     const sections = await getAllSections()
@@ -35,13 +31,12 @@ export async function generateStaticParams() {
     }))
   } catch (error) {
     console.error('❌ Ошибка generateStaticParams для sections:', error)
+    // 🔥 Возвращаем пустой массив - страницы будут сгенерированы on-demand но останутся статическими!
     return []
   }
 }
-*/
 
-// 🔥 Динамическая генерация (работает без БД на билде)
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-static'
 export const revalidate = 30
 
 // ============================================

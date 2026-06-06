@@ -15,10 +15,6 @@ import HeroArticle from '@/dataPage/articleDataPage/sectionArticle/HeroArticle'
 // ============================================
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
-
-// ⚠️ ВРЕМЕННО: Отключаем generateStaticParams если нет БД
-// Раскомментируйте когда добавите POSTGRES_URL в Vercel
-/*
 export async function generateStaticParams() {
   try {
     const articles = await getAllArticles()
@@ -33,16 +29,21 @@ export async function generateStaticParams() {
         return true
       })
       .map((article) => {
-        const subsectionObj = typeof article.subsection === 'object' && article.subsection !== null
-          ? article.subsection
-          : null
+        const subsectionObj =
+          typeof article.subsection === 'object' && article.subsection !== null
+            ? article.subsection
+            : null
 
         const subsectionSlug = subsectionObj?.slug || ''
         let sectionSlug = article.section || ''
 
         if (subsectionObj && 'section' in subsectionObj) {
           const subsectionSection = subsectionObj.section
-          if (typeof subsectionSection === 'object' && subsectionSection !== null && 'slug' in subsectionSection) {
+          if (
+            typeof subsectionSection === 'object' &&
+            subsectionSection !== null &&
+            'slug' in subsectionSection
+          ) {
             sectionSlug = subsectionSection.slug
           }
         }
@@ -55,13 +56,12 @@ export async function generateStaticParams() {
       })
   } catch (error) {
     console.error('❌ Ошибка generateStaticParams для статей:', error)
+    // 🔥 Возвращаем пустой массив - страницы будут сгенерированы on-demand но останутся статическими!
     return []
   }
 }
-*/
 
-// 🔥 Динамическая генерация (работает без БД на билде)
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-static'
 export const revalidate = 30
 
 // ============================================
