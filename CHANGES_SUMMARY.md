@@ -18,8 +18,8 @@
 
 | Файл | Назначение |
 |------|------------|
-| `src/app/api/revalidate-search/route.ts` | 🔥 Ручная ревалидация через API |
-| `src/app/api/webhook/revalidate/route.ts` | 🔥 Webhook для Payload CMS |
+| `src/app/api/revalidate-search/route.ts` | 🔥 Ручная ревалидация через `revalidatePath` |
+| `src/app/api/webhook/revalidate/route.ts` | 🔥 Webhook для Payload CMS (мгновенное обновление) |
 | `src/app/api/articles/route.ts` | ✅ ISR кэширование статей |
 
 ### 3. Данные и Контекст
@@ -35,7 +35,7 @@
 | Файл | Изменения |
 |------|-----------|
 | `next.config.ts` | ✅ Cache-Control headers, оптимизация |
-| `vercel.json` | ✅ Cron job для ревалидации |
+| `vercel.json` | ❌ Удалён (crons недоступны на free тарифе) |
 
 ### 5. Документация
 
@@ -48,10 +48,10 @@
 
 ## 🚀 Как это работает
 
-### Статическая генерация
+### Статическая генерация + ISR
 ```
 1. Первый запрос → Генерация статики
-2. Через 30 сек → ISR обновляет в фоне
+2. Через 30 сек → ISR обновляет в фоне при запросе
 3. Следующий запрос → Показывает обновлённую версию
 ```
 
@@ -74,7 +74,6 @@ Payload CMS → Webhook → /api/webhook/revalidate → Мгновенная р�
 ```bash
 # .env.production
 NEXT_PUBLIC_SERVER_URL=https://your-domain.com
-REVALIDATE_SECRET=default-secret-change-me  # ⚠️ Измените!
 WEBHOOK_SECRET=default-webhook-secret-change-me  # ⚠️ Измените!
 ```
 
@@ -91,20 +90,20 @@ Cache-Control: public, s-maxage=30, stale-while-revalidate=60
 
 ## ✅ Чеклист перед деплоем
 
-- [ ] Изменить `REVALIDATE_SECRET` в .env
-- [ ] Изменить `WEBHOOK_SECRET` в .env
-- [ ] Настроить webhook в Payload CMS (опционально)
+- [ ] Изменить `WEBHOOK_SECRET` в .env (если используете webhook)
 - [ ] Проверить `NEXT_PUBLIC_SERVER_URL`
+- [ ] Настроить webhook в Payload CMS (опционально)
 - [ ] Запустить `npm run build`
-- [ ] Протестировать ISR (подождать 30 сек после изменений)
+- [ ] Задеплоить на Vercel
 
 ---
 
 ## 🎯 Результат
 
 ✅ Все страницы статические  
-✅ Автообновление каждые 30 секунд  
+✅ Автообновление каждые 30 секунд (ISR)  
 ✅ Search Input работает статично  
-✅ ISR через Next.js  
+✅ ISR через Next.js (бесплатно!)  
 ✅ Мгновенная загрузка  
 ✅ SEO оптимизировано  
+✅ Webhook для мгновенного обновления (опционально)  

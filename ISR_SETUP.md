@@ -2,88 +2,80 @@
 
 ## 📋 Обзор
 
-Все страницы теперь используют **статическую генерацию** с автоматическим обновлением каждые **30 секунд** через ISR.
+Все страницы используют **статическую генерацию** с автоматическим обновлением каждые **30 секунд** через ISR.
 
 ## ⚙️ Как это работает
 
-1. **При первом запросе** → Генерируется статическая страница
-2. **Каждые 30 секунд** → Next.js автоматически обновляет кэш в фоне
-3. **При изменениях в CMS** → Webhook触发ет мгновенную ревалидацию
-4. **Search Input** → Автообновление данных каждые 30 секунд на клиенте
+### 1. ISR (автоматически каждые 30 секунд)
+Next.js автоматически обновляет страницы в фоне при запросах:
+- **Первый запрос после 30с** → Next.js показывает старую версию + обновляет в фоне
+- **Следующий запрос** → Показывает уже обновлённую версию
 
-## 📁 Обновлённые файлы
+### 2. Webhook (мгновенно при изменениях в CMS)
+При изменении данных в Payload CMS → webhook触发ет ревалидацию → Next.js обновляет кэш
 
-### Страницы (все с ISR)
-- `src/app/(frontend)/page.tsx` - Главная
-- `src/app/(frontend)/layout.tsx` - Layout
-- `src/app/(frontend)/(content)/[section]/page.tsx` - Разделы
-- `src/app/(frontend)/(content)/[section]/[subSection]/page.tsx` - Подборки
-- `src/app/(frontend)/(content)/[section]/[subSection]/[article]/page.tsx` - Статьи
-- `src/app/(frontend)/collections/page.tsx` - Подборки (все)
-- `src/app/(frontend)/help/page.tsx` - Помощь
+### 3. Search Input
+Поиск автообновляется каждые 30 секунд на клиенте.
 
-### API Endpoints
-- `src/app/api/revalidate-search/route.ts` - Ручная ревалидация через `revalidatePath`
-- `src/app/api/webhook/revalidate/route.ts` - Webhook для Payload CMS
-- `src/app/api/articles/route.ts` - API статей с ISR
+## 📁 Файлы с ISR
 
-### Данные и Контекст
-- `src/lib/getSearchData.ts` - Данные поиска с кэшем 30с
-- `src/contexts/SearchContext.tsx` - Автообновление поиска
-- `src/lib/payload/payload.ts` - Добавлена `getCollectionsPage`
+Все страницы имеют `revalidate = 30`:
+- `/` - Главная
+- `/[section]` - Разделы
+- `/[section]/[subSection]` - Подборки
+- `/[section]/[subSection]/[article]` - Статьи
+- `/collections` - Все подборки
+- `/help` - Помощь
+- `/api/articles` - API статей
 
-## 🚀 Развёртывание
+## 🚀 Развёртывание на Vercel (Бесплатный тариф)
 
-### Vercel (рекомендуется)
+### ISR работает автоматически! ✅
 
-ISR работает **автоматически** на Vercel. Ничего дополнительно настраивать не нужно.
+Ничего дополнительно настраивать **не нужно**. Просто:
 
 ```bash
-# Деплой
-vercel deploy --prod
+git push origin main
 ```
 
-### Docker / Свой сервер
+Vercel автоматически:
+1. Соберёт проект
+2. Включит ISR
+3. Кэши будет обновляться каждые 30 секунд
 
-Для работы ISR нужен следующий конфиг:
+### Webhook для мгновенного обновления (опционально)
 
-```bash
-# .env.production
-NEXT_PUBLIC_SERVER_URL=https://your-domain.com
-REVALIDATE_SECRET=your-secret-key-change-me
-WEBHOOK_SECRET=your-webhook-secret-change-me
+Для мгновенного обновления при изменениях в CMS:
+
+1. **Payload CMS → Admin → Settings → Webhooks**
+2. **Создать webhook:**
+   - URL: `https://your-domain.com/api/webhook/revalidate`
+   - Метод: POST
+   - Header: `x-webhook-secret: your-webhook-secret-change-me`
+   - Trigger: After Change
+   - Collections: Articles, sections, subsections, media
+
+3. **Готово!** При изменениях в CMS страницы обновятся мгновенно.
+
+## 🔁 Как работает ISR
+
 ```
-
-## 🔁 Автоматическое обновление
-
-### 1. ISR (каждые 30 секунд)
-Next.js автоматически обновляет страницы в фоне при запросах.
-
-### 2. Webhook (мгновенно при изменениях)
-Настройте в Payload CMS:
-- **URL**: `https://your-domain.com/api/webhook/revalidate`
-- **Метод**: POST
-- **Header**: `x-webhook-secret: your-webhook-secret-change-me`
-- **Collections**: Articles, sections, subsections, media
-- **Trigger**: After Change
-
-### 3. Ручная ревалидация
-```bash
-# Через API
-curl "https://your-domain.com/api/revalidate-search?secret=your-secret-key"
-
-# Или с указанием путей
-curl -X POST "https://your-domain.com/api/revalidate-search?secret=your-secret-key" \
-  -H "Content-Type: application/json" \
-  -d '{"paths": ["/", "/collections"], "tags": ["articles"]}'
+┌─────────────────────────────────────────────────────────┐
+│  T=0s:  Пользователь запрашивает страницу              │
+│         → Next.js генерирует статику                   │
+│         → Кэширует на 30 секунд                        │
+├─────────────────────────────────────────────────────────┤
+│  T=30s: Пользователь запрашивает страницу              │
+│         → Next.js показывает старую (из кэша)          │
+│         → В фоне обновляет (ISR)                       │
+│         → Следующий запрос получит новую версию        │
+├─────────────────────────────────────────────────────────┤
+│  Webhook: Изменение в CMS                              │
+│           → POST /api/webhook/revalidate               │
+│           → Next.js инвалидирует кэш                   │
+│           → Следующий запрос сгенерирует новую версию  │
+└─────────────────────────────────────────────────────────┘
 ```
-
-## 🔍 Search Input
-
-Поиск теперь:
-- ✅ **Статичный** - данные загружаются на сервере
-- ✅ **Автообновление** - каждые 30 секунд на клиенте
-- ✅ **Кэширование** - умный кэш с TTL 30 секунд
 
 ## 📊 Cache-Control Headers
 
@@ -95,14 +87,20 @@ Cache-Control: public, s-maxage=30, stale-while-revalidate=60
 - `s-maxage=30` - CDN кэширует на 30 секунд
 - `stale-while-revalidate=60` - Показывать старое пока обновляется (ещё 60с)
 
+## 🔍 Search Input
+
+Поиск работает полностью статично:
+- ✅ Данные загружаются на сервере при билде
+- ✅ Автообновление каждые 30 секунд на клиенте
+- ✅ Умный кэш с TTL 30 секунд
+
 ## 🛠️ Переменные окружения
 
 ```bash
 # .env.production
 NEXT_PUBLIC_SERVER_URL=https://your-domain.com
 
-# Для API ревалидации
-REVALIDATE_SECRET=your-secret-key-change-me
+# Для webhook (опционально)
 WEBHOOK_SECRET=your-webhook-secret-change-me
 
 # Payload CMS
@@ -117,35 +115,41 @@ BLOB_READ_WRITE_TOKEN=...
 ## ✅ Проверка работы
 
 1. Откройте любую страницу
-2. Посмотрите заголовок ответа:
+2. Посмотрите заголовок ответа в DevTools → Network:
    ```
-   x-next-cache-tags: ...
    cache-control: public, s-maxage=30, stale-while-revalidate=60
    ```
 3. Измените данные в Payload CMS
-4. Через 30 секунд страница обновится автоматически
+4. Подождите 30 секунд или настройте webhook
+5. Обновите страницу → данные обновятся
 
 ## 🎯 Преимущества
 
 - ⚡ **Быстрая загрузка** - статические страницы
-- 🔄 **Автообновление** - без ручного деплоя
-- 💰 **Дешевле** - меньше запросов к базе
+- 🔄 **Автообновление** - каждые 30 секунд
+- 💰 **Бесплатно** - работает на free тарифе Vercel
 - 📈 **Масштабируемость** - CDN кэширование
 - 🔍 **SEO** - статический контент индексируется лучше
+- 🚀 **Мгновенное обновление** - с webhook
 
 ## 🐛 Troubleshooting
 
-### Страницы не обновляются
-1. Проверьте `REVALIDATE_SECRET` в .env
-2. Проверьте логи API ревалидации
-3. Убедитесь что `revalidate = 30` на страницах
+### Страницы не обновляются через 30 секунд
+1. Проверьте что `revalidate = 30` на странице
+2. Проверьте заголовки Cache-Control
+3. Очистите кэш браузера
 
 ### Search Input не работает
 1. Проверьте `NEXT_PUBLIC_SERVER_URL`
 2. Проверьте консоль на ошибки fetch
 3. Очистите кэш браузера
 
-### Ошибки ISR на Vercel
-1. Проверьте `vercel.json` (если есть)
-2. Убедитесь что используется Next.js 14+
-3. Проверьте лимиты Vercel
+### Webhook не работает
+1. Проверьте `WEBHOOK_SECRET` в .env
+2. Проверьте логи webhook в Payload CMS
+3. Проверьте Vercel Function Logs для `/api/webhook/revalidate`
+
+### Деплой не обновляется
+1. Убедитесь что коммит запушен в GitHub
+2. Проверьте Vercel Deployments
+3. Отмените текущий деплой и сделайте Redeploy

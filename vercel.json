@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/revalidate-search?secret=default-secret-change-me",
-      "schedule": "*/1 * * * *"
-    }
-  ]
-}
