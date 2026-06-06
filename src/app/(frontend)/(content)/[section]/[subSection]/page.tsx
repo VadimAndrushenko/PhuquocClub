@@ -6,60 +6,61 @@ import BestSelections from '@/components/readyBlock/BestSelections'
 import CollectionsBlock from '@/components/readyBlock/CollectionsBlock'
 import Hero from '@/components/readyBlock/Hero'
 
-import { getSubsectionBySlugs, getArticlesBySubsection } from '@/lib/payload/payload'
+import {
+  getSubsectionBySlugs,
+  getArticlesBySubsection,
+  getAllSubsections,
+} from '@/lib/payload/payload'
 import { transformSubsection } from '@/lib/subsectionTransform'
 
 import type { SubSectionPageProps } from '@/shared/types/pageType/subSection.type'
 
 // ============================================
-// 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ
+// 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
-// export async function generateStaticParams() {
-//   const subsections = await getAllSubsections()
+export async function generateStaticParams() {
+  const subsections = await getAllSubsections()
 
-//   return subsections
-//     .filter((sub) => {
-//       const sectionSlug =
-//         typeof sub.section === 'string' ? sub.section : ''
-//       return sectionSlug && sub.slug
-//     })
-//     .map((sub) => ({
-//       section: typeof sub.section === 'string' ? sub.section : '',
-//       subSection: sub.slug || '',
-//     }))
-// }
+  return subsections
+    .filter((sub) => {
+      const sectionSlug = typeof sub.section === 'string' ? sub.section : ''
+      return sectionSlug && sub.slug
+    })
+    .map((sub) => ({
+      section: typeof sub.section === 'string' ? sub.section : '',
+      subSection: sub.slug || '',
+    }))
+}
 
-// export const dynamic = 'force-static'
-// export const revalidate = 10
+export const dynamic = 'force-static'
+export const revalidate = 30
 
 // ============================================
-// 📄 МЕТАДАННЫЕ
+// 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
-// export async function generateMetadata({
-//   params,
-// }: SubSectionPageProps): Promise<Metadata> {
-//   const { section, subSection } = await params
-//   const subsection = await getSubsectionBySlugs(section, subSection)
+export async function generateMetadata({ params }: SubSectionPageProps): Promise<Metadata> {
+  const { section, subSection } = await params
+  const subsection = await getSubsectionBySlugs(subSection)
 
-//   if (!subsection) {
-//     return {
-//       title: 'Подборка не найдена',
-//       description: 'Такой подборки не существует',
-//     }
-//   }
+  if (!subsection) {
+    return {
+      title: 'Подборка не найдена',
+      description: 'Такой подборки не существует',
+    }
+  }
 
-//   const sub = subsection as {
-//     title?: string
-//     description?: string
-//     seo?: { title?: string; description?: string; keywords?: Array<{ keyword: string }> }
-//   }
+  const sub = subsection as {
+    title?: string
+    description?: string
+    seo?: { title?: string; description?: string; keywords?: Array<{ keyword: string }> }
+  }
 
-//   return {
-//     title: sub.seo?.title ?? sub.title,
-//     description: sub.seo?.description ?? sub.description ?? '',
-//     keywords: sub.seo?.keywords?.map((k) => k.keyword) || [],
-//   }
-// }
+  return {
+    title: sub.seo?.title ?? sub.title,
+    description: sub.seo?.description ?? sub.description ?? '',
+    keywords: sub.seo?.keywords?.map((k) => k.keyword) || [],
+  }
+}
 
 // ============================================
 // 🎯 СТРАНИЦА

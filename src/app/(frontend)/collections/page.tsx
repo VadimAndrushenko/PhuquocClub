@@ -10,7 +10,13 @@ import { getCollectionsPage, getAllSubsectionsCards } from '@/lib/payload/payloa
 import { transformCollectionsPage } from '@/lib/collectionsPageTransform'
 
 // ============================================
-// 📄 МЕТАДАННЫЕ
+// 🔥 ISR - РЕВАЛИДАЦИЯ КАЖДЫЕ 30 СЕКУНД
+// ============================================
+export const revalidate = 30
+export const dynamic = 'force-static'
+
+// ============================================
+// 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getCollectionsPage()

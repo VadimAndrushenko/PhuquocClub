@@ -22,6 +22,17 @@ export const Sections: CollectionConfig = {
     },
     maxPerDoc: 50,
   },
+  hooks: {
+    beforeChange: [
+      ({ data }) => {
+        // 🔥 Автоматически устанавливаем href на основе slug
+        if (data?.slug) {
+          data.href = `/${data.slug}`
+        }
+        return data
+      },
+    ],
+  },
   fields: [
     {
       name: 'status',
@@ -53,6 +64,16 @@ export const Sections: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'Например: on-island, before-trip. Только латиница и дефисы.',
+      },
+    },
+    {
+      name: 'href',
+      type: 'text',
+      label: 'URL (авто)',
+      admin: {
+        readOnly: true,
+        description: 'Генерируется автоматически из slug',
+        position: 'sidebar',
       },
     },
     {

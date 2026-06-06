@@ -14,8 +14,8 @@ export default function FooterNavSection({ title, items, className = "" }: Foote
     <div className={className}>
       <h3 className="font-bold mb-6">{title}</h3>
       <ul className="space-y-4 text-paragraph">
-        {items.map((item) => (
-          <li key={item.href}>
+        {items.map((item, index) => (
+          <li key={`${item.href}-${index}`}>
             <Link href={item.href} className="hover-underline left transition-colors duration-300 hover:text-black hover:translate-x-1">
               {item.label}
             </Link>

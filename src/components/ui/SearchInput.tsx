@@ -135,11 +135,21 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
       {tags.length > 0 && (
         <div className="flex flex-wrap justify-start gap-3 mt-4 lg:max-w-[500px] max-sm:gap-1.5">
           {tags.map((tag) => {
-            const IconComponent = iconMap[tag.icon]
+            const IconComponent = tag.icon ? iconMap[tag.icon] : null
             return (
               <button
-                key={tag.id}
-                className="px-4 py-2.5 rounded-full bg-white shadow-sm text-sm hover:bg-zinc-100 text-[#314158] max-sm:text-xs max-sm:px-2 max-sm:py-2 transition-colors"
+                key={tag.id || tag.title}
+                className=" bg-white shadow-sm text-sm text-[#314158] max-sm:text-xs max-sm:px-2 max-sm:py-2 transition-all
+                  px-4 py-2.5
+                  hover:bg-[#E8ECF1]
+                  text-[#4A5565]
+                  text-sm
+                  font-medium
+                  rounded-full
+                  transition-all 
+                  duration-300
+                  hover:-translate-y-0.5
+                  hover:shadow-sm"
                 onClick={() => setQuery(tag.title)}
               >
                 {IconComponent && (

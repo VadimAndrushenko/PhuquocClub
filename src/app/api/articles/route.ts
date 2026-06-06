@@ -4,6 +4,10 @@ import { getPayloadClient } from '@/lib/payload/payload'
 import type { Where } from 'payload'
 import { ArticlesApiResponse } from '@/shared/types/apiType/api.type'
 
+// 🔥 ISR - РЕВАЛИДАЦИЯ КАЖДЫЕ 30 СЕКУНД
+export const revalidate = 30
+export const dynamic = 'force-static'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -50,7 +54,11 @@ export async function GET(request: NextRequest) {
       page,
     }
 
-    return NextResponse.json(response)
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': 's-maxage=30, stale-while-revalidate=60',
+      },
+    })
   } catch (error) {
     console.error('Ошибка API:', error)
     return NextResponse.json({ error: 'Ошибка загрузки статей' }, { status: 500 })

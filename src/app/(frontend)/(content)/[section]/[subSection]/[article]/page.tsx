@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
-import { getArticleBySlug } from '@/lib/payload/payload'
+import { getArticleBySlug, getAllArticles } from '@/lib/payload/payload'
 import { transformArticle } from '@/lib/articleTransform'
 import type { ArticlePageProps } from '@/shared/types/pageType/article.type'
+import type { Metadata } from 'next'
 
 import KratkoArticle from '@/dataPage/articleDataPage/sectionArticle/KratkoArticle'
 import BodyArticle from '@/dataPage/articleDataPage/sectionArticle/BodyArticle'
@@ -9,16 +10,92 @@ import NavigationArticle from '@/dataPage/articleDataPage/sectionArticle/Navigat
 import UsefulArticle from '@/dataPage/articleDataPage/sectionArticle/UsefulArticle'
 import RelatedArticles from '@/dataPage/articleDataPage/sectionArticle/RelatedArticles'
 import NeedHelpArticle from '@/dataPage/articleDataPage/sectionArticle/NeeHelpArticle'
-import Hero from '@/components/readyBlock/Hero'
 import HeroArticle from '@/dataPage/articleDataPage/sectionArticle/HeroArticle'
 
-// ========== СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ =========== \\
+// ============================================
+// 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
+// ============================================
+export async function generateStaticParams() {
+  try {
+    const articles = await getAllArticles()
 
-// ============================================ \\
+    if (!articles || articles.length === 0) {
+      // 🔥 Fallback: возвращаем пустой массив если статей нет
+      // Страницы будут сгенерированы по запросу (on-demand)
+      return []
+    }
 
-// ================ МЕТАДАНЫЕ ================ \\
+    return articles
+      .filter((article) => {
+        // Фильтруем статьи без subsection
+        if (!article.subsection) return false
+        return true
+      })
+      .map((article) => {
+        // 🔥 Получаем subsection объект
+        const subsectionObj =
+          typeof article.subsection === 'object' && article.subsection !== null
+            ? article.subsection
+            : null
 
-// ============================================ \\
+        // 🔥 Получаем slug subsection
+        const subsectionSlug = subsectionObj?.slug || ''
+
+        // 🔥 Получаем section из subsection (это number | Section)
+        let sectionSlug = article.section || ''
+
+        if (subsectionObj && 'section' in subsectionObj) {
+          const subsectionSection = subsectionObj.section
+          // subsection.section это number | Section
+          if (
+            typeof subsectionSection === 'object' &&
+            subsectionSection !== null &&
+            'slug' in subsectionSection
+          ) {
+            sectionSlug = subsectionSection.slug
+          }
+        }
+
+        return {
+          section: sectionSlug,
+          subSection: subsectionSlug,
+          article: article.slug,
+        }
+      })
+  } catch (error) {
+    console.error('❌ Ошибка generateStaticParams для статей:', error)
+    // 🔥 Fallback: пустой массив при ошибке
+    return []
+  }
+}
+
+export const dynamic = 'force-static'
+export const revalidate = 30
+
+// ============================================
+// 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
+// ============================================
+export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
+  const { article: slug } = await params
+  const rawArticle = await getArticleBySlug(slug)
+
+  if (!rawArticle) {
+    return {
+      title: 'Статья не найдена',
+      description: 'Такой статьи не существует',
+    }
+  }
+
+  return {
+    title: rawArticle.seo?.title ?? rawArticle.title,
+    description: rawArticle.seo?.description ?? rawArticle.description ?? '',
+    keywords: rawArticle.seo?.keywords?.map((k) => k.keyword) || [],
+  }
+}
+
+// ============================================
+// 🎯 СТРАНИЦА
+// ============================================
 
 const classPY = 'py-10 max-md:py-6'
 

@@ -17,7 +17,9 @@ export interface HeroData {
   /** Категория (бейдж) */
   category?: string
   /** Изображение */
-  image: AppMedia
+  image?: AppMedia
+  /** 🔥 Скрывать изображение (по умолчанию false) */
+  noImage?: boolean
   /** Раздел (для хлебных крошек) */
   section?: string
   /** Подраздел (для хлебных крошек) */

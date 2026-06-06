@@ -1,19 +1,13 @@
 import type { AppMedia, BestArticleMinimal, SearchConfig } from '@/shared/types'
 import type { HeroMainProps } from '@/shared/types/pageType/main.type'
+import type { CollectionCardData as InfoCardCollectionCardData } from '@/shared/types/componentsType/infoCard.type'
 
 // ============================================
 // 🔧 ТИПЫ
 // ============================================
 
-export interface CollectionCardData {
-  id: number | string
-  href: string
-  category: string
-  image: { url: string; alt: string } | null
-  title: string
-  description: string
-  number: number
-}
+// 🔥 Используем тип из infoCard.type.ts для совместимости
+export type CollectionCardData = InfoCardCollectionCardData
 
 export interface TransformedHomePageData {
   heroData: HeroMainProps['dataMain']

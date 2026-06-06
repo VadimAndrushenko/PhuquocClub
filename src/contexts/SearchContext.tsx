@@ -26,6 +26,9 @@ let globalIsLoading = true
 let globalInitialized = false
 let globalListeners: Set<() => void> = new Set()
 
+// 🔥 ISR: Автообновление каждые 30 секунд
+let autoUpdateInterval: NodeJS.Timeout | null = null
+
 function notifyListeners() {
   globalListeners.forEach((listener) => listener())
 }
@@ -73,12 +76,34 @@ export function SearchProvider({ children }: { children: ReactNode }) {
           globalIsLoading = false
           notifyListeners()
         })
+
+      // 🔥 ISR: Автообновление каждые 30 секунд
+      autoUpdateInterval = setInterval(() => {
+        getSearchData()
+          .then((items) => {
+            globalSearchItems = items
+            globalIsLoading = false
+            notifyListeners()
+          })
+          .catch((error) => {
+            console.error('❌ Ошибка автообновления поиска:', error)
+          })
+      }, 30000) // 30 секунд
     }
 
     return () => {
       globalListeners.delete(updateState)
     }
   }, [updateState])
+
+  // 🔥 Очистка интервала при размонтировании
+  useEffect(() => {
+    return () => {
+      if (autoUpdateInterval) {
+        clearInterval(autoUpdateInterval)
+      }
+    }
+  }, [])
 
   return (
     <SearchContext.Provider value={{ searchItems, isLoading, refreshSearchData }}>

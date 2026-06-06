@@ -11,7 +11,13 @@ import type { Metadata } from 'next'
 const classContent = 'py-10 max-sm:py-8 container'
 
 // ============================================
-// 📄 МЕТАДАННЫЕ
+// 🔥 ISR - РЕВАЛИДАЦИЯ КАЖДЫЕ 30 СЕКУНД
+// ============================================
+export const revalidate = 30
+export const dynamic = 'force-static'
+
+// ============================================
+// 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getHomePage()
@@ -44,8 +50,9 @@ export default async function Home() {
     }
   }
 
-  const { heroData, popularArticles, planningArticles, collectionsData, urgentArticles } =
-    page ? transformHomePage(page) : getFallbackData()
+  const { heroData, popularArticles, planningArticles, collectionsData, urgentArticles } = page
+    ? transformHomePage(page)
+    : getFallbackData()
 
   return (
     <div>

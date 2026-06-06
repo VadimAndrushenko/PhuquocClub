@@ -91,6 +91,16 @@ export const SubSections: CollectionConfig = {
   },
 
   hooks: {
+    beforeChange: [
+      ({ data }) => {
+        // 🔥 Автоматически устанавливаем href на основе section и slug
+        if (data?.section && data?.slug) {
+          const sectionSlug = typeof data.section === 'object' ? data.section.slug : data.section
+          data.href = `/${sectionSlug}/${data.slug}`
+        }
+        return data
+      },
+    ],
     afterChange: [
       async ({ doc, req }) => {
         const articles = await req.payload.find({

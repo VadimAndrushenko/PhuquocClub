@@ -21,6 +21,49 @@ function generateHref(section: string, subsection: string, slug: string): string
 // 🪝 ХУКИ
 // ============================================
 
+/**
+ * 🔥 ХУК: генерирует href перед сохранением
+ */
+export const generateArticleHref = async ({ data, req }: any) => {
+  if (!data) return data
+
+  let sectionSlug = ''
+  let subsectionSlug = ''
+
+  // Получаем subsection slug
+  if (data.subsection) {
+    try {
+      const subsectionId =
+        typeof data.subsection === 'object' && data.subsection !== null && 'id' in data.subsection
+          ? data.subsection.id
+          : data.subsection
+
+      const subsection = await req.payload.findByID({
+        collection: 'subsections',
+        id: subsectionId,
+        depth: 0,
+      })
+
+      if (subsection) {
+        subsectionSlug = subsection.slug || ''
+
+        // Получаем section slug из subsection
+        if (subsection.section) {
+          sectionSlug =
+            typeof subsection.section === 'object'
+              ? subsection.section.slug
+              : subsection.section
+        }
+      }
+    } catch (error) {
+      console.error('❌ Ошибка генерации href:', error)
+    }
+  }
+
+  data.href = generateHref(sectionSlug, subsectionSlug, data.slug || '')
+  return data
+}
+
 export const autoFillFromSubsection = async ({ data, req }: any) => {
   if (!data?.subsection) {
     data.section = ''
@@ -226,7 +269,7 @@ export const Articles: CollectionConfig = {
   labels: { singular: 'Статья', plural: 'Статьи' },
 
   hooks: {
-    beforeChange: [autoFillFromSubsection],
+    beforeChange: [generateArticleHref, autoFillFromSubsection],
     beforeValidate: [autoFillFromSubsection],
     afterRead: [enrichWithHref], // 🔥 Один хук делает всё
   },

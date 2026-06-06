@@ -11,6 +11,8 @@ import { useSearch } from '@/contexts/SearchContext'
 import {
   LifeBuoy,
   Search,
+  // Иконки для навигации
+  Map,
   Plane,
   Hotel,
   UtensilsCrossed,
@@ -18,23 +20,51 @@ import {
   Car,
   DollarSign,
   Lightbulb,
-  Map as MapIcon,
+  List,
+  Star,
+  Calendar,
+  Waves,
+  Palmtree,
+  Camera,
+  Backpack,
+  type LucideIcon,
 } from 'lucide-react'
 
 import SearchInput from '../ui/SearchInput'
 
-const menuItems = [
-  { label: 'На острове', path: '/on-island', icon: Plane },
-  { label: 'Жильё', path: '/accommodation', icon: Hotel },
-  { label: 'Еда', path: '/food', icon: UtensilsCrossed },
-  { label: 'Что посмотреть', path: '/on-island/sights', icon: MapPin },
-  { label: 'Подборки', path: '/collections', icon: MapIcon },
-  { label: 'Цены', path: '/prices', icon: DollarSign },
-  { label: 'Советы', path: '/tips', icon: Lightbulb },
-  { label: 'Маршруты', path: '/catalog', icon: MapIcon },
-]
+// Маппинг названий иконок на компоненты
+const iconMap: Record<string, LucideIcon> = {
+  Map,
+  Plane,
+  Hotel,
+  UtensilsCrossed,
+  MapPin,
+  Car,
+  DollarSign,
+  Lightbulb,
+  LifeBuoy,
+  List,
+  Star,
+  Calendar,
+  Waves,
+  Palmtree,
+  Camera,
+  Backpack,
+}
 
-export function Header() {
+export interface NavigationItem {
+  id: string | number
+  title: string
+  href: string
+  icon: string
+  linkType: 'section' | 'subsection' | 'article' | 'external'
+}
+
+interface HeaderProps {
+  navigationItems?: NavigationItem[]
+}
+
+export function Header({ navigationItems = [] }: HeaderProps) {
   const { showHeader } = useScrollHeader()
   const pathname = usePathname()
   const router = useRouter()
@@ -107,30 +137,37 @@ export function Header() {
           )}
         >
           <nav className="flex items-center max-xl:flex-col max-xl:items-start gap-3">
-            {menuItems.map((item) => {
-              const Icon = item.icon
-              const currentSegment = pathname.split('/').filter(Boolean).pop()
-              const itemSegment = item.path.split('/').filter(Boolean).pop()
-              const active = currentSegment === itemSegment
+            {navigationItems.length > 0 ? (
+              navigationItems.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                const IconComponent = iconMap[item.icon] || Map
 
-              return (
-                <button
-                  key={item.path}
-                  type="button"
-                  onClick={() => {
-                    router.push(item.path)
-                    setOpen(false)
-                  }}
-                  className={cn(
-                    'hover-underline px-1.5 py-1 center flex items-center gap-1 text-sm transition-all duration-300',
-                    active ? 'text-black active' : 'text-[#314158] hover:text-black',
-                  )}
-                >
-                  <Icon size={16} />
-                  {item.label}
-                </button>
-              )
-            })}
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      if (item.linkType === 'external') {
+                        window.open(item.href, '_blank')
+                      } else {
+                        router.push(item.href)
+                      }
+                      setOpen(false)
+                    }}
+                    className={cn(
+                      'hover-underline px-1.5 py-1 center flex items-center gap-1 text-sm transition-all duration-300',
+                      isActive ? 'text-black active' : 'text-[#314158] hover:text-black',
+                    )}
+                  >
+                    <IconComponent size={16} />
+                    {item.title}
+                  </button>
+                )
+              })
+            ) : (
+              // Fallback menu если навигация не настроена
+              <></>
+            )}
           </nav>
         </div>
 
@@ -188,3 +225,4 @@ export function Header() {
     </header>
   )
 }
+ 

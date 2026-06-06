@@ -7,7 +7,7 @@ import { SectionPageProps } from '@/shared/types/pageType/section.type'
 import CollectionsBlock from '@/components/readyBlock/CollectionsBlock'
 import Hero from '@/components/readyBlock/Hero'
 
-import { getSectionBySlugs, getSubsectionsBySection } from '@/lib/payload/payload'
+import { getSectionBySlugs, getSubsectionsBySection, getAllSections } from '@/lib/payload/payload'
 import { transformSection } from '@/lib/sectionTransform'
 
 // ============================================
@@ -21,37 +21,37 @@ function declOfNum(number: number, titles: [string, string, string]): string {
 }
 
 // ============================================
-// 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ
+// 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
-// export async function generateStaticParams() {
-//   const sections = await getAllSections()
-//   return sections.map((section) => ({
-//     section: section.slug,
-//   }))
-// }
+export async function generateStaticParams() {
+  const sections = await getAllSections()
+  return sections.map((section) => ({
+    section: section.slug,
+  }))
+}
 
-// export const dynamic = 'force-static'
-// export const revalidate = 10
+export const dynamic = 'force-static'
+export const revalidate = 30
 
 // ============================================
-// 📄 МЕТАДАННЫЕ
+// 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
-// export async function generateMetadata({ params }: SectionPageProps): Promise<Metadata> {
-//   const { section: sectionSlug } = await params
-//   const section = await getSectionBySlugs(sectionSlug)
+export async function generateMetadata({ params }: SectionPageProps): Promise<Metadata> {
+  const { section: sectionSlug } = await params
+  const section = await getSectionBySlugs(sectionSlug)
 
-//   if (!section) {
-//     return {
-//       title: 'Раздел не найден',
-//       description: 'Такой раздел не существует',
-//     }
-//   }
+  if (!section) {
+    return {
+      title: 'Раздел не найден',
+      description: 'Такой раздел не существует',
+    }
+  }
 
-//   return {
-//     title: section.title,
-//     description: section.description ?? '',
-//   }
-// }
+  return {
+    title: section.title,
+    description: section.description ?? '',
+  }
+}
 
 // ============================================
 // 🎯 СТРАНИЦА

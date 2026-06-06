@@ -57,7 +57,7 @@ function buildSearchText(title: string, description?: string | null): string {
 }
 
 // ============================================
-// 🔥 ГЛАВНАЯ ФУНКЦИЯ
+// 🔥 ГЛАВНАЯ ФУНКЦИЯ (ISR + КЭШ 30 СЕКУНД)
 // ============================================
 
 // 🔥 Глобальный кэш для данных поиска с TTL (30 секунд)
@@ -84,16 +84,17 @@ export async function getSearchData(forceRefresh = false): Promise<SearchItem[]>
 
   cachePromise = (async () => {
     try {
+      // 🔥 ISR через fetch с revalidate: 30
       const [sectionsRes, subSectionsRes, articlesRes] = await Promise.all([
         fetch(`${BASE_URL}/api/sections?where[status][equals]=published&depth=0&pagination=false`, {
-          next: { revalidate: 3 },
+          next: { revalidate: 30 },
         }),
         fetch(
           `${BASE_URL}/api/subsections?where[status][equals]=published&depth=1&pagination=false`,
-          { next: { revalidate: 3 } },
+          { next: { revalidate: 30 } },
         ),
         fetch(`${BASE_URL}/api/Articles?where[status][equals]=published&depth=0&pagination=false`, {
-          next: { revalidate: 3 },
+          next: { revalidate: 30 },
         }),
       ])
 
@@ -134,7 +135,7 @@ export async function getSearchData(forceRefresh = false): Promise<SearchItem[]>
           searchTagText: sub.searchSettings?.searchTagText || sub.title,
           searchIcon: sub.searchSettings?.searchIcon as SearchItem['searchIcon'],
         })
-      })  
+      })
 
       // Articles
       const articles = articlesData.docs || []

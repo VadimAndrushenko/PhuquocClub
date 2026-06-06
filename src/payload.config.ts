@@ -14,6 +14,8 @@ import { BestSelections } from './payloadFile/collections/BestSelections'
 import { ContinueSelections } from './payloadFile/collections/ContinueSelections'
 import { CollectionsPage } from './payloadFile/globals/CollectionsPage'
 import { HomePage } from './payloadFile/globals/HomePage'
+import { Header } from './payloadFile/globals/Header'
+import { Footer } from './payloadFile/globals/Footer'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -39,9 +41,7 @@ export default buildConfig({
 
   collections: [Users, Articles, Media, SubSections, Sections, BestSelections, ContinueSelections],
 
-  globals: [CollectionsPage, 
-    HomePage
-  ],
+  globals: [CollectionsPage, HomePage, Header, Footer],
 
   editor: lexicalEditor(),
 

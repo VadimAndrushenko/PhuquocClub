@@ -6,6 +6,13 @@ import { cn } from '@/lib/utils'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { SearchProvider } from '@/contexts/SearchContext'
+import { getHeader, getFooter } from '@/lib/payload/payload'
+
+// ===============================
+// 🔥 ISR - РЕВАЛИДАЦИЯ КАЖДЫЕ 30 СЕКУНД
+// ===============================
+export const revalidate = 30
+export const dynamic = 'force-static'
 
 // ===============================
 // Fonts
@@ -26,7 +33,7 @@ const geistMono = Geist_Mono({
 })
 
 // ===============================
-// Metadata
+// Metadata (СТАТИЧНЫЕ)
 // ===============================
 export const metadata: Metadata = {
   title: 'Фукуок.Гид',
@@ -37,7 +44,18 @@ export const metadata: Metadata = {
 // Root Layout
 // ===============================
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Получаем навигацию из админки
+  const headerData = await getHeader()
+  const headerNavigationItems = (headerData as any)?._navigationItems || []
+
+  // Получаем данные футера
+  const footerData = await getFooter()
+  const footerDescription = footerData?.description || undefined
+  const footerSocialLinks = footerData?.socialLinks || undefined
+  const footerNavigationSections = (footerData as any)?._sections || undefined
+  const footerAdditionalLinks = (footerData as any)?._additionalLinks || undefined
+
   return (
     <html
       lang="ru"
@@ -50,13 +68,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       )}
     >
       <body className="min-h-screen flex flex-col bg-background text-main">
-          {/* Main content */}
+        {/* Main content */}
         <SearchProvider>
           {/* Header */}
-          <Header />
+          <Header navigationItems={headerNavigationItems} />
           <main className="relative flex-1">{children}</main>
           {/* Footer */}
-          <Footer />
+          <Footer
+            description={footerDescription}
+            socialLinks={footerSocialLinks}
+            navigationSections={footerNavigationSections}
+            additionalLinks={footerAdditionalLinks}
+          />
         </SearchProvider>
       </body>
     </html>

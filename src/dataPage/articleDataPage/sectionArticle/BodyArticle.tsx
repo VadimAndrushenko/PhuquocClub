@@ -1,5 +1,5 @@
 import { slugify } from '@/lib/utils'
-import { ContentComponents } from '../articleComponents/ContentComponents'
+import { ContentComponents } from '@/components/ui/ContentComponents'
 import type { BodyArticleProps } from '@/shared/types/pageType/article.type'
 
 export default function BodyArticle({ containerClass = '', contentArticle }: BodyArticleProps) {

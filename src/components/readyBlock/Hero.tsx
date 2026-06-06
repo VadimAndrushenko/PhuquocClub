@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import Breadcrumbs from '../ui/Breadcrumbs'
 import type { HeroProps } from '@/shared/types/blockType/hero.type'
 import SearchInput from '../ui/SearchInput'
+import Link from 'next/link'
 
 // ============================================
 // 🔧 ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -41,7 +42,7 @@ export default function Hero({
     <Tag
       className={cn(
         // 🔥 ОБЩИЕ классы
-        'relative flex items-center justify-between gap-13 max-xl:justify-center',
+        'relative flex items-center justify-between gap-13 max-xl:justify-left',
         className,
         classes.container,
       )}
@@ -69,7 +70,7 @@ export default function Hero({
         )}
 
         {/* Заголовок H1 */}
-        <h1 className={cn('font-bold leading-[1.1] text-main', classes.title)}>
+        <h1 className={cn('font-bold leading-[1.1] text-main text-5xl max-sm:text-[8vw]', classes.title)}>
           {dataHero?.title || 'Заголовок'}
         </h1>
 
@@ -147,21 +148,23 @@ export default function Hero({
       </div>
 
       {/* Правая часть: картинка */}
-      <div className={cn('max-lg:hidden', classes.imageWrapper)}>
-        {dataHero.image?.url && dataHero?.image.alt ? (
-          <Image
-            className={cn('rounded-4xl', classes.image)}
-            src={dataHero.image.url}
-            alt={dataHero.image.alt}
-            width={472}
-            height={420}
-            priority
-            unoptimized={process.env.NODE_ENV === 'development'}
-          />
-        ) : (
-          <div className="bg-red-100 text-red-500 p-4 rounded">проверте url или alt картинки</div>
-        )}
-      </div>
+      {!dataHero?.noImage && (
+        <div className={cn('max-lg:hidden', classes.imageWrapper)}>
+          {dataHero.image?.url && dataHero?.image.alt ? (
+            <Image
+              className={cn('rounded-4xl', classes.image)}
+              src={dataHero.image.url}
+              alt={dataHero.image.alt}
+              width={472}
+              height={420}
+              priority
+              unoptimized={process.env.NODE_ENV === 'development'}
+            />
+          ) : (
+            <div className="bg-red-100 text-red-500 p-4 rounded">проверте url или alt картинки</div>
+          )}
+        </div>
+      )}
     </Tag>
   )
 }

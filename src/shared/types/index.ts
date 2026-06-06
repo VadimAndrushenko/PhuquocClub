@@ -82,7 +82,8 @@ export type SearchIconType =
 export interface SearchTag {
   id?: string | number | null
   title: string
-  icon: SearchIconType
+  icon?: SearchIconType
+  href?: string // 🔥 Для страницы помощи
 }
 
 export interface SearchConfig {
