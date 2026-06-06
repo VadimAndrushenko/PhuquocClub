@@ -61,7 +61,7 @@ function PopularCards({ data }: { data: BestArticleMinimal[] }) {
           <Link
             key={item.id}
             href={item.href || '#'}
-            className="group flex gap-6 p-3 justify-between items-center bg-white rounded-[20px] shadow-[0_4px_24px_0_rgba(0,0,0,0.04)] hover:-translate-y-3 hover:shadow-[0_10px_40px_0_rgba(0,0,0,0.1)] transition-all duration-500 ease-out overflow-hidden"
+            className="group flex gap-6 p-3 justify-between items-center bg-white rounded-[20px] shadow-[0_4px_24px_0_rgba(0,0,0,0.04)] hover:-translate-y-3 hover:shadow-[0_10px_40px_0_rgba(0,0,0,0.06)] transition-all duration-500 ease-out overflow-hidden"
           >
             <div className="p-3 pr-0 flex flex-col h-full flex-1">
               <span className="text-accent font-bold text-xs leading-snug tracking-wider mb-3 uppercase">
@@ -121,7 +121,7 @@ function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
           <Link
             href={item.href}
             key={item.id || i}
-            className="group relative rounded-[22px] overflow-hidden hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] transition-all duration-500 ease-out block"
+            className="group relative rounded-[22px] overflow-hidden hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.03)] transition-all duration-500 ease-out block"
             style={{ height: `${heightInPx}px` }}
           >
             {hasImage ? (

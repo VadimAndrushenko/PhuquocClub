@@ -11,12 +11,7 @@ export const Header: GlobalConfig = {
     read: () => true,
   },
   versions: {
-    drafts: {
-      autosave: {
-        interval: 2000,
-      },
-    },
-    max: 50,
+    max: 10,
   },
   fields: [
     {

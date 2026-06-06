@@ -9,12 +9,7 @@ export const Media: CollectionConfig = {
     mimeTypes: ['image/*'],
   },
   versions: {
-    drafts: {
-      autosave: {
-        interval: 2000,
-      },
-    },
-    maxPerDoc: 50,
+    maxPerDoc: 10,
   },
   fields: [{ name: 'alt', type: 'text', required: true }],
 }

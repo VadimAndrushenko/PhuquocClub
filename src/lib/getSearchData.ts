@@ -74,16 +74,20 @@ function isCacheValid(): boolean {
 export async function getSearchData(forceRefresh = false): Promise<SearchItem[]> {
   // 🔥 Возвращаем кэш если он ещё валиден и не запрошено принудительное обновление
   if (!forceRefresh && isCacheValid()) {
+    console.log('✅ Search: возвращаем кэш')
     return searchCache!
   }
 
   // 🔥 Если уже идёт запрос — ждём его (если не forceRefresh)
   if (!forceRefresh && cachePromise) {
+    console.log('✅ Search: ждём существующий запрос')
     return cachePromise
   }
 
   cachePromise = (async () => {
     try {
+      console.log('🔍 Search: загружаем данные...')
+
       // 🔥 ISR через fetch с revalidate: 30
       const [sectionsRes, subSectionsRes, articlesRes] = await Promise.all([
         fetch(`${BASE_URL}/api/sections?where[status][equals]=published&depth=0&pagination=false`, {
@@ -98,14 +102,28 @@ export async function getSearchData(forceRefresh = false): Promise<SearchItem[]>
         }),
       ])
 
+      console.log('📊 Search response status:', {
+        sections: sectionsRes.status,
+        subsections: subSectionsRes.status,
+        articles: articlesRes.status,
+      })
+
       if (!sectionsRes.ok || !subSectionsRes.ok || !articlesRes.ok) {
-        throw new Error('Failed to fetch search data')
+        throw new Error(
+          `Failed to fetch: ${sectionsRes.status}, ${subSectionsRes.status}, ${articlesRes.status}`,
+        )
       }
 
       // 🔥 ЯВНАЯ ТИПИЗАЦИЯ — решает ошибку "never[]"
       const sectionsData = (await sectionsRes.json()) as PayloadResponse<PayloadSection>
       const subSectionsData = (await subSectionsRes.json()) as PayloadResponse<PayloadSubSection>
       const articlesData = (await articlesRes.json()) as PayloadResponse<PayloadArticle>
+
+      console.log('📦 Search data received:', {
+        sections: sectionsData.docs?.length || 0,
+        subsections: subSectionsData.docs?.length || 0,
+        articles: articlesData.docs?.length || 0,
+      })
 
       const items: SearchItem[] = []
 
@@ -148,6 +166,8 @@ export async function getSearchData(forceRefresh = false): Promise<SearchItem[]>
           searchText: buildSearchText(article.title, article.description),
         })
       })
+
+      console.log('✅ Search: всего элементов:', items.length)
 
       // 🔥 Сохраняем в кэш с timestamp
       searchCache = items

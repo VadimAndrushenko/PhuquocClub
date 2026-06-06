@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export default function NeedHelpArticle({
   containerClass = "",
@@ -21,7 +22,8 @@ export default function NeedHelpArticle({
           откройте раздел помощи.
         </p>
 
-        <button
+        <Link
+          href="/help"
           className="
             flex items-center justify-center
             w-full
@@ -40,7 +42,7 @@ export default function NeedHelpArticle({
           "
         >
           Найти помощь
-        </button>
+        </Link>
       </div>
     </section>
   );

@@ -82,12 +82,7 @@ export const SubSections: CollectionConfig = {
     defaultColumns: ['title', 'slug', 'section', 'category', 'status'],
   },
   versions: {
-    drafts: {
-      autosave: {
-        interval: 2000,
-      },
-    },
-    maxPerDoc: 50,
+    maxPerDoc: 10,
   },
 
   hooks: {
@@ -99,27 +94,6 @@ export const SubSections: CollectionConfig = {
           data.href = `/${sectionSlug}/${data.slug}`
         }
         return data
-      },
-    ],
-    afterChange: [
-      async ({ doc, req }) => {
-        const articles = await req.payload.find({
-          collection: 'Articles',
-          where: {
-            subsection: {
-              equals: doc.id,
-            },
-          },
-          pagination: false,
-        })
-
-        for (const article of articles.docs) {
-          await req.payload.update({
-            collection: 'Articles',
-            id: article.id,
-            data: {},
-          })
-        }
       },
     ],
     afterRead: [enrichSubsection],

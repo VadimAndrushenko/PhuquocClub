@@ -50,9 +50,7 @@ export const generateArticleHref = async ({ data, req }: any) => {
         // Получаем section slug из subsection
         if (subsection.section) {
           sectionSlug =
-            typeof subsection.section === 'object'
-              ? subsection.section.slug
-              : subsection.section
+            typeof subsection.section === 'object' ? subsection.section.slug : subsection.section
         }
       }
     } catch (error) {
@@ -259,11 +257,6 @@ export const Articles: CollectionConfig = {
     description: 'Статьи для сайта — управляйте контентом здесь',
   },
   versions: {
-    drafts: {
-      autosave: {
-        interval: 2000, // 2 секунды - автосохранение
-      },
-    },
     maxPerDoc: 50,
   },
   labels: { singular: 'Статья', plural: 'Статьи' },

@@ -15,11 +15,6 @@ export const Sections: CollectionConfig = {
     defaultColumns: ['title', 'slug', 'status'],
   },
   versions: {
-    drafts: {
-      autosave: {
-        interval: 2000, // 2 секунды - автосохранение
-      },
-    },
     maxPerDoc: 50,
   },
   hooks: {
@@ -154,7 +149,6 @@ export const Sections: CollectionConfig = {
     },
 
     // === 🔍 НАСТРОЙКИ ПОИСКА ===
-    
 
     // === 🔍 SEO И МЕТА-ТЕГИ ===
     {

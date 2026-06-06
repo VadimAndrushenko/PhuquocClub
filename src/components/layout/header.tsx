@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 
 import SearchInput from '../ui/SearchInput'
+import Link from 'next/link'
 
 // Маппинг названий иконок на компоненты
 const iconMap: Record<string, LucideIcon> = {
@@ -180,7 +181,8 @@ export function Header({ navigationItems = [] }: HeaderProps) {
               <Search className="text-[#45556C]" />
             </button>
 
-            <button
+            <Link
+              href="/help"
               className="
                 w-[166px] h-[40px] rounded-2xl bg-[var(--color-main)]
                 shadow-[0_1px_2px_-1px_rgba(0,0,0,0.1),0_1px_3px_0_rgba(0,0,0,0.1)]
@@ -191,7 +193,7 @@ export function Header({ navigationItems = [] }: HeaderProps) {
             >
               <LifeBuoy size={18} />
               Помощь
-            </button>
+            </Link>
 
             <div className="xl:hidden">
               <BurgerButton burgerRef={burgerRef} isMenuOpen={open} setIsMenuOpen={setOpen} />
