@@ -15,43 +15,34 @@ import HeroArticle from '@/dataPage/articleDataPage/sectionArticle/HeroArticle'
 // ============================================
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
+
+// ⚠️ ВРЕМЕННО: Отключаем generateStaticParams если нет БД
+// Раскомментируйте когда добавите POSTGRES_URL в Vercel
+/*
 export async function generateStaticParams() {
   try {
     const articles = await getAllArticles()
 
     if (!articles || articles.length === 0) {
-      // 🔥 Fallback: возвращаем пустой массив если статей нет
-      // Страницы будут сгенерированы по запросу (on-demand)
       return []
     }
 
     return articles
       .filter((article) => {
-        // Фильтруем статьи без subsection
         if (!article.subsection) return false
         return true
       })
       .map((article) => {
-        // 🔥 Получаем subsection объект
-        const subsectionObj =
-          typeof article.subsection === 'object' && article.subsection !== null
-            ? article.subsection
-            : null
+        const subsectionObj = typeof article.subsection === 'object' && article.subsection !== null
+          ? article.subsection
+          : null
 
-        // 🔥 Получаем slug subsection
         const subsectionSlug = subsectionObj?.slug || ''
-
-        // 🔥 Получаем section из subsection (это number | Section)
         let sectionSlug = article.section || ''
 
         if (subsectionObj && 'section' in subsectionObj) {
           const subsectionSection = subsectionObj.section
-          // subsection.section это number | Section
-          if (
-            typeof subsectionSection === 'object' &&
-            subsectionSection !== null &&
-            'slug' in subsectionSection
-          ) {
+          if (typeof subsectionSection === 'object' && subsectionSection !== null && 'slug' in subsectionSection) {
             sectionSlug = subsectionSection.slug
           }
         }
@@ -64,12 +55,13 @@ export async function generateStaticParams() {
       })
   } catch (error) {
     console.error('❌ Ошибка generateStaticParams для статей:', error)
-    // 🔥 Fallback: пустой массив при ошибке
     return []
   }
 }
+*/
 
-export const dynamic = 'force-static'
+// 🔥 Динамическая генерация (работает без БД на билде)
+export const dynamic = 'force-dynamic'
 export const revalidate = 30
 
 // ============================================
