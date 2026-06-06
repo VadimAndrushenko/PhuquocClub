@@ -24,10 +24,17 @@ function declOfNum(number: number, titles: [string, string, string]): string {
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
 export async function generateStaticParams() {
-  const sections = await getAllSections()
-  return sections.map((section) => ({
-    section: section.slug,
-  }))
+  try {
+    const sections = await getAllSections()
+    return sections.map((section) => ({
+      section: section.slug,
+    }))
+  } catch (error) {
+    console.error('❌ Ошибка generateStaticParams для sections:', error)
+    // 🔥 Fallback: пустой массив при ошибке БД
+    // Страницы будут сгенерированы по запросу (on-demand)
+    return []
+  }
 }
 
 export const dynamic = 'force-static'

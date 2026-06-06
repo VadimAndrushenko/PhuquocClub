@@ -19,17 +19,24 @@ import type { SubSectionPageProps } from '@/shared/types/pageType/subSection.typ
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
 export async function generateStaticParams() {
-  const subsections = await getAllSubsections()
+  try {
+    const subsections = await getAllSubsections()
 
-  return subsections
-    .filter((sub) => {
-      const sectionSlug = typeof sub.section === 'string' ? sub.section : ''
-      return sectionSlug && sub.slug
-    })
-    .map((sub) => ({
-      section: typeof sub.section === 'string' ? sub.section : '',
-      subSection: sub.slug || '',
-    }))
+    return subsections
+      .filter((sub) => {
+        const sectionSlug = typeof sub.section === 'string' ? sub.section : ''
+        return sectionSlug && sub.slug
+      })
+      .map((sub) => ({
+        section: typeof sub.section === 'string' ? sub.section : '',
+        subSection: sub.slug || '',
+      }))
+  } catch (error) {
+    console.error('❌ Ошибка generateStaticParams для subsections:', error)
+    // 🔥 Fallback: пустой массив при ошибке БД
+    // Страницы будут сгенерированы по запросу (on-demand)
+    return []
+  }
 }
 
 export const dynamic = 'force-static'
