@@ -140,7 +140,23 @@ export function Header({ navigationItems = [] }: HeaderProps) {
           <nav className="flex items-center max-xl:flex-col max-xl:items-start gap-3">
             {navigationItems.length > 0 ? (
               navigationItems.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                // 🔥 Исправленная логика isActive:
+                // 1. Точное совпадение пути
+                // 2. ИЛИ путь начинается с item.href + '/' НО только если это самый точный матч среди всех пунктов
+                const isExactMatch = pathname === item.href
+                const isChildPath = pathname.startsWith(item.href + '/')
+
+                // Проверяем есть ли более точный матч среди других пунктов
+                const hasMoreSpecificMatch = navigationItems.some((otherItem) => {
+                  if (otherItem.id === item.id) return false
+                  // Другой пункт более точно соответствует текущему пути
+                  return pathname === otherItem.href || pathname.startsWith(otherItem.href + '/')
+                })
+
+                // Активен только если:
+                // 1. Точное совпадение ИЛИ (путь подходит И нет более точного матча)
+                const isActive = isExactMatch || (isChildPath && !hasMoreSpecificMatch)
+
                 const IconComponent = iconMap[item.icon] || Map
 
                 return (
@@ -227,4 +243,3 @@ export function Header({ navigationItems = [] }: HeaderProps) {
     </header>
   )
 }
- 

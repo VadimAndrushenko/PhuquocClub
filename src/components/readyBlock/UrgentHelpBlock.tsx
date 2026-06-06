@@ -23,7 +23,7 @@ export default function UrgentHelpBlock({
         {/* Декоративный элемент - свечение */}
         <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
         
-        <div className="relative z-10 text-center">
+        <div className="relative z-10 max-[550px]:text-center">
           {/* Иконка и заголовок */}
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">

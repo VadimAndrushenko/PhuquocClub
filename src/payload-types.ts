@@ -330,7 +330,6 @@ export interface Article {
   };
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -383,7 +382,6 @@ export interface Subsection {
   };
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -433,7 +431,6 @@ export interface Section {
   };
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -444,7 +441,6 @@ export interface Media {
   alt: string;
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
   url?: string | null;
   thumbnailURL?: string | null;
   filename?: string | null;
@@ -469,7 +465,6 @@ export interface BestSelection {
   bestArticles: (number | Article)[];
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -485,7 +480,6 @@ export interface ContinueSelection {
   continuePlanning: (number | Article)[];
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -686,7 +680,6 @@ export interface ArticlesSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -696,7 +689,6 @@ export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
   url?: T;
   thumbnailURL?: T;
   filename?: T;
@@ -749,7 +741,6 @@ export interface SubsectionsSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -790,7 +781,6 @@ export interface SectionsSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -802,7 +792,6 @@ export interface BestSelectionsSelect<T extends boolean = true> {
   bestArticles?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -814,7 +803,6 @@ export interface ContinueSelectionsSelect<T extends boolean = true> {
   continuePlanning?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -894,7 +882,6 @@ export interface CollectionsPage {
         }[]
       | null;
   };
-  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -968,7 +955,6 @@ export interface HomePage {
         }[]
       | null;
   };
-  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1031,7 +1017,6 @@ export interface Header {
         id?: string | null;
       }[]
     | null;
-  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1265,7 +1250,6 @@ export interface Footer {
       externalUrl?: string | null;
     };
   };
-  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1304,7 +1288,6 @@ export interface CollectionsPageSelect<T extends boolean = true> {
               id?: T;
             };
       };
-  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1370,7 +1353,6 @@ export interface HomePageSelect<T extends boolean = true> {
               id?: T;
             };
       };
-  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1393,7 +1375,6 @@ export interface HeaderSelect<T extends boolean = true> {
         externalUrl?: T;
         id?: T;
       };
-  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1686,7 +1667,6 @@ export interface FooterSelect<T extends boolean = true> {
               externalUrl?: T;
             };
       };
-  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
