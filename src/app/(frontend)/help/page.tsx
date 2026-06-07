@@ -1,5 +1,8 @@
 import Hero from '@/components/readyBlock/Hero'
-import UrgentHelpBlock from '@/components/readyBlock/UrgentHelpBlock'
+import UrgentHelpSection from '@/dataPage/helpDataPage/UrgentHelpSection'
+import UrgentCardsSection from '@/dataPage/helpDataPage/UrgentCardsSection'
+import WhatHappenedSection from '@/dataPage/helpDataPage/WhatHappenedSection'
+import FaqSection from '@/dataPage/helpDataPage/FaqSection'
 import type { Metadata } from 'next'
 
 // Статичные данные для страницы помощи
@@ -54,7 +57,16 @@ export default function HelpPage() {
       />
 
       {/* Блок "Нужно срочно?" */}
-      <UrgentHelpBlock containerClass={classPY} />
+      <UrgentHelpSection containerClass={classPY} />
+
+      {/* Блок с карточками "Срочно нужно" */}
+      <UrgentCardsSection containerClass={classPY} />
+
+      {/* Блок "Что случилось?" */}
+      <WhatHappenedSection containerClass={classPY} />
+
+      {/* Блок "Популярные вопросы" */}
+      <FaqSection containerClass={classPY} />
     </div>
   )
 }

@@ -29,6 +29,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       new URL('http://localhost:3000/**'),
+      new URL('https://phuquocclub.com/**'),
+      new URL('https://www.phuquocclub.com/**'),
       new URL('https://phuquoc.club/**'),
       new URL('https://phuquoc-club.vercel.app/**'),
       new URL('https://**/*.vercel.app/**'),

@@ -76,7 +76,8 @@ export default buildConfig({
     'http://localhost:3000',
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
     'https://phuquoc-club.vercel.app',
-    'https://phuquoc.club',
+    'https://phuquocclub.com',
+    'https://www.phuquocclub.com',
   ].filter(Boolean),
 
   // 🔥 CSRF защита
@@ -85,6 +86,7 @@ export default buildConfig({
     'http://localhost:3000',
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
     'https://phuquoc-club.vercel.app',
-    'https://phuquoc.club',
+    'https://phuquocclub.com',
+    'https://www.phuquocclub.com',
   ].filter(Boolean),
 })

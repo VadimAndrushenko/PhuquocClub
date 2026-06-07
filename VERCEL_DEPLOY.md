@@ -29,7 +29,7 @@ SQLite **не подходит** для Vercel — данные будут уд�
 
 | Переменная | Значение |
 |------------|----------|
-| `NEXT_PUBLIC_SERVER_URL` | `https://phuquoc.club` (твой домен) |
+| `NEXT_PUBLIC_SERVER_URL` | `https://phuquocclub.com` (твой домен) |
 | `PAYLOAD_SECRET` | Сгенерируй: `openssl rand -hex 32` |
 | `DATABASE_URL` | Строка подключения PostgreSQL |
 
@@ -52,9 +52,9 @@ SQLite **не подходит** для Vercel — данные будут уд�
 
 ## 4. После деплоя
 
-- **Сайт:** `https://phuquoc.club` (или твой домен Vercel)
-- **Admin:** `https://phuquoc.club/admin`
-- **API:** `https://phuquoc.club/api`
+- **Сайт:** `https://phuquocclub.com` (или твой домен Vercel)
+- **Admin:** `https://phuquocclub.com/admin`
+- **API:** `https://phuquocclub.com/api`
 
 ---
 

@@ -12,41 +12,45 @@ import type {
 } from '@/shared/types/componentsType/infoCard.type'
 import type { BestArticleMinimal } from '@/shared/types'
 
+function TripPlanningCards({ arr }: TripPlanningProps) {
+  return arr.map((item) => {
+    const Icon = item.icon
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className="group flex flex-col p-6 rounded-[22px] min-h-[210px] shadow-[0_4px_24px_0_rgba(0,0,0,0.02)] bg-white hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] transition-all duration-500 ease-out"
+      >
+        <div className="flex items-center gap-4 mb-4">
+          <span className="flex items-center justify-center bg-[#004E4A0D] rounded-[14px] px-3 w-12 h-12 group-hover:scale-110 transition-transform duration-300">
+            <Icon size={24} className="group-hover:text-accent transition-colors" />
+          </span>
+
+          <h3 className="font-bold text-[22px] leading-[1.16667] group-hover:text-accent transition-colors">
+            {item.title}
+          </h3>
+        </div>
+
+        <p className="text-sm text-paragraph flex-1">{item.description}</p>
+
+        <div className="font-semibold flex items-center gap-1 mt-auto group-hover:text-accent transition-colors">
+          {item.titleLink ?? 'Подробнее'}
+          <ArrowRight
+            size={16}
+            className="transition-transform duration-300 group-hover:translate-x-1"
+          />
+        </div>
+      </Link>
+    )
+  })
+}
+
 function TripPlanning({ arr }: TripPlanningProps) {
   return (
-    <Slider cols={{ 520: 2, lg: 3, xl: 4 }} gap="2rem">
-      {arr.map((item) => {
-        const Icon = item.icon
-
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="group flex flex-col p-6 rounded-[22px] min-h-[210px] shadow-[0_4px_24px_0_rgba(0,0,0,0.02)] bg-white hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] transition-all duration-500 ease-out"
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <span className="flex items-center justify-center bg-[#004E4A0D] rounded-[14px] px-3 w-12 h-12 group-hover:scale-110 transition-transform duration-300">
-                <Icon size={24} className="group-hover:text-accent transition-colors" />
-              </span>
-
-              <h3 className="font-bold text-[22px] leading-[1.16667] group-hover:text-accent transition-colors">
-                {item.title}
-              </h3>
-            </div>
-
-            <p className="text-sm text-paragraph flex-1">{item.description}</p>
-
-            <div className="font-semibold flex items-center gap-1 mt-auto group-hover:text-accent transition-colors">
-              {item.titleLink ?? 'Подробнее'}
-              <ArrowRight
-                size={16}
-                className="transition-transform duration-300 group-hover:translate-x-1"
-              />
-            </div>
-          </Link>
-        )
-      })}
-    </Slider>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <TripPlanningCards arr={arr} />
+    </div>
   )
 }
 
@@ -245,4 +249,4 @@ function CollectionsCardAccent({ data, className = '' }: CollectionsCardAccentPr
   )
 }
 
-export { TripPlanning, PopularCards, CollectionsCard, CollectionsCardAccent }
+export { TripPlanning, TripPlanningCards, PopularCards, CollectionsCard, CollectionsCardAccent }

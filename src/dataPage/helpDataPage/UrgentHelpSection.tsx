@@ -2,15 +2,15 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { LifeBuoy } from 'lucide-react'
 
-interface UrgentHelpBlockProps {
+interface UrgentHelpSectionProps {
   className?: string
   containerClass?: string
 }
 
-export default function UrgentHelpBlock({
+export default function UrgentHelpSection({
   className = '',
   containerClass = '',
-}: UrgentHelpBlockProps) {
+}: UrgentHelpSectionProps) {
   return (
     <div
       className={cn(

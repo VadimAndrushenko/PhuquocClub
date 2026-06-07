@@ -1,8 +1,8 @@
-
 import { Sun, BookType, Wallet, House, Plane, Map, Waves, Utensils } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TripPlanning } from '@/components/ui/InfoCard'
+import { TripPlanningCards } from '@/components/ui/InfoCard'
+import Slider from '@/components/ui/Slider'
 import type { BestArticleMinimal } from '@/shared/types'
 
 interface InfoCard {
@@ -55,7 +55,9 @@ export default function Urgent({
           <h2 className="title text-white">Срочно нужно</h2>
         </div>
 
-        <TripPlanning arr={infoCards} />
+        <Slider cols={{ 520: 2, lg: 3, xl: 4 }} gap="2rem">
+          <TripPlanningCards arr={infoCards} />
+        </Slider>
       </div>
     </section>
   )
