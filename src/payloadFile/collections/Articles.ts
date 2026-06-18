@@ -377,7 +377,7 @@ export const Articles: CollectionConfig = {
       label: 'Время чтения',
       required: true,
       admin: {
-        description: 'Например: 5 мин, 8 мин, 12 мин.',
+        description: 'Например: 5 , 8, 12 .',
       },
     },
     {
@@ -429,10 +429,12 @@ export const Articles: CollectionConfig = {
         { name: 'title', type: 'text', required: true, admin: { description: 'Заголовок блока.' } },
         {
           name: 'description',
-          type: 'textarea',
+          type: 'richText',
+          label: '📄 Основной текст (до)',
+          required: true,
           admin: {
-            rows: 6,
-            description: 'Основной текст блока.',
+            description:
+              'Текст блока. Доступно форматирование: жирный, ссылки, списки. Переносы строк и пробелы сохраняются.',
           },
         },
         {
@@ -509,6 +511,17 @@ export const Articles: CollectionConfig = {
             condition: (_, sibling) => sibling.contentType === 'tips',
             rows: 4,
             description: 'Текст полезного совета.',
+          },
+        },
+        // 🔥 ПРОДОЛЖЕНИЕ ТЕКСТА (после контента)
+        {
+          name: 'descriptionAfter',
+          type: 'richText',
+          label: '📄 Продолжение текста (после)',
+          admin: {
+            description:
+              'Текст после таблицы/чек-листа/совета. Доступно форматирование: жирный, ссылки, списки.',
+            condition: (_, sibling) => sibling.contentType !== 'none',
           },
         },
       ],

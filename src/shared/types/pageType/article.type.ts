@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
+import type { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
 import type {
   AppMedia,
   // RelatedArticle,
@@ -30,7 +31,8 @@ export interface KratkoItem {
 export interface ContentBlock {
   id?: string
   title: string
-  description?: string | null
+  description?: SerializedEditorState | null
+  descriptionAfter?: SerializedEditorState | null
   contentType: 'none' | 'table' | 'warning' | 'checklist' | 'tips'
   table?: {
     headers: {
@@ -127,7 +129,8 @@ export type HeroArticleData = {
 /** Секция для компонента BodyArticle */
 export interface SectionBlock {
   title: string
-  description: string
+  description: SerializedEditorState | null
+  descriptionAfter?: SerializedEditorState | null
   typeContent?: 'table' | 'warning' | 'checklist' | 'tips'
   table?: {
     headers: string[]

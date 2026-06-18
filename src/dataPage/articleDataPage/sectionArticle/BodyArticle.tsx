@@ -1,5 +1,6 @@
 import { slugify } from '@/lib/utils'
 import { ContentComponents } from '@/components/ui/ContentComponents'
+import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { BodyArticleProps } from '@/shared/types/pageType/article.type'
 
 export default function BodyArticle({ containerClass = '', contentArticle }: BodyArticleProps) {
@@ -15,11 +16,19 @@ export default function BodyArticle({ containerClass = '', contentArticle }: Bod
               {item.title}
             </h2>
 
-            <p className="font-normal text-xl leading-[1.6] text-[#364153] max-[500px]:text-lg">
-              {item.description}
-            </p>
+            {item.description && (
+              <div className="font-normal text-xl leading-[1.6] text-[#364153] max-[500px]:text-lg prose prose-lg max-w-none">
+                <RichText data={item.description} />
+              </div>
+            )}
 
             {Component && <Component item={item} />}
+
+            {item.descriptionAfter && (
+              <div className="font-normal text-xl leading-[1.6] text-[#364153] max-[500px]:text-lg prose prose-lg max-w-none mt-6">
+                <RichText data={item.descriptionAfter} />
+              </div>
+            )}
           </section>
         )
       })}

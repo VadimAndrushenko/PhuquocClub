@@ -202,7 +202,7 @@ export interface Article {
    */
   image: number | Media;
   /**
-   * Например: 5 мин, 8 мин, 12 мин.
+   * Например: 5 , 8, 12 .
    */
   readTime: string;
   /**
@@ -239,9 +239,23 @@ export interface Article {
          */
         title: string;
         /**
-         * Основной текст блока.
+         * Текст блока. Доступно форматирование: жирный, ссылки, списки. Переносы строк и пробелы сохраняются.
          */
-        description?: string | null;
+        description: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        };
         /**
          * Тип дополнительного контента внутри блока.
          */
@@ -281,6 +295,24 @@ export interface Article {
          * Текст полезного совета.
          */
         tips?: string | null;
+        /**
+         * Текст после таблицы/чек-листа/совета. Доступно форматирование: жирный, ссылки, списки.
+         */
+        descriptionAfter?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
         id?: string | null;
       }[]
     | null;
@@ -655,6 +687,7 @@ export interface ArticlesSelect<T extends boolean = true> {
               id?: T;
             };
         tips?: T;
+        descriptionAfter?: T;
         id?: T;
       };
   useful_links?:

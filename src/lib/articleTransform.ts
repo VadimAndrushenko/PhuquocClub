@@ -63,31 +63,30 @@ export function transformArticle(article: Article): TransformedArticleData {
   // ============================================
   // 🧱 СЕКЦИИ СТАТЬИ
   // ============================================
-  const sectionBlocks: SectionBlock[] = ((article.content_blocks as ContentBlock[]) || []).map(
-    (block) => {
-      const result: SectionBlock = {
-        title: block.title,
-        description: block.description || '',
-        typeContent: block.contentType === 'none' ? undefined : block.contentType,
-      }
+  const sectionBlocks: SectionBlock[] = (article.content_blocks || []).map((block) => {
+    const result: SectionBlock = {
+      title: block.title,
+      description: block.description || null,
+      descriptionAfter: block.descriptionAfter || null,
+      typeContent: block.contentType === 'none' ? undefined : (block.contentType as SectionBlock['typeContent']),
+    }
 
-      if (block.contentType === 'table' && block.table) {
-        const { headers, rows } = block.table
-        result.table = {
-          headers: [headers.header1, headers.header2, headers.header3].filter(Boolean) as string[],
-          rows: rows?.map((r) => [r.cell1, r.cell2, r.cell3]) || [],
-        }
-      } else if (block.contentType === 'warning') {
-        result.warning = block.warning || undefined
-      } else if (block.contentType === 'checklist') {
-        result.checklist = block.checklist?.map((c) => c.item) || []
-      } else if (block.contentType === 'tips') {
-        result.tips = block.tips || undefined
+    if (block.contentType === 'table' && block.table) {
+      const { headers, rows } = block.table
+      result.table = {
+        headers: [headers.header1, headers.header2, headers.header3].filter(Boolean) as string[],
+        rows: rows?.map((r) => [r.cell1, r.cell2, r.cell3]) || [],
       }
+    } else if (block.contentType === 'warning') {
+      result.warning = block.warning || undefined
+    } else if (block.contentType === 'checklist') {
+      result.checklist = block.checklist?.map((c) => c.item) || []
+    } else if (block.contentType === 'tips') {
+      result.tips = block.tips || undefined
+    }
 
-      return result
-    },
-  )
+    return result
+  })
 
   // ============================================
   // 📚 ПОЛЕЗНЫЕ ССЫЛКИ
