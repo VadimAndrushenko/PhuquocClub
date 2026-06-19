@@ -167,7 +167,7 @@ export const enrichWithHref = async ({ doc, req }: any) => {
 
   // 4. Подгружаем и преобразуем related_articles
   // 🔥 ВРЕМЕННО ОТКЛЮЧЕНО — нет таблицы в БД
-  /*
+  
   if (
     doc.related_articles &&
     Array.isArray(doc.related_articles) &&
@@ -237,7 +237,7 @@ export const enrichWithHref = async ({ doc, req }: any) => {
 
     doc.related_articles = result
   }
-  */
+  
 
   return doc
 }

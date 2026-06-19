@@ -10,13 +10,13 @@ import { getCollectionsPage, getAllSubsectionsCards } from '@/lib/payload/payloa
 import { transformCollectionsPage } from '@/lib/collectionsPageTransform'
 
 // ============================================
-// 🔥 ISR - РЕВАЛИДАЦИЯ КАЖДЫЕ 30 СЕКУНД
+// ISR 
 // ============================================
 export const revalidate = 30
 export const dynamic = 'force-static'
 
 // ============================================
-// 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
+// МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getCollectionsPage()
@@ -71,7 +71,7 @@ export default async function CollectionsPageRoute() {
       <CollectionsBlock
         collections={allSubsections}
         haveCategories={true}
-        title={`Все подборки: ${heroData.title}`}
+        title={`Все подборки:`}
         containerClass={classPY}
         itemsPerPage={6}
       />
