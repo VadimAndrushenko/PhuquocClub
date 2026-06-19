@@ -56,7 +56,6 @@ export interface ContentBlock {
 }
 
 export interface UsefulLink {
-  id?: string | null
   href: string
   label: string
 }

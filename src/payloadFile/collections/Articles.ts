@@ -238,6 +238,41 @@ export const enrichWithHref = async ({ doc, req }: any) => {
     doc.related_articles = result
   }
   
+  // 5. Подгружаем и преобразуем useful_links — БЕРЁМ href ИЗ СВЯЗАННЫХ ДОКУМЕНТОВ
+  if (doc.useful_links && Array.isArray(doc.useful_links) && doc.useful_links.length > 0) {
+    const links: { href: string; label: string }[] = []
+
+    for (const item of doc.useful_links) {
+      try {
+        const linkType = item.linkType
+        const label = item.label || ''
+        let href = '#'
+
+        if (linkType === 'article' && item.article) {
+          // 🔥 БЕРЁМ href ИЗ СТАТЬИ (у неё уже есть готовое поле)
+          href = typeof item.article === 'object' && item.article !== null && 'href' in item.article
+            ? (item.article as any).href || '#'
+            : '#'
+        } else if (linkType === 'section' && item.section) {
+          // 🔥 БЕРЁМ href ИЗ РАЗДЕЛА (у него уже есть готовое поле)
+          href = typeof item.section === 'object' && item.section !== null && 'href' in item.section
+            ? (item.section as any).href || '#'
+            : '#'
+        } else if (linkType === 'subsection' && item.subsection) {
+          // 🔥 БЕРЁМ href ИЗ ПОДБОРКИ (у неё уже есть готовое поле)
+          href = typeof item.subsection === 'object' && item.subsection !== null && 'href' in item.subsection
+            ? (item.subsection as any).href || '#'
+            : '#'
+        }
+
+        links.push({ href, label })
+      } catch (error) {
+        console.error('❌ Ошибка загрузки useful_link:', error)
+      }
+    }
+
+    doc.useful_links = links
+  }
 
   return doc
 }
@@ -529,12 +564,67 @@ export const Articles: CollectionConfig = {
     {
       name: 'useful_links',
       type: 'array',
+      label: '🔗 Полезные ссылки',
       admin: {
-        description: 'Ссылки на полезные внешние материалы.',
+        description: 'Добавьте ссылки на статьи, разделы или подборки. Ссылка берётся автоматически из выбранного элемента.',
       },
       fields: [
-        { name: 'href', type: 'text', required: true, admin: { description: 'Ссылка.' } },
-        { name: 'label', type: 'text', required: true, admin: { description: 'Название ссылки.' } },
+        {
+          name: 'label',
+          type: 'text',
+          label: 'Название ссылки',
+          required: true,
+          admin: {
+            description: 'Текст который будет отображаться',
+          },
+        },
+        {
+          name: 'linkType',
+          type: 'select',
+          label: 'Тип ссылки',
+          required: true,
+          options: [
+            { label: '📄 Статья (Article)', value: 'article' },
+            { label: '📁 Раздел (Section)', value: 'section' },
+            { label: '📂 Подборка (Subsection)', value: 'subsection' },
+          ],
+          admin: {
+            description: 'Выберите тип элемента для ссылки',
+          },
+        },
+        {
+          name: 'article',
+          type: 'relationship',
+          relationTo: 'Articles',
+          label: 'Выберите статью',
+          depth: 1,
+          admin: {
+            condition: (_, sibling) => sibling.linkType === 'article',
+            description: 'Выберите статью — ссылка возьмётся автоматически',
+          },
+        },
+        {
+          name: 'section',
+          type: 'relationship',
+          relationTo: 'sections',
+          label: 'Выберите раздел',
+          depth: 1,
+          admin: {
+            condition: (_, sibling) => sibling.linkType === 'section',
+            description: 'Выберите раздел — ссылка возьмётся автоматически',
+          },
+        },
+        {
+          name: 'subsection',
+          type: 'relationship',
+          relationTo: 'subsections',
+          label: 'Выберите подборку',
+          depth: 1,
+          admin: {
+            condition: (_, sibling) => sibling.linkType === 'subsection',
+            description: 'Выберите подборку — ссылка возьмётся автоматически',
+          },
+        },
       ],
     },
     {
@@ -543,8 +633,13 @@ export const Articles: CollectionConfig = {
       relationTo: 'Articles',
       label: '🔗 Похожие статьи',
       hasMany: true,
+      filterOptions: ({ id }) => {
+        return {
+          id: { not_in: [id] },
+        }
+      },
       admin: {
-        description: 'Выберите статьи, которые нужно показать в блоке похожих.',
+        description: 'Выберите статьи, которые нужно показать в блоке похожих. Текущая статья исключена из выбора.',
       },
     },
     {

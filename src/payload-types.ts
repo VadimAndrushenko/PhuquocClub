@@ -317,23 +317,35 @@ export interface Article {
       }[]
     | null;
   /**
-   * Ссылки на полезные внешние материалы.
+   * Добавьте ссылки на статьи, разделы или подборки. Ссылка берётся автоматически из выбранного элемента.
    */
   useful_links?:
     | {
         /**
-         * Ссылка.
-         */
-        href: string;
-        /**
-         * Название ссылки.
+         * Текст который будет отображаться
          */
         label: string;
+        /**
+         * Выберите тип элемента для ссылки
+         */
+        linkType: 'article' | 'section' | 'subsection';
+        /**
+         * Выберите статью — ссылка возьмётся автоматически
+         */
+        article?: (number | null) | Article;
+        /**
+         * Выберите раздел — ссылка возьмётся автоматически
+         */
+        section?: (number | null) | Section;
+        /**
+         * Выберите подборку — ссылка возьмётся автоматически
+         */
+        subsection?: (number | null) | Subsection;
         id?: string | null;
       }[]
     | null;
   /**
-   * Выберите статьи, которые нужно показать в блоке похожих.
+   * Выберите статьи, которые нужно показать в блоке похожих. Текущая статья исключена из выбора.
    */
   related_articles?: (number | Article)[] | null;
   /**
@@ -693,8 +705,11 @@ export interface ArticlesSelect<T extends boolean = true> {
   useful_links?:
     | T
     | {
-        href?: T;
         label?: T;
+        linkType?: T;
+        article?: T;
+        section?: T;
+        subsection?: T;
         id?: T;
       };
   related_articles?: T;
