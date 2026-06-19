@@ -238,8 +238,12 @@ export const enrichWithHref = async ({ doc, req }: any) => {
     doc.related_articles = result
   }
   
-  // 5. Подгружаем и преобразуем useful_links — БЕРЁМ href ИЗ СВЯЗАННЫХ ДОКУМЕНТОВ
-  if (doc.useful_links && Array.isArray(doc.useful_links) && doc.useful_links.length > 0) {
+  // 5. Подгружаем и преобразуем useful_links — ТОЛЬКО ДЛЯ API
+  const referer = req.headers?.get?.('referer') || req.headers?.['referer']
+  const isAdminUI = typeof referer === 'string' && referer.includes('/admin')
+  const isInternal = req.context?.skipEnrich === true
+
+  if (!isAdminUI && !isInternal && doc.useful_links && Array.isArray(doc.useful_links) && doc.useful_links.length > 0) {
     const links: { href: string; label: string }[] = []
 
     for (const item of doc.useful_links) {
@@ -249,17 +253,14 @@ export const enrichWithHref = async ({ doc, req }: any) => {
         let href = '#'
 
         if (linkType === 'article' && item.article) {
-          // 🔥 БЕРЁМ href ИЗ СТАТЬИ (у неё уже есть готовое поле)
           href = typeof item.article === 'object' && item.article !== null && 'href' in item.article
             ? (item.article as any).href || '#'
             : '#'
         } else if (linkType === 'section' && item.section) {
-          // 🔥 БЕРЁМ href ИЗ РАЗДЕЛА (у него уже есть готовое поле)
           href = typeof item.section === 'object' && item.section !== null && 'href' in item.section
             ? (item.section as any).href || '#'
             : '#'
         } else if (linkType === 'subsection' && item.subsection) {
-          // 🔥 БЕРЁМ href ИЗ ПОДБОРКИ (у неё уже есть готовое поле)
           href = typeof item.subsection === 'object' && item.subsection !== null && 'href' in item.subsection
             ? (item.subsection as any).href || '#'
             : '#'
@@ -271,6 +272,7 @@ export const enrichWithHref = async ({ doc, req }: any) => {
       }
     }
 
+    // 🔥 ПЕРЕЗАПИСЫВАЕМ useful_links (только href + label для API)
     doc.useful_links = links
   }
 
@@ -597,7 +599,7 @@ export const Articles: CollectionConfig = {
           type: 'relationship',
           relationTo: 'Articles',
           label: 'Выберите статью',
-          depth: 1,
+          depth: 0,
           admin: {
             condition: (_, sibling) => sibling.linkType === 'article',
             description: 'Выберите статью — ссылка возьмётся автоматически',
@@ -608,7 +610,7 @@ export const Articles: CollectionConfig = {
           type: 'relationship',
           relationTo: 'sections',
           label: 'Выберите раздел',
-          depth: 1,
+          depth: 0,
           admin: {
             condition: (_, sibling) => sibling.linkType === 'section',
             description: 'Выберите раздел — ссылка возьмётся автоматически',
@@ -619,7 +621,7 @@ export const Articles: CollectionConfig = {
           type: 'relationship',
           relationTo: 'subsections',
           label: 'Выберите подборку',
-          depth: 1,
+          depth: 0,
           admin: {
             condition: (_, sibling) => sibling.linkType === 'subsection',
             description: 'Выберите подборку — ссылка возьмётся автоматически',

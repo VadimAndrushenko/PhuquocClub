@@ -6,17 +6,18 @@ import type { GlobalConfig } from 'payload'
 async function enrichHeader({ doc, req }: any): Promise<any> {
   if (!doc?.navigationItems) return doc
 
+  const referer = req.headers?.get?.('referer') || req.headers?.['referer']
+  const isAdminUI = typeof referer === 'string' && referer.includes('/admin')
+  const isInternal = req.context?.skipEnrich === true
+
+  if (isAdminUI || isInternal) {
+    return doc
+  }
+
   const enrichedItems: any[] = []
 
   for (const item of doc.navigationItems) {
     try {
-      const enrichedItem: any = {
-        id: item.id,
-        title: item.title || '',
-        icon: item.icon || 'Map',
-        linkType: item.linkType || 'external',
-      }
-
       let href = '#'
 
       // 🔥 ЗАГРУЖАЕМ ТОЛЬКО href ЧЕРЕЗ payload.findByID
@@ -51,13 +52,20 @@ async function enrichHeader({ doc, req }: any): Promise<any> {
         href = item.externalUrl
       }
 
-      enrichedItem.href = href
-      enrichedItems.push(enrichedItem)
+      // 🔥 СОЗДАЁМ МИНИМАЛЬНЫЙ ОБЪЕКТ (только нужные поля)
+      enrichedItems.push({
+        id: item.id,
+        title: item.title || '',
+        icon: item.icon || 'Map',
+        linkType: item.linkType || 'external',
+        href,
+      })
     } catch (error) {
       console.error('❌ Ошибка обогащения навигации:', error)
     }
   }
 
+  // 🔥 ПЕРЕЗАПИСЫВАЕМ navigationItems (только для API)
   doc.navigationItems = enrichedItems
   return doc
 }

@@ -53,12 +53,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const footerData = await getFooter()
   const footerDescription = footerData?.description || undefined
   const footerSocialLinks = footerData?.socialLinks || undefined
-  const footerNavigationSections = (footerData as any)?.sectionPlanning 
-    ? [(footerData as any).sectionPlanning] 
-    : undefined
-  if ((footerData as any)?.sectionOnIsland) footerNavigationSections?.push((footerData as any).sectionOnIsland)
-  if ((footerData as any)?.sectionPractice) footerNavigationSections?.push((footerData as any).sectionPractice)
-  if ((footerData as any)?.sectionRoutes) footerNavigationSections?.push((footerData as any).sectionRoutes)
+  
+  // 🔥 Собираем секции футера
+  const footerNavigationSections: any[] = []
+  if (footerData?.sectionPlanning) footerNavigationSections.push(footerData.sectionPlanning)
+  if (footerData?.sectionOnIsland) footerNavigationSections.push(footerData.sectionOnIsland)
+  if (footerData?.sectionPractice) footerNavigationSections.push(footerData.sectionPractice)
+  if (footerData?.sectionRoutes) footerNavigationSections.push(footerData.sectionRoutes)
+  
   const footerAdditionalLinks = (footerData as any)?.additionalLinks || undefined
 
   return (

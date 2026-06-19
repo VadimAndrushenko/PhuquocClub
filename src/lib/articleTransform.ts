@@ -91,7 +91,7 @@ export function transformArticle(article: Article): TransformedArticleData {
   // ============================================
   // 📚 ПОЛЕЗНЫЕ ССЫЛКИ
   // ============================================
-  const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link) => ({
+  const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link: any) => ({
     href: link.href,
     label: link.label,
   }))

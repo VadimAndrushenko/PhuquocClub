@@ -6,7 +6,16 @@ import type { GlobalConfig } from 'payload'
 async function enrichFooter({ doc, req }: any): Promise<any> {
   if (!doc) return doc
 
-  // 🔥 Извлекаем секции футера — упрощаем до {label, href}
+  // 🔥 Проверка: если это админка — не извлекаем данные
+  const referer = req.headers?.get?.('referer') || req.headers?.['referer']
+  const isAdminUI = typeof referer === 'string' && referer.includes('/admin')
+  const isInternal = req.context?.skipEnrich === true
+
+  if (isAdminUI || isInternal) {
+    return doc
+  }
+
+  // 🔥 Извлекаем секции футера — только href
   const sections = ['sectionPlanning', 'sectionOnIsland', 'sectionPractice', 'sectionRoutes']
 
   for (const sectionName of sections) {
@@ -64,7 +73,7 @@ async function enrichFooter({ doc, req }: any): Promise<any> {
     }
   }
 
-  // 🔥 Извлекаем доп. ссылки — упрощаем до {title, href}
+  // 🔥 Извлекаем доп. ссылки — только href
   const additionalLinks = doc.additionalLinks
   if (additionalLinks) {
     const links: any[] = []
