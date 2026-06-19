@@ -47,14 +47,19 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Получаем навигацию из админки
   const headerData = await getHeader()
-  const headerNavigationItems = (headerData as any)?._navigationItems || []
+  const headerNavigationItems = (headerData as any)?.navigationItems || []
 
   // Получаем данные футера
   const footerData = await getFooter()
   const footerDescription = footerData?.description || undefined
   const footerSocialLinks = footerData?.socialLinks || undefined
-  const footerNavigationSections = (footerData as any)?._sections || undefined
-  const footerAdditionalLinks = (footerData as any)?._additionalLinks || undefined
+  const footerNavigationSections = (footerData as any)?.sectionPlanning 
+    ? [(footerData as any).sectionPlanning] 
+    : undefined
+  if ((footerData as any)?.sectionOnIsland) footerNavigationSections?.push((footerData as any).sectionOnIsland)
+  if ((footerData as any)?.sectionPractice) footerNavigationSections?.push((footerData as any).sectionPractice)
+  if ((footerData as any)?.sectionRoutes) footerNavigationSections?.push((footerData as any).sectionRoutes)
+  const footerAdditionalLinks = (footerData as any)?.additionalLinks || undefined
 
   return (
     <html

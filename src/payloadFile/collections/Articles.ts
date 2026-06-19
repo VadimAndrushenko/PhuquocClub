@@ -634,6 +634,7 @@ export const Articles: CollectionConfig = {
       label: '🔗 Похожие статьи',
       hasMany: true,
       filterOptions: ({ id }) => {
+        if (!id) return true // 🔥 Для новых документов — без фильтра
         return {
           id: { not_in: [id] },
         }

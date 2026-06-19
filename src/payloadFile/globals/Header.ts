@@ -1,6 +1,68 @@
 import type { GlobalConfig } from 'payload'
 
 // ============================================
+// 🪝 ХУК: извлечь href из навигации
+// ============================================
+async function enrichHeader({ doc, req }: any): Promise<any> {
+  if (!doc?.navigationItems) return doc
+
+  const enrichedItems: any[] = []
+
+  for (const item of doc.navigationItems) {
+    try {
+      const enrichedItem: any = {
+        id: item.id,
+        title: item.title || '',
+        icon: item.icon || 'Map',
+        linkType: item.linkType || 'external',
+      }
+
+      let href = '#'
+
+      // 🔥 ЗАГРУЖАЕМ ТОЛЬКО href ЧЕРЕЗ payload.findByID
+      if (item.linkType === 'section' && item.section) {
+        const sectionId = typeof item.section === 'object' ? item.section.id : item.section
+        const section = await req.payload.findByID({
+          collection: 'sections',
+          id: sectionId,
+          depth: 0,
+          select: { href: true },
+        })
+        href = section?.href || '#'
+      } else if (item.linkType === 'subsection' && item.subsection) {
+        const subsectionId = typeof item.subsection === 'object' ? item.subsection.id : item.subsection
+        const subsection = await req.payload.findByID({
+          collection: 'subsections',
+          id: subsectionId,
+          depth: 0,
+          select: { href: true },
+        })
+        href = subsection?.href || '#'
+      } else if (item.linkType === 'article' && item.article) {
+        const articleId = typeof item.article === 'object' ? item.article.id : item.article
+        const article = await req.payload.findByID({
+          collection: 'Articles',
+          id: articleId,
+          depth: 0,
+          select: { href: true },
+        })
+        href = article?.href || '#'
+      } else if (item.linkType === 'external' && item.externalUrl) {
+        href = item.externalUrl
+      }
+
+      enrichedItem.href = href
+      enrichedItems.push(enrichedItem)
+    } catch (error) {
+      console.error('❌ Ошибка обогащения навигации:', error)
+    }
+  }
+
+  doc.navigationItems = enrichedItems
+  return doc
+}
+
+// ============================================
 // 📦 GLOBAL: Header Navigation
 // ============================================
 
@@ -12,6 +74,9 @@ export const Header: GlobalConfig = {
   },
   versions: {
     max: 10,
+  },
+  hooks: {
+    afterRead: [enrichHeader],
   },
   fields: [
     {

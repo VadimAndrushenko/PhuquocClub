@@ -1,6 +1,121 @@
 import type { GlobalConfig } from 'payload'
 
 // ============================================
+// 🪝 ХУК: извлечь href из ссылок футера
+// ============================================
+async function enrichFooter({ doc, req }: any): Promise<any> {
+  if (!doc) return doc
+
+  // 🔥 Извлекаем секции футера — упрощаем до {label, href}
+  const sections = ['sectionPlanning', 'sectionOnIsland', 'sectionPractice', 'sectionRoutes']
+
+  for (const sectionName of sections) {
+    const sectionData = doc[sectionName]
+    if (!sectionData) continue
+
+    const items: any[] = []
+
+    for (let i = 1; i <= 6; i++) {
+      const itemKey = `item${i}` as keyof typeof sectionData
+      const item = sectionData[itemKey]
+      if (!item || !item.label) continue
+
+      let href = '#'
+
+      // 🔥 ЗАГРУЖАЕМ ТОЛЬКО href ЧЕРЕЗ payload.findByID
+      if (item.linkType === 'section' && item.section) {
+        const sectionId = typeof item.section === 'object' ? item.section.id : item.section
+        const section = await req.payload.findByID({
+          collection: 'sections',
+          id: sectionId,
+          depth: 0,
+          select: { href: true },
+        })
+        href = section?.href || '#'
+      } else if (item.linkType === 'subsection' && item.subsection) {
+        const subsectionId = typeof item.subsection === 'object' ? item.subsection.id : item.subsection
+        const subsection = await req.payload.findByID({
+          collection: 'subsections',
+          id: subsectionId,
+          depth: 0,
+          select: { href: true },
+        })
+        href = subsection?.href || '#'
+      } else if (item.linkType === 'article' && item.article) {
+        const articleId = typeof item.article === 'object' ? item.article.id : item.article
+        const article = await req.payload.findByID({
+          collection: 'Articles',
+          id: articleId,
+          depth: 0,
+          select: { href: true },
+        })
+        href = article?.href || '#'
+      } else if (item.linkType === 'external' && item.externalUrl) {
+        href = item.externalUrl
+      }
+
+      items.push({ label: item.label, href })
+    }
+
+    // 🔥 ПЕРЕЗАПИСЫВАЕМ секцию с упрощёнными items
+    doc[sectionName] = {
+      title: sectionData.title || 'Раздел',
+      items,
+    }
+  }
+
+  // 🔥 Извлекаем доп. ссылки — упрощаем до {title, href}
+  const additionalLinks = doc.additionalLinks
+  if (additionalLinks) {
+    const links: any[] = []
+    for (let i = 1; i <= 4; i++) {
+      const linkKey = `link${i}` as keyof typeof additionalLinks
+      const link = additionalLinks[linkKey]
+      if (!link || !link.title) continue
+
+      let href = '#'
+
+      // 🔥 ЗАГРУЖАЕМ ТОЛЬКО href ЧЕРЕЗ payload.findByID
+      if (link.linkType === 'section' && link.section) {
+        const sectionId = typeof link.section === 'object' ? link.section.id : link.section
+        const section = await req.payload.findByID({
+          collection: 'sections',
+          id: sectionId,
+          depth: 0,
+          select: { href: true },
+        })
+        href = section?.href || '#'
+      } else if (link.linkType === 'subsection' && link.subsection) {
+        const subsectionId = typeof link.subsection === 'object' ? link.subsection.id : link.subsection
+        const subsection = await req.payload.findByID({
+          collection: 'subsections',
+          id: subsectionId,
+          depth: 0,
+          select: { href: true },
+        })
+        href = subsection?.href || '#'
+      } else if (link.linkType === 'article' && link.article) {
+        const articleId = typeof link.article === 'object' ? link.article.id : link.article
+        const article = await req.payload.findByID({
+          collection: 'Articles',
+          id: articleId,
+          depth: 0,
+          select: { href: true },
+        })
+        href = article?.href || '#'
+      } else if (link.linkType === 'external' && link.externalUrl) {
+        href = link.externalUrl
+      }
+
+      links.push({ title: link.title, href })
+    }
+    doc.additionalLinks = links
+  }
+
+  return doc
+}
+
+// ============================================
 // 📦 GLOBAL: Footer
 // ============================================
 
@@ -12,6 +127,9 @@ export const Footer: GlobalConfig = {
   },
   versions: {
     max: 10,
+  },
+  hooks: {
+    afterRead: [enrichFooter],
   },
   fields: [
     {
