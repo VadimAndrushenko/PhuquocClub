@@ -105,7 +105,7 @@ export default async function SubSectionPage({ params }: SubSectionPageProps) {
 
       <CollectionsBlock
         collections={rawArticle}
-        title={`Все статьи подборки: ${heroData.title}`}
+        title={`Все статьи подборки: `}
         containerClass={classPY}
         itemsPerPage={4}
       />

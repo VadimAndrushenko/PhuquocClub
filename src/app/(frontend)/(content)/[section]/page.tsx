@@ -97,7 +97,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
       <CollectionsBlock
         collections={rawSubsections}
         haveCategories={true}
-        title={`Все подборки раздела: ${heroData.title}`}
+        title={`Все подборки раздела:`}
         containerClass={classPY}
         itemsPerPage={6}
       />
