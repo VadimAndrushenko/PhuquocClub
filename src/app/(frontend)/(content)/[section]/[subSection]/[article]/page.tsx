@@ -3,6 +3,8 @@ import { getArticleBySlug, getAllArticles } from '@/lib/payload/payload'
 import { transformArticle } from '@/lib/articleTransform'
 import type { ArticlePageProps } from '@/shared/types/pageType/article.type'
 import type { Metadata } from 'next'
+import { buildBreadcrumbItems } from '@/lib/seo/breadcrumbs'
+import { ArticleStructuredData, BreadcrumbStructuredData } from '@/components/seo/StructuredData'
 
 import KratkoArticle from '@/dataPage/articleDataPage/sectionArticle/KratkoArticle'
 import BodyArticle from '@/dataPage/articleDataPage/sectionArticle/BodyArticle'
@@ -11,6 +13,8 @@ import UsefulArticle from '@/dataPage/articleDataPage/sectionArticle/UsefulArtic
 import RelatedArticles from '@/dataPage/articleDataPage/sectionArticle/RelatedArticles'
 import NeedHelpArticle from '@/dataPage/articleDataPage/sectionArticle/NeeHelpArticle'
 import HeroArticle from '@/dataPage/articleDataPage/sectionArticle/HeroArticle'
+
+import { getSectionTitle, getSubsectionTitle } from '@/lib/payload/getBreadcrumbsTitles'
 
 // ============================================
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
@@ -78,10 +82,38 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
     }
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const articleUrl = `${siteUrl}${rawArticle.href}`
+  const imageUrl = typeof rawArticle.image === 'object' && rawArticle.image !== null 
+    ? 'url' in rawArticle.image 
+      ? (rawArticle.image as any).url 
+      : '' 
+    : ''
+
   return {
     title: rawArticle.seo?.title ?? rawArticle.title,
     description: rawArticle.seo?.description ?? rawArticle.description ?? '',
-    keywords: rawArticle.seo?.keywords?.map((k) => k.keyword) || [],
+    keywords: rawArticle.seo?.keywords?.map((k) => k.keyword).filter(Boolean) as string[] || [],
+    alternates: {
+      canonical: articleUrl,
+    },
+    openGraph: {
+      title: rawArticle.seo?.title ?? rawArticle.title,
+      description: rawArticle.seo?.description ?? rawArticle.description ?? '',
+      type: 'article',
+      publishedTime: rawArticle.createdAt,
+      modifiedTime: rawArticle.updatedAt,
+      authors: [rawArticle.author || 'Phuquoc.Club'],
+      images: imageUrl ? [{ url: imageUrl, alt: rawArticle.title }] : [],
+      locale: 'ru_RU',
+      siteName: 'Фукуок.Гид',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: rawArticle.seo?.title ?? rawArticle.title,
+      description: rawArticle.seo?.description ?? rawArticle.description ?? '',
+      images: imageUrl ? [imageUrl] : [],
+    },
   }
 }
 
@@ -92,7 +124,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 const classPY = 'py-10 max-md:py-6'
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
-  const { article: slug } = await params
+  const { article: slug, section: sectionSlug, subSection: subsectionSlug } = await params
 
   const rawArticle = await getArticleBySlug(slug)
 
@@ -103,8 +135,30 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const { heroData, kratkoItems, sectionBlocks, usefulLinks, relatedArticles } =
     transformArticle(rawArticle)
 
+  // 🔥 Получаем заголовки для хлебных крошек
+  const [sectionTitle, subsectionTitle] = await Promise.all([
+    getSectionTitle(sectionSlug),
+    getSubsectionTitle(subsectionSlug),
+  ])
+
+  // 🔥 Строим breadcrumb items для Schema.org
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const breadcrumbItems = buildBreadcrumbItems({
+    section: sectionSlug,
+    sectionTitle,
+    subsection: subsectionSlug,
+    subsectionTitle,
+    article: slug,
+    articleTitle: rawArticle.title,
+    baseUrl: siteUrl,
+  })
+
   return (
     <div className="container">
+      {/* 🔥 Structured Data */}
+      <ArticleStructuredData article={rawArticle} siteUrl={siteUrl} />
+      <BreadcrumbStructuredData items={breadcrumbItems} />
+
       <article>
         <HeroArticle containerClass={classPY} dataArticle={heroData} />
 

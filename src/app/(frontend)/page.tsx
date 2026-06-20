@@ -7,6 +7,7 @@ import { getHomePage } from '@/lib/payload/payload'
 import { transformHomePage } from '@/lib/homePageTransform'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { WebSiteStructuredData } from '@/components/seo/StructuredData'
 
 const classContent = 'py-10 max-sm:py-8 container'
 
@@ -29,10 +30,34 @@ export async function generateMetadata(): Promise<Metadata> {
     }
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const imageUrl = typeof page.heroSection?.image === 'object' && page.heroSection?.image !== null 
+    ? 'url' in page.heroSection.image 
+      ? page.heroSection.image.url 
+      : '' 
+    : ''
+
   return {
     title: page.seo?.title ?? 'Гид по Фукуоку',
     description: page.seo?.description ?? 'Всё что нужно туристу - быстро и понятно',
-    keywords: page.seo?.keywords?.map((k: { keyword?: string | null }) => k.keyword || '') || [],
+    keywords: page.seo?.keywords?.map((k: { keyword?: string | null }) => k.keyword).filter(Boolean) as string[] || [],
+    alternates: {
+      canonical: siteUrl,
+    },
+    openGraph: {
+      title: page.seo?.title ?? 'Гид по Фукуоку',
+      description: page.seo?.description ?? 'Всё что нужно туристу - быстро и понятно',
+      type: 'website',
+      images: imageUrl ? [{ url: imageUrl, alt: page.seo?.title || 'Гид по Фукуоку' }] : [],
+      locale: 'ru_RU',
+      siteName: 'Фукуок.Гид',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: page.seo?.title ?? 'Гид по Фукуоку',
+      description: page.seo?.description ?? 'Всё что нужно туристу - быстро и понятно',
+      images: imageUrl ? [imageUrl] : [],
+    },
   }
 }
 
@@ -50,12 +75,15 @@ export default async function Home() {
     }
   }
 
-  const { heroData, popularArticles, planningArticles, collectionsData, urgentArticles } = page
-    ? transformHomePage(page)
-    : getFallbackData()
+  const { heroData, popularArticles, planningArticles, collectionsData, urgentArticles } = transformHomePage(page)
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
   return (
     <div>
+      {/* 🔥 Structured Data для главной */}
+      <WebSiteStructuredData siteName="Фукуок.Гид" siteUrl={siteUrl} />
+
       <HeroMain containerClass={classContent} dataMain={heroData} />
       <Popular containerClass={classContent} data={popularArticles} />
       <Planning containerClass={classContent} data={planningArticles} />
@@ -65,23 +93,3 @@ export default async function Home() {
   )
 }
 
-// ============================================
-// 🔧 FALLBACK ДАННЫЕ (если глобал не настроен)
-// ============================================
-function getFallbackData() {
-  return {
-    heroData: {
-      title: 'Гид по Фукуоку',
-      description: 'Всё что нужно туристу - быстро и понятно',
-      image: { url: '/hero-image.jpg', alt: 'Гид по Фукуоку' },
-      search: {
-        placeholder: 'Поиск по сайту: пляжи, отели, еда, транспорт...',
-        tags: [] as Array<{ id?: string | number | null; title: string; icon: any }>,
-      },
-    },
-    popularArticles: [],
-    planningArticles: [],
-    collectionsData: [],
-    urgentArticles: [],
-  }
-}

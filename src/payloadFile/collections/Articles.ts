@@ -599,7 +599,6 @@ export const Articles: CollectionConfig = {
           type: 'relationship',
           relationTo: 'Articles',
           label: 'Выберите статью',
-          depth: 0,
           admin: {
             condition: (_, sibling) => sibling.linkType === 'article',
             description: 'Выберите статью — ссылка возьмётся автоматически',
@@ -610,7 +609,6 @@ export const Articles: CollectionConfig = {
           type: 'relationship',
           relationTo: 'sections',
           label: 'Выберите раздел',
-          depth: 0,
           admin: {
             condition: (_, sibling) => sibling.linkType === 'section',
             description: 'Выберите раздел — ссылка возьмётся автоматически',
@@ -621,7 +619,6 @@ export const Articles: CollectionConfig = {
           type: 'relationship',
           relationTo: 'subsections',
           label: 'Выберите подборку',
-          depth: 0,
           admin: {
             condition: (_, sibling) => sibling.linkType === 'subsection',
             description: 'Выберите подборку — ссылка возьмётся автоматически',

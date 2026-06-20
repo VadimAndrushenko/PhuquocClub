@@ -9,6 +9,8 @@ import Hero from '@/components/readyBlock/Hero'
 
 import { getSectionBySlugs, getSubsectionsBySection, getAllSections } from '@/lib/payload/payload'
 import { transformSection } from '@/lib/sectionTransform'
+import { buildBreadcrumbItems } from '@/lib/seo/breadcrumbs'
+import { BreadcrumbStructuredData, CollectionPageStructuredData } from '@/components/seo/StructuredData'
 
 // ============================================
 // 🔧 HELPER
@@ -53,9 +55,35 @@ export async function generateMetadata({ params }: SectionPageProps): Promise<Me
     }
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const sectionUrl = `${siteUrl}/${section.slug}`
+  const imageUrl = typeof section.image === 'object' && section.image !== null 
+    ? 'url' in section.image 
+      ? (section.image as any).url 
+      : '' 
+    : ''
+
   return {
-    title: section.title,
-    description: section.description ?? '',
+    title: section.seo?.title ?? section.title,
+    description: section.seo?.description ?? section.description ?? '',
+    keywords: section.seo?.keywords?.map((k) => k.keyword).filter(Boolean) as string[] || [],
+    alternates: {
+      canonical: sectionUrl,
+    },
+    openGraph: {
+      title: section.seo?.title ?? section.title,
+      description: section.seo?.description ?? section.description ?? '',
+      type: 'website',
+      images: imageUrl ? [{ url: imageUrl, alt: section.title }] : [],
+      locale: 'ru_RU',
+      siteName: 'Фукуок.Гид',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: section.seo?.title ?? section.title,
+      description: section.seo?.description ?? section.description ?? '',
+      images: imageUrl ? [imageUrl] : [],
+    },
   }
 }
 
@@ -76,8 +104,24 @@ export default async function SectionPage({ params }: SectionPageProps) {
 
   const { heroData, bestCollectionData, continuePlanning } = await transformSection(rawSection)
 
+  // 🔥 Строим breadcrumb items для Schema.org
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const breadcrumbItems = buildBreadcrumbItems({
+    section: sectionSlug,
+    sectionTitle: rawSection.title,
+    baseUrl: siteUrl,
+  })
+
   return (
     <div className="container">
+      {/* 🔥 Structured Data */}
+      <BreadcrumbStructuredData items={breadcrumbItems} />
+      <CollectionPageStructuredData
+        title={rawSection.seo?.title ?? rawSection.title}
+        description={rawSection.seo?.description ?? rawSection.description ?? ''}
+        siteUrl={`${siteUrl}/${sectionSlug}`}
+      />
+
       <Hero
         dataHero={heroData}
         classes={{

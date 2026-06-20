@@ -8,6 +8,7 @@ import Hero from '@/components/readyBlock/Hero'
 
 import { getCollectionsPage, getAllSubsectionsCards } from '@/lib/payload/payload'
 import { transformCollectionsPage } from '@/lib/collectionsPageTransform'
+import { CollectionPageStructuredData } from '@/components/seo/StructuredData'
 
 // ============================================
 // ISR 
@@ -28,10 +29,34 @@ export async function generateMetadata(): Promise<Metadata> {
     }
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const imageUrl = typeof page.image === 'object' && page.image !== null 
+    ? 'url' in page.image 
+      ? (page.image as any).url 
+      : '' 
+    : ''
+
   return {
     title: page.seo?.title ?? page.title,
     description: page.seo?.description ?? page.description ?? '',
-    keywords: page.seo?.keywords?.map((k: { keyword?: string | null }) => k.keyword || '') || [],
+    keywords: page.seo?.keywords?.map((k: { keyword?: string | null }) => k.keyword).filter(Boolean) as string[] || [],
+    alternates: {
+      canonical: `${siteUrl}/collections`,
+    },
+    openGraph: {
+      title: page.seo?.title ?? page.title,
+      description: page.seo?.description ?? page.description ?? '',
+      type: 'website',
+      images: imageUrl ? [{ url: imageUrl, alt: page.title || '' }] : [],
+      locale: 'ru_RU',
+      siteName: 'Фукуок.Гид',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: page.seo?.title ?? page.title,
+      description: page.seo?.description ?? page.description ?? '',
+      images: imageUrl ? [imageUrl] : [],
+    },
   }
 }
 
@@ -50,8 +75,17 @@ export default async function CollectionsPageRoute() {
 
   const { heroData, bestCollectionData, continuePlanning } = transformCollectionsPage(page)
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
   return (
     <div className="container">
+      {/* 🔥 Structured Data */}
+      <CollectionPageStructuredData
+        title={(page.seo?.title ?? page.title) || ''}
+        description={(page.seo?.description ?? page.description) || ''}
+        siteUrl={`${siteUrl}/collections`}
+      />
+
       <Hero
         dataHero={heroData}
         classes={{
