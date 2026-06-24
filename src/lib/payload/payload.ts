@@ -307,40 +307,62 @@ export async function getHomePage() {
     depth: 3,
   })
 
-  // 🔥 Извлекаем данные из статей напрямую (т.к. хуки отключены)
+  // 🔥 Данные уже обогащены хуками afterRead (только для frontend)
   if (data) {
-    // Popular Articles
+    // Popular Articles (уже обогащены хуком, без иконок)
     if (data.popularArticles && Array.isArray(data.popularArticles)) {
-      ;(data as any)._popularArticlesData = await extractMinimalArticles(
-        data.popularArticles,
-        payload,
-      )
-    }
-
-    // Planning Articles + Icons
-    if (data.planningBlock?.articles && Array.isArray(data.planningBlock.articles)) {
-      const articles = await extractMinimalArticles(data.planningBlock.articles, payload)
-      // Добавляем иконки
-      const icons = data.planningBlock.icons || []
-      ;(data as any)._planningArticlesData = articles.map((article, i) => ({
-        ...article,
-        icon: icons[i]?.icon || 'Sun',
+      ;(data as any)._popularArticlesData = data.popularArticles.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        href: item.href,
+        image: item.image,
+        status: item.status,
+        description: item.description,
+        category: item.category,
+        readTime: item.readTime,
       }))
     }
 
-    // Collections (Subsections)
-    if (data.collections && Array.isArray(data.collections)) {
-      ;(data as any)._collectionsData = await extractMinimalSubsections(data.collections, payload)
+    // Planning Articles (уже обогащены хуком, с иконками)
+    if (data.planningBlock?.items && Array.isArray(data.planningBlock.items)) {
+      ;(data as any)._planningArticlesData = data.planningBlock.items.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        href: item.href,
+        image: item.image,
+        status: item.status,
+        description: item.description,
+        category: item.category,
+        readTime: item.readTime,
+        icon: item.icon || 'Sun',
+      }))
     }
 
-    // Urgent Articles + Icons
-    if (data.urgentBlock?.articles && Array.isArray(data.urgentBlock.articles)) {
-      const articles = await extractMinimalArticles(data.urgentBlock.articles, payload)
-      // Добавляем иконки
-      const icons = data.urgentBlock.icons || []
-      ;(data as any)._urgentArticlesData = articles.map((article, i) => ({
-        ...article,
-        icon: icons[i]?.icon || 'Sun',
+    // Collections (уже обогащены хуком, без иконок)
+    if (data.collections && Array.isArray(data.collections)) {
+      ;(data as any)._collectionsData = data.collections.map((item: any, index: number) => ({
+        id: item.id,
+        title: item.title,
+        href: item.href,
+        image: item.image,
+        category: item.category,
+        description: item.description,
+        number: index + 1,
+      }))
+    }
+
+    // Urgent Articles (уже обогащены хуком, с иконками)
+    if (data.urgentBlock?.items && Array.isArray(data.urgentBlock.items)) {
+      ;(data as any)._urgentArticlesData = data.urgentBlock.items.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        href: item.href,
+        image: item.image,
+        status: item.status,
+        description: item.description,
+        category: item.category,
+        readTime: item.readTime,
+        icon: item.icon || 'Sun',
       }))
     }
   }

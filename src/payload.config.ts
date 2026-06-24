@@ -59,7 +59,7 @@ export default buildConfig({
       idleTimeoutMillis: 300000,
       connectionTimeoutMillis: 10000,
     },
-    push: true, // 🔥 Автоматическая синхронизация схемы (для разработки)
+    push: process.env.NODE_ENV !== 'production',
   }),
 
   plugins: [

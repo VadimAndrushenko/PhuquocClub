@@ -1,687 +1,412 @@
-import type { CollectionConfig, Where } from 'payload'
-import type { Media } from '../../payload-types'
-import type { AppMedia } from '@/shared/types'
-import { RelatedArticle } from '@/shared/types/pageType/article.type'
-
-// ============================================
-// 🔧 ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ============================================
-
-/** Генерирует href из section/subsection/slug */
-function generateHref(section: string, subsection: string, slug: string): string {
-  if (!slug) return '/'
-
-  if (section && subsection) {
-    return `/${section}/${subsection}/${slug}`
-  }
-  return `/${slug}`
-}
-
-// ============================================
-// 🪝 ХУКИ
-// ============================================
+import type { CollectionConfig } from 'payload'
+import { generateHrefBeforeSave, simplifyRelationships } from '../utils/hooks'
 
 /**
- * 🔥 ХУК: генерирует href перед сохранением
+ * ============================================
+ * 📦 COLLECTION: Articles
+ * ============================================
+ * Optimized version with:
+ * - Removed heavy afterRead hooks
+ * - href generated in beforeChange (more efficient)
+ * - Simplified relationships
+ * - Better type safety
  */
-export const generateArticleHref = async ({ data, req }: any) => {
-  if (!data) return data
 
-  let sectionSlug = ''
-  let subsectionSlug = ''
-
-  // Получаем subsection slug
-  if (data.subsection) {
-    try {
-      const subsectionId =
-        typeof data.subsection === 'object' && data.subsection !== null && 'id' in data.subsection
-          ? data.subsection.id
-          : data.subsection
-
-      const subsection = await req.payload.findByID({
-        collection: 'subsections',
-        id: subsectionId,
-        depth: 0,
-      })
-
-      if (subsection) {
-        subsectionSlug = subsection.slug || ''
-
-        // Получаем section slug из subsection
-        if (subsection.section) {
-          sectionSlug =
-            typeof subsection.section === 'object' ? subsection.section.slug : subsection.section
-        }
-      }
-    } catch (error) {
-      console.error('❌ Ошибка генерации href:', error)
-    }
-  }
-
-  data.href = generateHref(sectionSlug, subsectionSlug, data.slug || '')
-  return data
-}
-
-export const autoFillFromSubsection = async ({ data, req }: any) => {
+/**
+ * Auto-fill section and category from subsection
+ */
+const autoFillFromSubsection = async ({ data, req }: any) => {
   if (!data?.subsection) {
     data.section = ''
     data.category = ''
-    return
+    return data
   }
 
   try {
     const subsectionId =
-      typeof data.subsection === 'object' && data.subsection !== null && 'id' in data.subsection
-        ? (data.subsection as { id: number }).id
-        : (data.subsection as number)
+      typeof data.subsection === 'object' && 'id' in data.subsection
+        ? data.subsection.id
+        : data.subsection
 
-    if (!subsectionId) return
+    if (!subsectionId) return data
 
     const subsection = await req.payload.findByID({
       collection: 'subsections',
       id: subsectionId,
-      depth: 1,
+      depth: 0, // ✅ No deep nesting
     })
 
-    if (!subsection) return
+    if (!subsection) return data
 
-    data.category = (subsection as { category?: string }).category || ''
+    // Set category
+    data.category = subsection.category || ''
 
-    const sectionField = (subsection as { section?: unknown }).section
-    if (sectionField) {
-      if (typeof sectionField === 'string') {
-        data.section = sectionField
-      } else if (
-        typeof sectionField === 'object' &&
-        sectionField !== null &&
-        'slug' in sectionField
-      ) {
-        data.section = (sectionField as { slug?: string }).slug || ''
+    // Set section slug
+    if (subsection.section) {
+      if (typeof subsection.section === 'string') {
+        data.section = subsection.section
+      } else if (typeof subsection.section === 'object' && 'slug' in subsection.section) {
+        data.section = subsection.section.slug || ''
       }
     }
   } catch (error) {
-    console.error('❌ Ошибка автозаполнения:', error)
+    console.error('❌ Error in autoFillFromSubsection:', error)
   }
+
+  return data
 }
-
-/**
- * 🔥 ГЛАВНЫЙ ХУК: генерирует href для статьи и всех связанных статей
- * + упрощает subsection в slug
- * + преобразует image в полный объект медиа
- * + подгружает и преобразует related_articles в массив объектов для API
- */
-export const enrichWithHref = async ({ doc, req }: any) => {
-  if (!doc) return doc
-
-  // 🔥 ЗАЩИТА ОТ РЕКУРСИИ: если вызов вложенный — пропускаем тяжёлый парсинг related_articles
-  if (req?.context?.skipEnrich) {
-    return doc
-  }
-
-  // 🔥 1. СНАЧАЛА упрощаем subsection в slug (строку)
-  if (doc.subsection && typeof doc.subsection === 'object' && doc.subsection !== null) {
-    if ('slug' in doc.subsection) {
-      doc.subsection = doc.subsection.slug
-    } else if ('id' in doc.subsection) {
-      doc.subsection = doc.subsection.id
-    }
-  }
-
-  // 🔥 2. ТЕПЕРЬ генерируем href (subsection уже строка!)
-  let sectionSlug = typeof doc.section === 'string' ? doc.section : ''
-  const subsectionSlug = typeof doc.subsection === 'string' ? doc.subsection : ''
-
-  // 🔥 Если section пустой — пробуем загрузить из subsection
-  if (!sectionSlug && subsectionSlug) {
-    try {
-      const subsectionResult = await req.payload.find({
-        collection: 'subsections',
-        where: { slug: { equals: subsectionSlug } },
-        depth: 0,
-        limit: 1,
-      })
-      if (subsectionResult.docs && subsectionResult.docs.length > 0) {
-        const subDoc = subsectionResult.docs[0] as any
-        sectionSlug = typeof subDoc.section === 'string' ? subDoc.section : ''
-      }
-    } catch (error) {
-      console.error('❌ Ошибка загрузки section:', error)
-    }
-  }
-
-  doc.href = generateHref(sectionSlug, subsectionSlug, doc.slug || '')
-
-  // 3. Преобразуем image в полный объект медиа
-  if (doc.image && typeof doc.image === 'object' && doc.image !== null) {
-    doc.image = {
-      id: doc.image.id,
-      url: doc.image.url,
-      thumbnailURL: doc.image.thumbnailURL,
-      filename: doc.image.filename,
-      mimeType: doc.image.mimeType,
-      width: doc.image.width,
-      height: doc.image.height,
-      alt: doc.image.alt,
-    } as AppMedia
-  }
-
-  // 4. Подгружаем и преобразуем related_articles
-  // 🔥 ВРЕМЕННО ОТКЛЮЧЕНО — нет таблицы в БД
-  
-  if (
-    doc.related_articles &&
-    Array.isArray(doc.related_articles) &&
-    doc.related_articles.length > 0
-  ) {
-    const result: RelatedArticle[] = []
-
-    for (const articleRef of doc.related_articles) {
-      try {
-        // Если это ID — загружаем статью
-        let article: any = articleRef
-        if (typeof articleRef === 'string' || typeof articleRef === 'number') {
-          // 🔥 skipEnrich — НЕ триггерим хуки повторно (избегаем рекурсии)
-          article = await req.payload.findByID({
-            collection: 'Articles',
-            id: articleRef,
-            depth: 2,
-            context: { skipEnrich: true },
-          })
-        }
-
-        if (!article) continue
-
-        // Для связанных статей тоже сначала упрощаем subsection
-        let artSubsection = ''
-        if (typeof article.subsection === 'string') {
-          artSubsection = article.subsection
-        } else if (
-          article.subsection &&
-          typeof article.subsection === 'object' &&
-          'slug' in article.subsection
-        ) {
-          artSubsection = (article.subsection as { slug: string }).slug || ''
-        }
-
-        const artSection = typeof article.section === 'string' ? article.section : ''
-        const artHref = generateHref(artSection, artSubsection, article.slug || '')
-
-        let artImage: AppMedia = { id: article.image as number }
-        if (article.image && typeof article.image === 'object') {
-          const img = article.image as Media
-          artImage = {
-            id: img.id,
-            url: img.url,
-            thumbnailURL: img.thumbnailURL,
-            filename: img.filename,
-            mimeType: img.mimeType,
-            width: img.width,
-            height: img.height,
-            alt: img.alt,
-          }
-        }
-
-        result.push({
-          id: article.id,
-          category: article.category || '',
-          title: article.title,
-          description: article.description || '',
-          image: artImage,
-          href: artHref,
-          readTime: article.readTime,
-        })
-      } catch (error) {
-        console.error('❌ Ошибка загрузки related article:', error)
-      }
-    }
-
-    doc.related_articles = result
-  }
-  
-  // 5. Подгружаем и преобразуем useful_links — ТОЛЬКО ДЛЯ API
-  const referer = req.headers?.get?.('referer') || req.headers?.['referer']
-  const isAdminUI = typeof referer === 'string' && referer.includes('/admin')
-  const isInternal = req.context?.skipEnrich === true
-
-  if (!isAdminUI && !isInternal && doc.useful_links && Array.isArray(doc.useful_links) && doc.useful_links.length > 0) {
-    const links: { href: string; label: string }[] = []
-
-    for (const item of doc.useful_links) {
-      try {
-        const linkType = item.linkType
-        const label = item.label || ''
-        let href = '#'
-
-        if (linkType === 'article' && item.article) {
-          href = typeof item.article === 'object' && item.article !== null && 'href' in item.article
-            ? (item.article as any).href || '#'
-            : '#'
-        } else if (linkType === 'section' && item.section) {
-          href = typeof item.section === 'object' && item.section !== null && 'href' in item.section
-            ? (item.section as any).href || '#'
-            : '#'
-        } else if (linkType === 'subsection' && item.subsection) {
-          href = typeof item.subsection === 'object' && item.subsection !== null && 'href' in item.subsection
-            ? (item.subsection as any).href || '#'
-            : '#'
-        }
-
-        links.push({ href, label })
-      } catch (error) {
-        console.error('❌ Ошибка загрузки useful_link:', error)
-      }
-    }
-
-    // 🔥 ПЕРЕЗАПИСЫВАЕМ useful_links (только href + label для API)
-    doc.useful_links = links
-  }
-
-  return doc
-}
-
-// ============================================
-// 📦 КОЛЛЕКЦИЯ
-// ============================================
 
 export const Articles: CollectionConfig = {
   slug: 'Articles',
+  
   access: {
     read: () => true,
+    create: ({ req: { user } }) => !!user,
+    update: ({ req: { user } }) => !!user,
+    delete: ({ req: { user } }) => !!user,
   },
+
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'subsection', 'section', 'category', 'status'],
-    description: 'Статьи для сайта — управляйте контентом здесь',
+    defaultColumns: ['title', 'subsection', 'category', 'status'],
+    description: 'Manage articles for the website',
   },
+
   versions: {
     maxPerDoc: 50,
   },
-  labels: { singular: 'Статья', plural: 'Статьи' },
+
+  labels: {
+    singular: 'Article',
+    plural: 'Articles',
+  },
 
   hooks: {
-    beforeChange: [generateArticleHref, autoFillFromSubsection],
+    beforeChange: [autoFillFromSubsection, generateHrefBeforeSave],
     beforeValidate: [autoFillFromSubsection],
-    afterRead: [enrichWithHref], // 🔥 Один хук делает всё
+    afterRead: [simplifyRelationships],
   },
 
   fields: [
-    // === 🟢 СТАТУС ===
+    // === STATUS ===
     {
       name: 'status',
       type: 'select',
-      label: 'Статус публикации',
+      label: 'Publication Status',
       options: [
-        { label: '📝 Черновик', value: 'draft' },
-        { label: '✅ Опубликовано', value: 'published' },
+        { label: '📝 Draft', value: 'draft' },
+        { label: '✅ Published', value: 'published' },
       ],
       defaultValue: 'draft',
       required: true,
       admin: { position: 'sidebar' },
+      index: true, // ✅ Add index for performance
     },
 
-    // === 📌 ОСНОВНАЯ ИНФОРМАЦИЯ ===
+    // === BASIC INFO ===
     {
       name: 'title',
       type: 'text',
-      label: 'Заголовок статьи',
+      label: 'Article Title',
       required: true,
+      minLength: 3,
+      maxLength: 200,
       admin: { position: 'sidebar' },
     },
     {
       name: 'slug',
       type: 'text',
-      label: 'URL-адрес (slug)',
+      label: 'URL Slug',
       required: true,
       unique: true,
-      admin: { position: 'sidebar' },
+      minLength: 2,
+      maxLength: 200,
+      admin: {
+        position: 'sidebar',
+        description: 'Unique identifier for URL',
+      },
+      index: true, // ✅ Index for lookups
     },
 
-    // === 📂 ПОДБОРКА ===
+    // === RELATIONSHIPS ===
     {
       name: 'subsection',
       type: 'relationship',
       relationTo: 'subsections',
-      label: '📂 Подборка (подраздел)',
+      label: '📂 Subsection',
       required: true,
       admin: {
         position: 'sidebar',
-        description: 'Выберите подборку. Раздел и категория подтянутся автоматически.',
+        description: 'Section and category will be filled automatically',
       },
+      index: true, // ✅ Index for filtering
     },
     {
       name: 'section',
       type: 'text',
-      label: '📁 Раздел сайта (авто)',
+      label: '📁 Section (auto)',
       admin: {
         position: 'sidebar',
         readOnly: true,
-        description: 'Заполняется автоматически из выбранной подборки.',
+        description: 'Filled automatically from subsection',
       },
+      index: true, // ✅ Index for filtering
     },
     {
       name: 'category',
       type: 'text',
-      label: '🏷️ Категория (авто)',
+      label: '🏷️ Category (auto)',
       admin: {
         position: 'sidebar',
         readOnly: true,
-        description: 'Берётся из поля category в subsections.',
+        description: 'Filled from subsection.category',
       },
+      index: true, // ✅ Index for filtering
     },
     {
       name: 'href',
       type: 'text',
-      label: '🔗 Ссылка на статью (авто)',
+      label: '🔗 URL (auto)',
       admin: {
         position: 'sidebar',
         readOnly: true,
-        description: 'Генерируется автоматически из section, subsection и slug.',
+        description: 'Generated automatically',
       },
     },
+
+    // === CONTENT ===
     {
       name: 'description',
       type: 'textarea',
-      label: 'Короткое описание',
+      label: 'Short Description',
       required: true,
+      minLength: 10,
+      maxLength: 500,
       admin: {
         rows: 3,
-        description: 'Краткий анонс статьи для карточек и превью.',
+        description: 'Brief summary for cards and previews',
       },
     },
     {
       name: 'intro',
       type: 'textarea',
-      label: 'Вступление',
+      label: 'Introduction',
       required: true,
+      minLength: 20,
+      maxLength: 2000,
       admin: {
         rows: 5,
-        description: 'Первый текстовый блок статьи, который задаёт контекст.',
+        description: 'First text block that sets context',
       },
     },
     {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
-      label: 'Обложка статьи',
+      label: 'Cover Image',
       required: true,
       admin: {
-        description: 'Главное изображение статьи для карточек, превью и SEO.',
+        description: 'Main image for cards, previews and SEO',
       },
     },
     {
       name: 'readTime',
       type: 'text',
-      label: 'Время чтения',
+      label: 'Read Time',
       required: true,
       admin: {
-        description: 'Например: 5 , 8, 12 .',
+        description: 'Example: 5, 8, 12',
       },
     },
     {
       name: 'author',
       type: 'text',
-      label: 'Автор',
+      label: 'Author',
       required: true,
       defaultValue: 'Phuquoc.Club',
-      admin: {
-        description: 'Имя автора статьи.',
-      },
+      maxLength: 100,
     },
+
+    // === KRATKO SECTION ===
     {
       name: 'kratko_items',
       type: 'array',
-      label: '📋 Блок "Кратко"',
+      label: '📋 Quick Facts',
       admin: {
-        description: 'Короткие факты и ключевые данные по статье.',
+        description: 'Key facts and data',
       },
       fields: [
         {
           name: 'icon',
           type: 'select',
           required: true,
-          admin: {
-            description: 'Выберите подходящую иконку для пункта.',
-          },
           options: [
-            { label: '💰 Деньги', value: 'DollarSign' },
-            { label: '📄 Документы', value: 'FileText' },
-            { label: '📍 Местоположение', value: 'MapPin' },
-            { label: '⚠️ Важно', value: 'ShieldAlert' },
-            { label: '⏰ Время', value: 'Clock' },
-            { label: '👤 Человек', value: 'User' },
+            { label: '💰 Money', value: 'DollarSign' },
+            { label: '📄 Documents', value: 'FileText' },
+            { label: '📍 Location', value: 'MapPin' },
+            { label: '⚠️ Important', value: 'ShieldAlert' },
+            { label: '⏰ Time', value: 'Clock' },
+            { label: '👤 Person', value: 'User' },
           ],
         },
-        { name: 'label', type: 'text', required: true, admin: { description: 'Название пункта.' } },
-        { name: 'value', type: 'text', required: true, admin: { description: 'Значение пункта.' } },
+        { name: 'label', type: 'text', required: true, maxLength: 100 },
+        { name: 'value', type: 'text', required: true, maxLength: 200 },
       ],
     },
+
+    // === CONTENT BLOCKS ===
     {
       name: 'content_blocks',
       type: 'array',
-      label: '📝 Содержание статьи',
+      label: '📝 Content Blocks',
       admin: {
-        description: 'Основные смысловые блоки статьи.',
+        description: 'Main content sections',
       },
       fields: [
-        { name: 'title', type: 'text', required: true, admin: { description: 'Заголовок блока.' } },
+        { name: 'title', type: 'text', required: true, maxLength: 200 },
         {
           name: 'description',
           type: 'richText',
-          label: '📄 Основной текст (до)',
+          label: 'Main Text',
           required: true,
-          admin: {
-            description:
-              'Текст блока. Доступно форматирование: жирный, ссылки, списки. Переносы строк и пробелы сохраняются.',
-          },
         },
         {
           name: 'contentType',
           type: 'select',
           defaultValue: 'none',
-          admin: {
-            description: 'Тип дополнительного контента внутри блока.',
-          },
           options: [
-            { label: '— Не добавлять —', value: 'none' },
-            { label: '📊 Таблица', value: 'table' },
-            { label: '⚠️ Предупреждение', value: 'warning' },
-            { label: '✅ Чек-лист', value: 'checklist' },
-            { label: '💡 Совет', value: 'tips' },
+            { label: '— None —', value: 'none' },
+            { label: '📊 Table', value: 'table' },
+            { label: '⚠️ Warning', value: 'warning' },
+            { label: '✅ Checklist', value: 'checklist' },
+            { label: '💡 Tip', value: 'tips' },
           ],
         },
-        // 🔥 ТАБЛИЦА (показывается только когда contentType === 'table')
+        // TABLE
         {
           name: 'table',
           type: 'group',
           admin: {
             condition: (_, sibling) => sibling.contentType === 'table',
-            description: 'Настройте заголовки и строки таблицы.',
           },
           fields: [
             {
               name: 'headers',
               type: 'group',
               fields: [
-                { name: 'header1', type: 'text', required: true, label: 'Заголовок 1' },
-                { name: 'header2', type: 'text', required: true, label: 'Заголовок 2' },
-                { name: 'header3', type: 'text', required: true, label: 'Заголовок 3' },
+                { name: 'header1', type: 'text', required: true },
+                { name: 'header2', type: 'text', required: true },
+                { name: 'header3', type: 'text', required: true },
               ],
             },
             {
               name: 'rows',
               type: 'array',
-              label: 'Строки таблицы',
               fields: [
-                { name: 'cell1', type: 'text', required: true, label: 'Ячейка 1' },
-                { name: 'cell2', type: 'text', required: true, label: 'Ячейка 2' },
-                { name: 'cell3', type: 'text', required: true, label: 'Ячейка 3' },
+                { name: 'cell1', type: 'text', required: true },
+                { name: 'cell2', type: 'text', required: true },
+                { name: 'cell3', type: 'text', required: true },
               ],
             },
           ],
         },
-        // 🔥 ПРЕДУПРЕЖДЕНИЕ (когда contentType === 'warning')
+        // WARNING
         {
           name: 'warning',
           type: 'textarea',
           admin: {
             condition: (_, sibling) => sibling.contentType === 'warning',
             rows: 4,
-            description: 'Текст важного предупреждения.',
           },
         },
-        // 🔥 ЧЕК-ЛИСТ (когда contentType === 'checklist')
+        // CHECKLIST
         {
           name: 'checklist',
           type: 'array',
-          label: 'Пункты чек-листа',
           admin: {
             condition: (_, sibling) => sibling.contentType === 'checklist',
-            description: 'Добавьте пункты чек-листа.',
           },
-          fields: [{ name: 'item', type: 'text', required: true, label: 'Текст пункта' }],
+          fields: [{ name: 'item', type: 'text', required: true }],
         },
-        // 🔥 СОВЕТ (когда contentType === 'tips')
+        // TIPS
         {
           name: 'tips',
           type: 'textarea',
           admin: {
             condition: (_, sibling) => sibling.contentType === 'tips',
             rows: 4,
-            description: 'Текст полезного совета.',
           },
         },
-        // 🔥 ПРОДОЛЖЕНИЕ ТЕКСТА (после контента)
+        // CONTINUATION TEXT
         {
           name: 'descriptionAfter',
           type: 'richText',
-          label: '📄 Продолжение текста (после)',
+          label: 'Text After',
           admin: {
-            description:
-              'Текст после таблицы/чек-листа/совета. Доступно форматирование: жирный, ссылки, списки.',
             condition: (_, sibling) => sibling.contentType !== 'none',
           },
         },
       ],
     },
+
+    // === USEFUL LINKS ===
     {
       name: 'useful_links',
       type: 'array',
-      label: '🔗 Полезные ссылки',
-      admin: {
-        description: 'Добавьте ссылки на статьи, разделы или подборки. Ссылка берётся автоматически из выбранного элемента.',
-      },
+      label: '🔗 Useful Links',
       fields: [
-        {
-          name: 'label',
-          type: 'text',
-          label: 'Название ссылки',
-          required: true,
-          admin: {
-            description: 'Текст который будет отображаться',
-          },
-        },
-        {
-          name: 'linkType',
-          type: 'select',
-          label: 'Тип ссылки',
-          required: true,
-          options: [
-            { label: '📄 Статья (Article)', value: 'article' },
-            { label: '📁 Раздел (Section)', value: 'section' },
-            { label: '📂 Подборка (Subsection)', value: 'subsection' },
-          ],
-          admin: {
-            description: 'Выберите тип элемента для ссылки',
-          },
-        },
-        {
-          name: 'article',
-          type: 'relationship',
-          relationTo: 'Articles',
-          label: 'Выберите статью',
-          admin: {
-            condition: (_, sibling) => sibling.linkType === 'article',
-            description: 'Выберите статью — ссылка возьмётся автоматически',
-          },
-        },
-        {
-          name: 'section',
-          type: 'relationship',
-          relationTo: 'sections',
-          label: 'Выберите раздел',
-          admin: {
-            condition: (_, sibling) => sibling.linkType === 'section',
-            description: 'Выберите раздел — ссылка возьмётся автоматически',
-          },
-        },
-        {
-          name: 'subsection',
-          type: 'relationship',
-          relationTo: 'subsections',
-          label: 'Выберите подборку',
-          admin: {
-            condition: (_, sibling) => sibling.linkType === 'subsection',
-            description: 'Выберите подборку — ссылка возьмётся автоматически',
-          },
-        },
+        { name: 'href', type: 'text', required: true },
+        { name: 'label', type: 'text', required: true, maxLength: 200 },
       ],
     },
+
+    // === RELATED ARTICLES ===
     {
       name: 'related_articles',
       type: 'relationship',
       relationTo: 'Articles',
-      label: '🔗 Похожие статьи',
+      label: '🔗 Related Articles',
       hasMany: true,
-      filterOptions: ({ id }) => {
-        if (!id) return true // 🔥 Для новых документов — без фильтра
-        return {
-          id: { not_in: [id] },
-        }
-      },
+      maxRows: 6,
       admin: {
-        description: 'Выберите статьи, которые нужно показать в блоке похожих. Текущая статья исключена из выбора.',
+        description: 'Select articles to show in related section',
       },
     },
+
+    // === SEO ===
     {
       name: 'seo',
       type: 'group',
-      label: '🔍 SEO и мета-теги',
-      admin: {
-        description: 'Параметры для поиска и отображения в выдаче.',
-      },
+      label: '🔍 SEO & Meta',
       fields: [
         {
           name: 'title',
           type: 'text',
-          label: 'SEO-заголовок',
+          label: 'SEO Title',
           required: true,
-          admin: { description: 'Заголовок для поисковиков и соцсетей.' },
+          maxLength: 70,
         },
         {
           name: 'description',
           type: 'textarea',
-          label: 'SEO-описание',
+          label: 'SEO Description',
           required: true,
-          admin: {
-            rows: 3,
-            description: 'Краткое описание страницы для поиска.',
-          },
+          maxLength: 160,
+          admin: { rows: 3 },
         },
         {
           name: 'keywords',
           type: 'array',
           required: true,
           minRows: 1,
-          admin: {
-            description: 'Ключевые слова через отдельные элементы списка.',
-          },
-          fields: [{ name: 'keyword', type: 'text', required: true }],
+          maxRows: 10,
+          fields: [{ name: 'keyword', type: 'text', required: true, maxLength: 50 }],
         },
         {
           name: 'noIndex',
           type: 'checkbox',
           admin: {
-            description: 'Включи, если страницу не нужно индексировать.',
+            description: 'Check to prevent search engines from indexing',
           },
         },
       ],

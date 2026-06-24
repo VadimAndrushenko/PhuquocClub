@@ -1,26 +1,39 @@
-// collections/Sections.ts
 import type { CollectionConfig } from 'payload'
 
+/**
+ * ============================================
+ * 📦 COLLECTION: Sections
+ * ============================================
+ * Clean and optimized
+ */
+
 export const Sections: CollectionConfig = {
-  slug: 'sections', // ← ВАЖНО: именно 'sections'
+  slug: 'sections',
+
   access: {
     read: () => true,
+    create: ({ req: { user } }) => !!user,
+    update: ({ req: { user } }) => !!user,
+    delete: ({ req: { user } }) => !!user,
   },
+
   labels: {
-    singular: 'Раздел',
-    plural: 'Разделы',
+    singular: 'Section',
+    plural: 'Sections',
   },
+
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'status'],
   },
+
   versions: {
     maxPerDoc: 50,
   },
+
   hooks: {
     beforeChange: [
       ({ data }) => {
-        // 🔥 Автоматически устанавливаем href на основе slug
         if (data?.slug) {
           data.href = `/${data.slug}`
         }
@@ -28,88 +41,117 @@ export const Sections: CollectionConfig = {
       },
     ],
   },
+
   fields: [
     {
       name: 'status',
       required: true,
       type: 'select',
-      label: 'Статус публикации',
+      label: 'Publication Status',
       options: [
-        { label: '📝 Черновик', value: 'draft' },
-        { label: '✅ Опубликовано', value: 'published' },
+        { label: '📝 Draft', value: 'draft' },
+        { label: '✅ Published', value: 'published' },
       ],
       defaultValue: 'draft',
       admin: { position: 'sidebar' },
+      index: true,
     },
     {
       name: 'title',
       type: 'text',
-      label: 'Название раздела',
+      label: 'Section Title',
       required: true,
-      admin: {
-        position: 'sidebar',
-      },
+      minLength: 3,
+      maxLength: 200,
+      admin: { position: 'sidebar' },
     },
     {
       name: 'slug',
       type: 'text',
-      label: 'URL-идентификатор',
+      label: 'URL Slug',
       required: true,
       unique: true,
+      minLength: 2,
+      maxLength: 200,
       admin: {
         position: 'sidebar',
-        description: 'Например: on-island, before-trip. Только латиница и дефисы.',
+        description: 'Example: on-island, before-trip',
       },
+      index: true,
     },
     {
       name: 'href',
       type: 'text',
-      label: 'URL (авто)',
+      label: 'URL (auto)',
       admin: {
         readOnly: true,
-        description: 'Генерируется автоматически из slug',
         position: 'sidebar',
       },
     },
     {
       name: 'description',
       type: 'textarea',
-      label: 'Описание раздела',
+      label: 'Description',
+      maxLength: 500,
+      admin: { rows: 3 },
+    },
+    {
+      name: 'image',
+      type: 'upload',
+      relationTo: 'media',
+      required: true,
+      label: 'Cover Image',
+    },
+    {
+      name: 'bestSelection',
+      type: 'relationship',
+      relationTo: 'bestSelections',
+      label: '⭐ Best Articles Collection',
+      hasMany: false,
+    },
+    {
+      name: 'continueSelection',
+      type: 'relationship',
+      relationTo: 'continueSelections',
+      label: '📖 Continue Reading Collection',
+      hasMany: false,
     },
     {
       name: 'search',
       type: 'group',
-      label: '🔍 Настройки поиска',
+      label: '🔍 Search Settings',
       fields: [
         {
           name: 'placeholder',
           type: 'text',
           label: 'Placeholder',
+          maxLength: 200,
         },
         {
           name: 'tags',
           type: 'array',
-          label: 'Теги',
+          label: 'Tags',
           fields: [
             {
               name: 'title',
               type: 'text',
-              label: 'Название тега',
+              label: 'Tag Name',
               required: true,
+              maxLength: 50,
             },
             {
               name: 'icon',
               type: 'select',
-              label: 'Иконка',
+              label: 'Icon',
               required: true,
               options: [
-                { label: '🍴 Где поесть', value: 'utensilsCrossed' },
-                { label: '🗺️ Что посмотреть', value: 'map' },
-                { label: '🏖️ Пляжи', value: 'waves' },
-                { label: '🚌 Транспорт', value: 'bus' },
-                { label: '💰 Цены', value: 'dollarSign' },
-                { label: '📄 Виза', value: 'fileText' },
-                { label: '🛟 Помощь', value: 'lifeBuoy' },
+                { label: '🍴 Food', value: 'utensilsCrossed' },
+                { label: '🗺️ Attractions', value: 'map' },
+                { label: '🏖️ Beaches', value: 'waves' },
+                { label: '🚌 Transport', value: 'bus' },
+                { label: '💰 Prices', value: 'dollarSign' },
+                { label: '📄 Visa', value: 'fileText' },
+                { label: '🛟 Help', value: 'lifeBuoy' },
               ],
             },
           ],
@@ -117,57 +159,24 @@ export const Sections: CollectionConfig = {
       ],
     },
     {
-      name: 'image',
-      type: 'upload',
-      relationTo: 'media',
-      required: true,
-      label: 'Обложка раздела',
-    },
-
-    // === 🔥 ВЫБОР ПОДБОРКИ ИЗ BestSelections ===
-    {
-      name: 'bestSelection',
-      type: 'relationship',
-      relationTo: 'bestSelections',
-      label: '⭐ Подборка лучших статей',
-      hasMany: false,
-      admin: {
-        description: 'Выберите подборку — лучшие статьи отобразятся на странице раздела',
-      },
-    },
-
-    // === 🔗 ПРОДОЛЖИТЬ ЧИТАТЬ (как в subsections) ===
-    {
-      name: 'continueSelection',
-      type: 'relationship',
-      relationTo: 'continueSelections',
-      label: '📖 Подборка "Продолжить чтение"',
-      hasMany: false,
-      admin: {
-        description: 'Выберите подборку — статьи отобразятся в блоке "Продолжить чтение"',
-      },
-    },
-
-    // === 🔍 НАСТРОЙКИ ПОИСКА ===
-
-    // === 🔍 SEO И МЕТА-ТЕГИ ===
-    {
       name: 'seo',
       type: 'group',
-      label: '🔍 SEO и мета-теги',
+      label: '🔍 SEO & Meta',
       fields: [
-        { name: 'title', type: 'text', label: 'SEO-заголовок', required: true },
+        { name: 'title', type: 'text', label: 'SEO Title', required: true, maxLength: 70 },
         {
           name: 'description',
           type: 'textarea',
-          label: 'SEO-описание',
+          label: 'SEO Description',
           admin: { rows: 3 },
           required: true,
+          maxLength: 160,
         },
         {
           name: 'keywords',
           type: 'array',
-          fields: [{ name: 'keyword', type: 'text' }],
+          maxRows: 10,
+          fields: [{ name: 'keyword', type: 'text', maxLength: 50 }],
         },
       ],
     },

@@ -1,29 +1,34 @@
 import type { GlobalConfig } from 'payload'
 
-// ============================================
-// 🌐 ГЛОБАЛ: Страница "Подборки"
-// ============================================
-// Аналог Sections, но это отдельная страница со ВСЕМИ подборками.
-// Здесь только настройки оформления страницы (Hero, поиск, SEO).
-// Список подборок подтягивается автоматически из коллекции subsections.
+/**
+ * ============================================
+ * 🌐 GLOBAL: Collections Page
+ * ============================================
+ * Settings for the collections overview page
+ * Subsections list is fetched dynamically
+ */
 
 export const CollectionsPage: GlobalConfig = {
   slug: 'collectionsPage',
-  label: 'Страница «Подборки»',
+  label: '📚 Collections Page',
+
   access: {
     read: () => true,
+    update: ({ req: { user } }) => !!user,
   },
+
   versions: {
     max: 10,
   },
+
   fields: [
     {
       name: 'status',
       type: 'select',
-      label: 'Статус публикации',
+      label: 'Publication Status',
       options: [
-        { label: '📝 Черновик', value: 'draft' },
-        { label: '✅ Опубликовано', value: 'published' },
+        { label: '📝 Draft', value: 'draft' },
+        { label: '✅ Published', value: 'published' },
       ],
       defaultValue: 'draft',
       required: true,
@@ -32,57 +37,62 @@ export const CollectionsPage: GlobalConfig = {
     {
       name: 'title',
       type: 'text',
-      label: 'Заголовок страницы',
+      label: 'Page Title',
       required: true,
+      maxLength: 100,
       defaultValue: 'Все подборки',
     },
     {
       name: 'description',
       type: 'textarea',
-      label: 'Описание страницы',
+      label: 'Page Description',
+      maxLength: 500,
       admin: { rows: 3 },
     },
     {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
-      label: 'Обложка страницы',
+      label: 'Cover Image',
       required: true,
     },
     {
       name: 'search',
       type: 'group',
-      label: '🔍 Настройки поиска',
+      label: '🔍 Search Settings',
       fields: [
         {
           name: 'placeholder',
           type: 'text',
           label: 'Placeholder',
+          maxLength: 200,
         },
         {
           name: 'tags',
           type: 'array',
-          label: 'Теги',
+          label: 'Tags',
+          maxRows: 10,
           fields: [
             {
               name: 'title',
               type: 'text',
-              label: 'Название тега',
+              label: 'Tag Name',
               required: true,
+              maxLength: 50,
             },
             {
               name: 'icon',
               type: 'select',
-              label: 'Иконка',
+              label: 'Icon',
               required: true,
               options: [
-                { label: '🍴 Где поесть', value: 'utensilsCrossed' },
-                { label: '🗺️ Что посмотреть', value: 'map' },
-                { label: '🏖️ Пляжи', value: 'waves' },
-                { label: '🚌 Транспорт', value: 'bus' },
-                { label: '💰 Цены', value: 'dollarSign' },
-                { label: '📄 Виза', value: 'fileText' },
-                { label: '🛟 Помощь', value: 'lifeBuoy' },
+                { label: '🍴 Food', value: 'utensilsCrossed' },
+                { label: '🗺️ Attractions', value: 'map' },
+                { label: '🏖️ Beaches', value: 'waves' },
+                { label: '🚌 Transport', value: 'bus' },
+                { label: '💰 Prices', value: 'dollarSign' },
+                { label: '📄 Visa', value: 'fileText' },
+                { label: '🛟 Help', value: 'lifeBuoy' },
               ],
             },
           ],
@@ -93,39 +103,41 @@ export const CollectionsPage: GlobalConfig = {
       name: 'bestSelection',
       type: 'relationship',
       relationTo: 'bestSelections',
-      label: '⭐ Подборка лучших статей',
+      label: '⭐ Best Articles Collection',
       hasMany: false,
       admin: {
-        description: 'Опционально — лучшие статьи отобразятся вверху страницы.',
+        description: 'Optional: display best articles at the top',
       },
     },
     {
       name: 'continueSelection',
       type: 'relationship',
       relationTo: 'continueSelections',
-      label: '📖 Подборка «Продолжить чтение»',
+      label: '📖 Continue Reading Collection',
       hasMany: false,
       admin: {
-        description: 'Опционально — статьи отобразятся в блоке «Продолжить чтение».',
+        description: 'Optional: display in continue reading section',
       },
     },
     {
       name: 'seo',
       type: 'group',
-      label: '🔍 SEO и мета-теги',
+      label: '🔍 SEO & Meta',
       fields: [
-        { name: 'title', type: 'text', label: 'SEO-заголовок', required: true },
+        { name: 'title', type: 'text', label: 'SEO Title', required: true, maxLength: 70 },
         {
           name: 'description',
           type: 'textarea',
-          label: 'SEO-описание',
+          label: 'SEO Description',
           admin: { rows: 3 },
           required: true,
+          maxLength: 160,
         },
         {
           name: 'keywords',
           type: 'array',
-          fields: [{ name: 'keyword', type: 'text' }],
+          maxRows: 10,
+          fields: [{ name: 'keyword', type: 'text', maxLength: 50 }],
         },
       ],
     },

@@ -142,6 +142,7 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
+  [x: string]: string;
   id: number;
   updatedAt: string;
   createdAt: string;
@@ -956,39 +957,105 @@ export interface HomePage {
     };
   };
   /**
-   * Выберите 3 статьи для блока "Популярные". Извлекутся: title, description, image, category, readTime.
+   * Добавьте до 3 элементов. Ссылка берётся автоматически из выбранного элемента.
    */
-  popularArticles?: (number | Article)[] | null;
+  popularArticles?:
+    | {
+        /**
+         * Выберите тип элемента для ссылки
+         */
+        linkType: 'article' | 'section' | 'subsection';
+        /**
+         * Выберите статью — ссылка возьмётся автоматически
+         */
+        article?: (number | null) | Article;
+        /**
+         * Выберите раздел — ссылка возьмётся автоматически
+         */
+        section?: (number | null) | Section;
+        /**
+         * Выберите подборку — ссылка возьмётся автоматически
+         */
+        subsection?: (number | null) | Subsection;
+        id?: string | null;
+      }[]
+    | null;
   planningBlock?: {
     /**
-     * Выберите 4 статьи для блока "Планирование".
+     * Добавьте до 4 элементов. Ссылка берётся автоматически из выбранного элемента.
      */
-    articles?: (number | Article)[] | null;
-    /**
-     * Добавьте иконки для каждой статьи (в том же порядке).
-     */
-    icons?:
+    items?:
       | {
+          /**
+           * Выберите иконку для элемента
+           */
           icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils';
+          /**
+           * Выберите тип элемента для ссылки
+           */
+          linkType: 'article' | 'section' | 'subsection';
+          /**
+           * Выберите статью — ссылка возьмётся автоматически
+           */
+          article?: (number | null) | Article;
+          /**
+           * Выберите раздел — ссылка возьмётся автоматически
+           */
+          section?: (number | null) | Section;
+          /**
+           * Выберите подборку — ссылка возьмётся автоматически
+           */
+          subsection?: (number | null) | Subsection;
           id?: string | null;
         }[]
       | null;
   };
   /**
-   * Выберите подборки для блока "Подборки". Извлекутся: title, description, image, category.
+   * Добавьте до 4 элементов. Ссылка берётся автоматически из выбранного элемента.
    */
-  collections?: (number | Subsection)[] | null;
+  collections?:
+    | {
+        /**
+         * Выберите тип элемента для ссылки
+         */
+        linkType: 'section' | 'subsection';
+        /**
+         * Выберите раздел — ссылка возьмётся автоматически
+         */
+        section?: (number | null) | Section;
+        /**
+         * Выберите подборку — ссылка возьмётся автоматически
+         */
+        subsection?: (number | null) | Subsection;
+        id?: string | null;
+      }[]
+    | null;
   urgentBlock?: {
     /**
-     * Выберите 4 статьи для блока "Срочное".
+     * Добавьте до 4 элементов. Ссылка берётся автоматически из выбранного элемента.
      */
-    articles?: (number | Article)[] | null;
-    /**
-     * Добавьте иконки для каждой статьи (в том же порядке).
-     */
-    icons?:
+    items?:
       | {
+          /**
+           * Выберите иконку для элемента
+           */
           icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils';
+          /**
+           * Выберите тип элемента для ссылки
+           */
+          linkType: 'article' | 'section' | 'subsection';
+          /**
+           * Выберите статью — ссылка возьмётся автоматически
+           */
+          article?: (number | null) | Article;
+          /**
+           * Выберите раздел — ссылка возьмётся автоматически
+           */
+          section?: (number | null) | Section;
+          /**
+           * Выберите подборку — ссылка возьмётся автоматически
+           */
+          subsection?: (number | null) | Subsection;
           id?: string | null;
         }[]
       | null;
@@ -1365,27 +1432,48 @@ export interface HomePageSelect<T extends boolean = true> {
                   };
             };
       };
-  popularArticles?: T;
+  popularArticles?:
+    | T
+    | {
+        linkType?: T;
+        article?: T;
+        section?: T;
+        subsection?: T;
+        id?: T;
+      };
   planningBlock?:
     | T
     | {
-        articles?: T;
-        icons?:
+        items?:
           | T
           | {
               icon?: T;
+              linkType?: T;
+              article?: T;
+              section?: T;
+              subsection?: T;
               id?: T;
             };
       };
-  collections?: T;
+  collections?:
+    | T
+    | {
+        linkType?: T;
+        section?: T;
+        subsection?: T;
+        id?: T;
+      };
   urgentBlock?:
     | T
     | {
-        articles?: T;
-        icons?:
+        items?:
           | T
           | {
               icon?: T;
+              linkType?: T;
+              article?: T;
+              section?: T;
+              subsection?: T;
               id?: T;
             };
       };

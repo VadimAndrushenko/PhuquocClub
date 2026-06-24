@@ -1,181 +1,60 @@
 import type { GlobalConfig } from 'payload'
+import { createLinkField } from '../utils/fields'
 
-// ============================================
-// 🪝 ХУК: извлечь href из ссылок футера
-// ============================================
-async function enrichFooter({ doc, req }: any): Promise<any> {
-  if (!doc) return doc
-
-  // 🔥 Проверка: если это админка — не извлекаем данные
-  const referer = req.headers?.get?.('referer') || req.headers?.['referer']
-  const isAdminUI = typeof referer === 'string' && referer.includes('/admin')
-  const isInternal = req.context?.skipEnrich === true
-
-  if (isAdminUI || isInternal) {
-    return doc
-  }
-
-  // 🔥 Извлекаем секции футера — только href
-  const sections = ['sectionPlanning', 'sectionOnIsland', 'sectionPractice', 'sectionRoutes']
-
-  for (const sectionName of sections) {
-    const sectionData = doc[sectionName]
-    if (!sectionData) continue
-
-    const items: any[] = []
-
-    for (let i = 1; i <= 6; i++) {
-      const itemKey = `item${i}` as keyof typeof sectionData
-      const item = sectionData[itemKey]
-      if (!item || !item.label) continue
-
-      let href = '#'
-
-      // 🔥 ЗАГРУЖАЕМ ТОЛЬКО href ЧЕРЕЗ payload.findByID
-      if (item.linkType === 'section' && item.section) {
-        const sectionId = typeof item.section === 'object' ? item.section.id : item.section
-        const section = await req.payload.findByID({
-          collection: 'sections',
-          id: sectionId,
-          depth: 0,
-          select: { href: true },
-        })
-        href = section?.href || '#'
-      } else if (item.linkType === 'subsection' && item.subsection) {
-        const subsectionId = typeof item.subsection === 'object' ? item.subsection.id : item.subsection
-        const subsection = await req.payload.findByID({
-          collection: 'subsections',
-          id: subsectionId,
-          depth: 0,
-          select: { href: true },
-        })
-        href = subsection?.href || '#'
-      } else if (item.linkType === 'article' && item.article) {
-        const articleId = typeof item.article === 'object' ? item.article.id : item.article
-        const article = await req.payload.findByID({
-          collection: 'Articles',
-          id: articleId,
-          depth: 0,
-          select: { href: true },
-        })
-        href = article?.href || '#'
-      } else if (item.linkType === 'external' && item.externalUrl) {
-        href = item.externalUrl
-      }
-
-      items.push({ label: item.label, href })
-    }
-
-    // 🔥 ПЕРЕЗАПИСЫВАЕМ секцию с упрощёнными items
-    doc[sectionName] = {
-      title: sectionData.title || 'Раздел',
-      items,
-    }
-  }
-
-  // 🔥 Извлекаем доп. ссылки — только href
-  const additionalLinks = doc.additionalLinks
-  if (additionalLinks) {
-    const links: any[] = []
-    for (let i = 1; i <= 4; i++) {
-      const linkKey = `link${i}` as keyof typeof additionalLinks
-      const link = additionalLinks[linkKey]
-      if (!link || !link.title) continue
-
-      let href = '#'
-
-      // 🔥 ЗАГРУЖАЕМ ТОЛЬКО href ЧЕРЕЗ payload.findByID
-      if (link.linkType === 'section' && link.section) {
-        const sectionId = typeof link.section === 'object' ? link.section.id : link.section
-        const section = await req.payload.findByID({
-          collection: 'sections',
-          id: sectionId,
-          depth: 0,
-          select: { href: true },
-        })
-        href = section?.href || '#'
-      } else if (link.linkType === 'subsection' && link.subsection) {
-        const subsectionId = typeof link.subsection === 'object' ? link.subsection.id : link.subsection
-        const subsection = await req.payload.findByID({
-          collection: 'subsections',
-          id: subsectionId,
-          depth: 0,
-          select: { href: true },
-        })
-        href = subsection?.href || '#'
-      } else if (link.linkType === 'article' && link.article) {
-        const articleId = typeof link.article === 'object' ? link.article.id : link.article
-        const article = await req.payload.findByID({
-          collection: 'Articles',
-          id: articleId,
-          depth: 0,
-          select: { href: true },
-        })
-        href = article?.href || '#'
-      } else if (link.linkType === 'external' && link.externalUrl) {
-        href = link.externalUrl
-      }
-
-      links.push({ title: link.title, href })
-    }
-    doc.additionalLinks = links
-  }
-
-  return doc
-}
-
-// ============================================
-// 📦 GLOBAL: Footer
-// ============================================
+/**
+ * ============================================
+ * 📦 GLOBAL: Footer
+ * ============================================
+ * Site-wide footer configuration
+ * Optimized: Using reusable field utilities
+ */
 
 export const Footer: GlobalConfig = {
   slug: 'footer',
-  label: '🦶 Footer (Подвал)',
+  label: '🦶 Footer',
+
   access: {
     read: () => true,
+    update: ({ req: { user } }) => !!user,
   },
+
   versions: {
     max: 10,
   },
-  hooks: {
-    afterRead: [enrichFooter],
-  },
+
   fields: [
     {
       name: 'status',
       type: 'select',
-      label: 'Статус',
+      label: 'Status',
       options: [
-        { label: '📝 Черновик', value: 'draft' },
-        { label: '✅ Опубликовано', value: 'published' },
+        { label: '📝 Draft', value: 'draft' },
+        { label: '✅ Published', value: 'published' },
       ],
       defaultValue: 'published',
       required: true,
       admin: { position: 'sidebar' },
     },
 
-    // ============================================
-    // 📝 ОПИСАНИЕ
-    // ============================================
+    // === DESCRIPTION ===
     {
       name: 'description',
       type: 'textarea',
-      label: 'Описание сайта',
+      label: 'Site Description',
+      maxLength: 500,
       admin: {
         rows: 4,
-        description: 'Текст описания в левом блоке футера',
+        description: 'Description text in footer',
       },
       defaultValue:
         'Практичный гид по жизни и отдыху на острове Фукуок.\nАктуальная информация, проверенные места и полезные\nсоветы для туристов и экспатов.',
     },
 
-    // ============================================
-    // 🌐 СОЦСЕТИ
-    // ============================================
+    // === SOCIAL LINKS ===
     {
       name: 'socialLinks',
       type: 'group',
-      label: '🌐 Соцсети',
+      label: '🌐 Social Media',
       fields: [
         {
           name: 'telegram',
@@ -198,656 +77,151 @@ export const Footer: GlobalConfig = {
       ],
     },
 
-    // ============================================
-    // 📑 СЕКЦИЯ 1: ПЛАНИРОВАНИЕ
-    // ============================================
+    // === FOOTER SECTIONS ===
     {
-      name: 'sectionPlanning',
-      type: 'group',
-      label: '📑 Секция: Планирование',
+      name: 'sections',
+      type: 'array',
+      label: '📑 Footer Sections',
+      maxRows: 6,
+      admin: {
+        description: 'Create footer sections with links',
+      },
       fields: [
         {
-          name: 'title',
+          name: 'sectionTitle',
           type: 'text',
-          label: 'Название секции',
-          defaultValue: 'Планирование',
+          label: 'Section Title',
+          required: true,
+          maxLength: 50,
         },
         {
-          name: 'item1',
-          type: 'group',
-          label: 'Ссылка 1',
+          name: 'links',
+          type: 'array',
+          label: 'Links',
+          maxRows: 10,
           fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Когда ехать' },
+            {
+              name: 'label',
+              type: 'text',
+              label: 'Link Text',
+              required: true,
+              maxLength: 100,
+            },
             {
               name: 'linkType',
               type: 'select',
-              label: 'Тип ссылки',
+              label: 'Link Type',
+              required: true,
               options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
+                { label: '📁 Section', value: 'section' },
+                { label: '📂 Subsection', value: 'subsection' },
+                { label: '📄 Article', value: 'article' },
+                { label: '🔗 External', value: 'external' },
               ],
             },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item2',
-          type: 'group',
-          label: 'Ссылка 2',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Виза' },
             {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
+              name: 'section',
+              type: 'relationship',
+              relationTo: 'sections',
+              label: 'Section',
+              admin: {
+                condition: (_, sibling) => sibling?.linkType === 'section',
+              },
             },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item3',
-          type: 'group',
-          label: 'Ссылка 3',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Бюджет' },
             {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
+              name: 'subsection',
+              type: 'relationship',
+              relationTo: 'subsections',
+              label: 'Subsection',
+              admin: {
+                condition: (_, sibling) => sibling?.linkType === 'subsection',
+              },
             },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item4',
-          type: 'group',
-          label: 'Ссылка 4',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Как добраться' },
             {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
+              name: 'article',
+              type: 'relationship',
+              relationTo: 'Articles',
+              label: 'Article',
+              admin: {
+                condition: (_, sibling) => sibling?.linkType === 'article',
+              },
             },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item5',
-          type: 'group',
-          label: 'Ссылка 5',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Страховка' },
             {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
+              name: 'externalUrl',
+              type: 'text',
+              label: 'External URL',
+              admin: {
+                condition: (_, sibling) => sibling?.linkType === 'external',
+              },
             },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
           ],
         },
       ],
     },
 
-    // ============================================
-    // 📑 СЕКЦИЯ 2: НА ОСТРОВЕ
-    // ============================================
+    // === ADDITIONAL LINKS (Bottom) ===
     {
-      name: 'sectionOnIsland',
-      type: 'group',
-      label: '📑 Секция: На острове',
+      name: 'bottomLinks',
+      type: 'array',
+      label: '📄 Bottom Links',
+      maxRows: 5,
+      admin: {
+        description: 'Small links at the bottom (About, Privacy Policy, etc.)',
+      },
       fields: [
         {
           name: 'title',
           type: 'text',
-          label: 'Название секции',
-          defaultValue: 'На острове',
+          label: 'Link Text',
+          required: true,
+          maxLength: 100,
         },
         {
-          name: 'item1',
-          type: 'group',
-          label: 'Ссылка 1',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Жильё' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
+          name: 'linkType',
+          type: 'select',
+          label: 'Link Type',
+          required: true,
+          options: [
+            { label: '📁 Section', value: 'section' },
+            { label: '📂 Subsection', value: 'subsection' },
+            { label: '📄 Article', value: 'article' },
+            { label: '🔗 External', value: 'external' },
           ],
         },
         {
-          name: 'item2',
-          type: 'group',
-          label: 'Ссылка 2',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Еда' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
+          name: 'section',
+          type: 'relationship',
+          relationTo: 'sections',
+          label: 'Section',
+          admin: {
+            condition: (_, sibling) => sibling?.linkType === 'section',
+          },
         },
         {
-          name: 'item3',
-          type: 'group',
-          label: 'Ссылка 3',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Транспорт' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
+          name: 'subsection',
+          type: 'relationship',
+          relationTo: 'subsections',
+          label: 'Subsection',
+          admin: {
+            condition: (_, sibling) => sibling?.linkType === 'subsection',
+          },
         },
         {
-          name: 'item4',
-          type: 'group',
-          label: 'Ссылка 4',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Подборки' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
+          name: 'article',
+          type: 'relationship',
+          relationTo: 'Articles',
+          label: 'Article',
+          admin: {
+            condition: (_, sibling) => sibling?.linkType === 'article',
+          },
         },
         {
-          name: 'item5',
-          type: 'group',
-          label: 'Ссылка 5',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Пляжи' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item6',
-          type: 'group',
-          label: 'Ссылка 6',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Развлечения' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-      ],
-    },
-
-    // ============================================
-    // 📑 СЕКЦИЯ 3: ПРАКТИКА
-    // ============================================
-    {
-      name: 'sectionPractice',
-      type: 'group',
-      label: '📑 Секция: Практика',
-      fields: [
-        {
-          name: 'title',
+          name: 'externalUrl',
           type: 'text',
-          label: 'Название секции',
-          defaultValue: 'Практика',
-        },
-        {
-          name: 'item1',
-          type: 'group',
-          label: 'Ссылка 1',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Деньги' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item2',
-          type: 'group',
-          label: 'Ссылка 2',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Связь и интернет' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item3',
-          type: 'group',
-          label: 'Ссылка 3',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Аптеки и медицина' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item4',
-          type: 'group',
-          label: 'Ссылка 4',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Магазины' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item5',
-          type: 'group',
-          label: 'Ссылка 5',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Безопасность' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-      ],
-    },
-
-    // ============================================
-    // 📑 СЕКЦИЯ 4: МАРШРУТЫ
-    // ============================================
-    {
-      name: 'sectionRoutes',
-      type: 'group',
-      label: '📑 Секция: Маршруты',
-      fields: [
-        {
-          name: 'title',
-          type: 'text',
-          label: 'Название секции',
-          defaultValue: 'Маршруты',
-        },
-        {
-          name: 'item1',
-          type: 'group',
-          label: 'Ссылка 1',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Маршруты на 1 день' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item2',
-          type: 'group',
-          label: 'Ссылка 2',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Маршруты на 3 дня' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item3',
-          type: 'group',
-          label: 'Ссылка 3',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Маршруты на 7 дней' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item4',
-          type: 'group',
-          label: 'Ссылка 4',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Север острова' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'item5',
-          type: 'group',
-          label: 'Ссылка 5',
-          fields: [
-            { name: 'label', type: 'text', label: 'Название', defaultValue: 'Юг острова' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-      ],
-    },
-
-    // ============================================
-    // 📄 ДОП. ССЫЛКИ (4 штуки, статично)
-    // ============================================
-    {
-      name: 'additionalLinks',
-      type: 'group',
-      label: '📄 Дополнительные ссылки',
-      fields: [
-        {
-          name: 'link1',
-          type: 'group',
-          label: 'Ссылка 1',
-          fields: [
-            { name: 'title', type: 'text', label: 'Название', defaultValue: 'О проекте' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'link2',
-          type: 'group',
-          label: 'Ссылка 2',
-          fields: [
-            { name: 'title', type: 'text', label: 'Название', defaultValue: 'Реклама' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'link3',
-          type: 'group',
-          label: 'Ссылка 3',
-          fields: [
-            { name: 'title', type: 'text', label: 'Название', defaultValue: 'Контакты' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
-        },
-        {
-          name: 'link4',
-          type: 'group',
-          label: 'Ссылка 4',
-          fields: [
-            { name: 'title', type: 'text', label: 'Название', defaultValue: 'Политика конфиденциальности' },
-            {
-              name: 'linkType',
-              type: 'select',
-              label: 'Тип ссылки',
-              options: [
-                { label: '📁 Раздел', value: 'section' },
-                { label: '📂 Подборка', value: 'subsection' },
-                { label: '📄 Статья', value: 'article' },
-                { label: '🔗 Внешняя', value: 'external' },
-              ],
-            },
-            { name: 'section', type: 'relationship', relationTo: 'sections', label: 'Раздел', admin: { condition: (_, sib) => sib.linkType === 'section' } },
-            { name: 'subsection', type: 'relationship', relationTo: 'subsections', label: 'Подборка', admin: { condition: (_, sib) => sib.linkType === 'subsection' } },
-            { name: 'article', type: 'relationship', relationTo: 'Articles', label: 'Статья', admin: { condition: (_, sib) => sib.linkType === 'article' } },
-            { name: 'externalUrl', type: 'text', label: 'URL', admin: { condition: (_, sib) => sib.linkType === 'external' } },
-          ],
+          label: 'External URL',
+          admin: {
+            condition: (_, sibling) => sibling?.linkType === 'external',
+          },
         },
       ],
     },

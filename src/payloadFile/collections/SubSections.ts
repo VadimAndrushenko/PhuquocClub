@@ -1,157 +1,110 @@
 import type { CollectionConfig } from 'payload'
-import { AppMedia, type BestArticleMinimal } from '@/shared/types'
+import { simplifyRelationships } from '../utils/hooks'
 
-// ============================================
-// 🔧 ТИПЫ
-// ============================================
+/**
+ * ============================================
+ * 📦 COLLECTION: Subsections
+ * ============================================
+ * Optimized with simplified hooks
+ */
 
-interface BestSelectionDoc {
-  id?: string | number
-  title?: string
-  slug?: string
-  status?: 'draft' | 'published'
-  bestArticles?: BestArticleMinimal[]
-}
-
-interface ContinueSelectionDoc {
-  id?: string | number
-  title?: string
-  slug?: string
-  status?: 'draft' | 'published'
-}
-
-interface SubsectionDoc {
-  id?: string | number
-  title?: string
-  slug?: string
-  section?: string | { slug?: string; title?: string }
-  category?: string
-  description?: string
-  intro?: string
-  image?: AppMedia | null
-  href?: string
-  status?: 'draft' | 'published'
-  bestSelection?: string | number | BestSelectionDoc | null
-  continueSelection?: string | number | ContinueSelectionDoc | null
-  updatedAt?: string
-  createdAt?: string
-}
-
-// ============================================
-// 🔧 ХУКИ
-// ============================================
-
-async function enrichSubsection({ doc, req }: { doc: any; req: any }): Promise<any> {
-  if (!doc) return doc
-
-  if (req?.context?.skipEnrich) {
-    return doc
+const generateSubsectionHref = ({ data }: any) => {
+  if (data?.section && data?.slug) {
+    const sectionSlug = typeof data.section === 'object' ? data.section.slug : data.section
+    data.href = `/${sectionSlug}/${data.slug}`
   }
-
-  if (doc.section && typeof doc.section === 'object' && doc.section !== null) {
-    if ('slug' in doc.section) {
-      doc.section = doc.section.slug
-    } else if ('id' in doc.section) {
-      doc.section = doc.section.id
-    }
-  }
-
-  const sectionSlug = typeof doc.section === 'string' ? doc.section : ''
-  const subsectionSlug = typeof doc.slug === 'string' ? doc.slug : ''
-  doc.href =
-    sectionSlug && subsectionSlug ? `/${sectionSlug}/${subsectionSlug}` : `/${subsectionSlug}`
-
-  return doc
+  return data
 }
-
-// ============================================
-// 📦 КОЛЛЕКЦИЯ
-// ============================================
 
 export const SubSections: CollectionConfig = {
   slug: 'subsections',
+
   access: {
     read: () => true,
+    create: ({ req: { user } }) => !!user,
+    update: ({ req: { user } }) => !!user,
+    delete: ({ req: { user } }) => !!user,
   },
+
   labels: {
-    singular: 'Подборка (подраздел)',
-    plural: 'Подборки',
+    singular: 'Subsection',
+    plural: 'Subsections',
   },
+
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'section', 'category', 'status'],
   },
+
   versions: {
     maxPerDoc: 10,
   },
 
   hooks: {
-    beforeChange: [
-      ({ data }) => {
-        // 🔥 Автоматически устанавливаем href на основе section и slug
-        if (data?.section && data?.slug) {
-          const sectionSlug = typeof data.section === 'object' ? data.section.slug : data.section
-          data.href = `/${sectionSlug}/${data.slug}`
-        }
-        return data
-      },
-    ],
-    afterRead: [enrichSubsection],
+    beforeChange: [generateSubsectionHref],
+    afterRead: [simplifyRelationships],
   },
 
   fields: [
     {
       name: 'status',
       type: 'select',
-      label: 'Статус публикации',
+      label: 'Publication Status',
       options: [
-        { label: '📝 Черновик', value: 'draft' },
-        { label: '✅ Опубликовано', value: 'published' },
+        { label: '📝 Draft', value: 'draft' },
+        { label: '✅ Published', value: 'published' },
       ],
       defaultValue: 'draft',
       required: true,
       admin: { position: 'sidebar' },
+      index: true,
     },
     {
       name: 'title',
       type: 'text',
-      label: 'Название подборки',
+      label: 'Subsection Title',
       required: true,
+      minLength: 3,
+      maxLength: 200,
       admin: { position: 'sidebar' },
     },
     {
       name: 'slug',
       type: 'text',
-      label: 'URL-идентификатор',
+      label: 'URL Slug',
       required: true,
       unique: true,
+      minLength: 2,
+      maxLength: 200,
       admin: { position: 'sidebar' },
+      index: true,
     },
     {
       name: 'section',
       type: 'relationship',
       relationTo: 'sections',
-      label: '📁 Родительский раздел',
+      label: '📁 Parent Section',
       required: true,
       admin: {
         position: 'sidebar',
-        description: 'Выберите раздел вручную.',
       },
+      index: true,
     },
     {
       name: 'category',
       type: 'text',
-      label: '🏷️ Категория',
+      label: '🏷️ Category',
       required: true,
+      maxLength: 100,
       admin: {
         position: 'sidebar',
-        description: 'Введите категорию вручную.',
       },
+      index: true,
     },
     {
       name: 'href',
       type: 'text',
-      label: '🔗 Ссылка (авто)',
+      label: '🔗 URL (auto)',
       admin: {
         readOnly: true,
         position: 'sidebar',
@@ -160,78 +113,78 @@ export const SubSections: CollectionConfig = {
     {
       name: 'description',
       type: 'textarea',
-      label: 'Описание подборки',
+      label: 'Description',
       required: true,
+      minLength: 10,
+      maxLength: 500,
       admin: { rows: 3 },
     },
     {
       name: 'intro',
       type: 'textarea',
-      label: 'Вступление',
+      label: 'Introduction',
       required: true,
+      minLength: 20,
+      maxLength: 2000,
       admin: { rows: 5 },
     },
     {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
-      label: 'Обложка подборки',
+      label: 'Cover Image',
       required: true,
     },
     {
       name: 'bestSelection',
       type: 'relationship',
       relationTo: 'bestSelections',
-      label: '⭐ Подборка лучших статей',
+      label: '⭐ Best Articles Collection',
       hasMany: false,
-      admin: {
-        description: 'Выберите подборку — bestArticles заполнится автоматически',
-      },
     },
     {
       name: 'continueSelection',
       type: 'relationship',
       relationTo: 'continueSelections',
-      label: '📖 Подборка "Продолжить чтение"',
+      label: '📖 Continue Reading Collection',
       hasMany: false,
-      admin: {
-        description: 'Выберите подборку — continuePlanning заполнится автоматически',
-      },
     },
     {
       name: 'search',
       type: 'group',
-      label: '🔍 Настройки поиска',
+      label: '🔍 Search Settings',
       fields: [
         {
           name: 'placeholder',
           type: 'text',
           label: 'Placeholder',
+          maxLength: 200,
         },
         {
           name: 'tags',
           type: 'array',
-          label: 'Теги',
+          label: 'Tags',
           fields: [
             {
               name: 'title',
               type: 'text',
-              label: 'Название тега',
+              label: 'Tag Name',
               required: true,
+              maxLength: 50,
             },
             {
               name: 'icon',
               type: 'select',
-              label: 'Иконка',
+              label: 'Icon',
               required: true,
               options: [
-                { label: '🍴 Где поесть', value: 'utensilsCrossed' },
-                { label: '🗺️ Что посмотреть', value: 'map' },
-                { label: '🏖️ Пляжи', value: 'waves' },
-                { label: '🚌 Транспорт', value: 'bus' },
-                { label: '💰 Цены', value: 'dollarSign' },
-                { label: '📄 Виза', value: 'fileText' },
-                { label: '🛟 Помощь', value: 'lifeBuoy' },
+                { label: '🍴 Food', value: 'utensilsCrossed' },
+                { label: '🗺️ Attractions', value: 'map' },
+                { label: '🏖️ Beaches', value: 'waves' },
+                { label: '🚌 Transport', value: 'bus' },
+                { label: '💰 Prices', value: 'dollarSign' },
+                { label: '📄 Visa', value: 'fileText' },
+                { label: '🛟 Help', value: 'lifeBuoy' },
               ],
             },
           ],
@@ -241,20 +194,22 @@ export const SubSections: CollectionConfig = {
     {
       name: 'seo',
       type: 'group',
-      label: '🔍 SEO и мета-теги',
+      label: '🔍 SEO & Meta',
       fields: [
-        { name: 'title', type: 'text', label: 'SEO-заголовок', required: true },
+        { name: 'title', type: 'text', label: 'SEO Title', required: true, maxLength: 70 },
         {
           name: 'description',
           type: 'textarea',
-          label: 'SEO-описание',
+          label: 'SEO Description',
           admin: { rows: 3 },
           required: true,
+          maxLength: 160,
         },
         {
           name: 'keywords',
           type: 'array',
-          fields: [{ name: 'keyword', type: 'text' }],
+          maxRows: 10,
+          fields: [{ name: 'keyword', type: 'text', maxLength: 50 }],
         },
       ],
     },
