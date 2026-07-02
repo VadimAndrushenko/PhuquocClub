@@ -7,11 +7,14 @@ import { SubSectionPageProps } from '@/shared/types/pageType/subSection.type'
 import CollectionsBlock from '@/components/readyBlock/CollectionsBlock'
 import Hero from '@/components/readyBlock/Hero'
 
-import { getSubsectionBySlugs, getArticlesBySubsection, getAllSubsections } from '@/lib/payload/payload'
-import { transformSubsection } from '@/lib/subsectionTransform'
+import { getSubsectionBySlugs, getAllSubsections } from '@/lib/payload/subsections'
+import { getArticlesBySubsection } from '@/lib/payload/articles'
+import { transformSubsection } from '@/lib/transformData/subsectionTransform'
 import { buildBreadcrumbItems } from '@/lib/seo/breadcrumbs'
 import { BreadcrumbStructuredData, CollectionPageStructuredData } from '@/components/seo/StructuredData'
 import { getSectionTitle } from '@/lib/payload/getBreadcrumbsTitles'
+import { buildMetadata } from '@/lib/seo/metadata'
+import { siteUrl } from '@/lib/seo/config'
 
 // ============================================
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
@@ -53,43 +56,17 @@ export async function generateMetadata({ params }: SubSectionPageProps): Promise
     }
   }
 
-  const sub = subsection as {
-    title?: string
-    description?: string
-    seo?: { title?: string; description?: string; keywords?: Array<{ keyword: string }> }
-    image?: any
-  }
+  const img = typeof subsection.image === 'object' && subsection.image !== null
+    ? { url: subsection.image.url || '', alt: subsection.image.alt || '' }
+    : null
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const subsectionUrl = `${siteUrl}/${section}/${subSection}`
-  const imageUrl = typeof sub.image === 'object' && sub.image !== null 
-    ? 'url' in sub.image 
-      ? sub.image.url 
-      : '' 
-    : ''
-
-  return {
-    title: sub.seo?.title ?? sub.title,
-    description: sub.seo?.description ?? sub.description ?? '',
-    keywords: sub.seo?.keywords?.map((k) => k.keyword).filter(Boolean) as string[] || [],
-    alternates: {
-      canonical: subsectionUrl,
-    },
-    openGraph: {
-      title: sub.seo?.title ?? sub.title,
-      description: sub.seo?.description ?? sub.description ?? '',
-      type: 'website',
-      images: imageUrl ? [{ url: imageUrl, alt: sub.title || '' }] : [],
-      locale: 'ru_RU',
-      siteName: 'Фукуок.Гид',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: sub.seo?.title ?? sub.title,
-      description: sub.seo?.description ?? sub.description ?? '',
-      images: imageUrl ? [imageUrl] : [],
-    },
-  }
+  return buildMetadata({
+    title: subsection.seo?.title ?? subsection.title,
+    description: subsection.seo?.description ?? subsection.description ?? '',
+    keywords: subsection.seo?.keywords,
+    path: `/${section}/${subSection}`,
+    image: img,
+  })
 }
 
 // ============================================
@@ -114,7 +91,6 @@ export default async function SubSectionPage({ params }: SubSectionPageProps) {
   const sectionTitle = await getSectionTitle(sectionSlug)
 
   // 🔥 Строим breadcrumb items для Schema.org
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   const breadcrumbItems = buildBreadcrumbItems({
     section: sectionSlug,
     sectionTitle,

@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation'
-import { getArticleBySlug, getAllArticles } from '@/lib/payload/payload'
-import { transformArticle } from '@/lib/articleTransform'
+import { getArticleBySlug, getAllArticles } from '@/lib/payload/articles'
+import { transformArticle } from '@/lib/transformData/articleTransform'
 import type { ArticlePageProps } from '@/shared/types/pageType/article.type'
 import type { Metadata } from 'next'
 import { buildBreadcrumbItems } from '@/lib/seo/breadcrumbs'
 import { ArticleStructuredData, BreadcrumbStructuredData } from '@/components/seo/StructuredData'
+import { buildMetadata } from '@/lib/seo/metadata'
+import { siteUrl } from '@/lib/seo/config'
 
 import KratkoArticle from '@/dataPage/articleDataPage/sectionArticle/KratkoArticle'
 import BodyArticle from '@/dataPage/articleDataPage/sectionArticle/BodyArticle'
@@ -82,39 +84,21 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
     }
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const articleUrl = `${siteUrl}${rawArticle.href}`
-  const imageUrl = typeof rawArticle.image === 'object' && rawArticle.image !== null 
-    ? 'url' in rawArticle.image 
-      ? (rawArticle.image as any).url 
-      : '' 
-    : ''
+  const img = typeof rawArticle.image === 'object' && rawArticle.image !== null
+    ? { url: rawArticle.image.url || '', alt: rawArticle.image.alt || '' }
+    : null
 
-  return {
+  return buildMetadata({
     title: rawArticle.seo?.title ?? rawArticle.title,
     description: rawArticle.seo?.description ?? rawArticle.description ?? '',
-    keywords: rawArticle.seo?.keywords?.map((k) => k.keyword).filter(Boolean) as string[] || [],
-    alternates: {
-      canonical: articleUrl,
-    },
-    openGraph: {
-      title: rawArticle.seo?.title ?? rawArticle.title,
-      description: rawArticle.seo?.description ?? rawArticle.description ?? '',
-      type: 'article',
-      publishedTime: rawArticle.createdAt,
-      modifiedTime: rawArticle.updatedAt,
-      authors: [rawArticle.author || 'Phuquoc.Club'],
-      images: imageUrl ? [{ url: imageUrl, alt: rawArticle.title }] : [],
-      locale: 'ru_RU',
-      siteName: 'Фукуок.Гид',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: rawArticle.seo?.title ?? rawArticle.title,
-      description: rawArticle.seo?.description ?? rawArticle.description ?? '',
-      images: imageUrl ? [imageUrl] : [],
-    },
-  }
+    keywords: rawArticle.seo?.keywords,
+    path: rawArticle.href || '/',
+    image: img,
+    type: 'article',
+    publishedTime: rawArticle.createdAt,
+    modifiedTime: rawArticle.updatedAt,
+    authors: [rawArticle.author || 'Phuquoc.Club'],
+  })
 }
 
 // ============================================
@@ -142,7 +126,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   ])
 
   // 🔥 Строим breadcrumb items для Schema.org
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   const breadcrumbItems = buildBreadcrumbItems({
     section: sectionSlug,
     sectionTitle,

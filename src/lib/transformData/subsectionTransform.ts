@@ -1,16 +1,21 @@
-import { getPayloadClient } from './payload/payload'
-import type { Subsection, AppMedia, BestArticleMinimal } from '@/shared/types'
+import type { Subsection } from '@/payload-types'
+import type { AppMedia, BestArticleMinimal } from '@/shared/types'
 import type {
   TransformedSubsectionData,
   HeroSubSectionData,
 } from '@/shared/types/pageType/subSection.type'
 
+interface EnrichedBestSelection {
+  bestArticles: BestArticleMinimal[]
+}
+
+interface EnrichedContinueSelection {
+  continuePlanning: BestArticleMinimal[]
+}
+
 export async function transformSubsection(
   subsection: Subsection,
 ): Promise<TransformedSubsectionData> {
-  // ============================================
-  // 🎯 HERO — такой же формат как у статьи
-  // ============================================
   const sectionSlug =
     typeof subsection.section === 'object'
       ? subsection.section.slug
@@ -31,22 +36,16 @@ export async function transformSubsection(
     slug: '',
   }
 
-  // ============================================
-  // ⭐ BEST COLLECTION DATA
-  // ============================================
   let bestCollectionData: BestArticleMinimal[] = []
 
   if (typeof subsection.bestSelection === 'object' && subsection.bestSelection !== null) {
-    bestCollectionData = (subsection.bestSelection as any).bestArticles || []
+    bestCollectionData = (subsection.bestSelection as EnrichedBestSelection).bestArticles || []
   }
 
-  // ============================================
-  // 🔗 CONTINUE PLANNING — из continueSelection
-  // ============================================
   let continuePlanning: BestArticleMinimal[] = []
 
   if (typeof subsection.continueSelection === 'object' && subsection.continueSelection !== null) {
-    continuePlanning = (subsection.continueSelection as any).continuePlanning || []
+    continuePlanning = (subsection.continueSelection as EnrichedContinueSelection).continuePlanning || []
   }
 
   return {

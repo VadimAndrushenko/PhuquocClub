@@ -6,9 +6,12 @@ import BestSelections from '@/components/readyBlock/BestSelections'
 import CollectionsBlock from '@/components/readyBlock/CollectionsBlock'
 import Hero from '@/components/readyBlock/Hero'
 
-import { getCollectionsPage, getAllSubsectionsCards } from '@/lib/payload/payload'
-import { transformCollectionsPage } from '@/lib/collectionsPageTransform'
+import { getCollectionsPage } from '@/lib/payload/globals'
+import { getAllSubsectionsCards } from '@/lib/payload/subsections'
+import { transformCollectionsPage } from '@/lib/transformData/collectionsPageTransform'
 import { CollectionPageStructuredData } from '@/components/seo/StructuredData'
+import { buildMetadata } from '@/lib/seo/metadata'
+import { siteUrl } from '@/lib/seo/config'
 
 // ============================================
 // ISR 
@@ -29,35 +32,17 @@ export async function generateMetadata(): Promise<Metadata> {
     }
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const imageUrl = typeof page.image === 'object' && page.image !== null 
-    ? 'url' in page.image 
-      ? (page.image as any).url 
-      : '' 
-    : ''
+  const img = typeof page.image === 'object' && page.image !== null
+    ? { url: page.image.url || '', alt: page.image.alt || '' }
+    : null
 
-  return {
+  return buildMetadata({
     title: page.seo?.title ?? page.title,
     description: page.seo?.description ?? page.description ?? '',
-    keywords: page.seo?.keywords?.map((k: { keyword?: string | null }) => k.keyword).filter(Boolean) as string[] || [],
-    alternates: {
-      canonical: `${siteUrl}/collections`,
-    },
-    openGraph: {
-      title: page.seo?.title ?? page.title,
-      description: page.seo?.description ?? page.description ?? '',
-      type: 'website',
-      images: imageUrl ? [{ url: imageUrl, alt: page.title || '' }] : [],
-      locale: 'ru_RU',
-      siteName: 'Фукуок.Гид',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: page.seo?.title ?? page.title,
-      description: page.seo?.description ?? page.description ?? '',
-      images: imageUrl ? [imageUrl] : [],
-    },
-  }
+    keywords: page.seo?.keywords,
+    path: '/collections',
+    image: img,
+  })
 }
 
 // ============================================
@@ -74,8 +59,6 @@ export default async function CollectionsPageRoute() {
   if (!page || page.status !== 'published') notFound()
 
   const { heroData, bestCollectionData, continuePlanning } = transformCollectionsPage(page)
-
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
   return (
     <div className="container">

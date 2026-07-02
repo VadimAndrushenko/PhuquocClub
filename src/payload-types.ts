@@ -142,8 +142,15 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  [x: string]: string;
   id: number;
+  /**
+   * User role determines permissions
+   */
+  role: 'admin' | 'editor' | 'user';
+  /**
+   * Optional: Display name
+   */
+  name?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -164,7 +171,7 @@ export interface User {
   collection: 'users';
 }
 /**
- * Статьи для сайта — управляйте контентом здесь
+ * Manage articles for the website
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "Articles".
@@ -173,75 +180,60 @@ export interface Article {
   id: number;
   status: 'draft' | 'published';
   title: string;
+  /**
+   * Unique identifier for URL
+   */
   slug: string;
   /**
-   * Выберите подборку. Раздел и категория подтянутся автоматически.
+   * Section and category will be filled automatically
    */
   subsection: number | Subsection;
   /**
-   * Заполняется автоматически из выбранной подборки.
+   * Filled automatically from subsection
    */
   section?: string | null;
   /**
-   * Берётся из поля category в subsections.
+   * Filled from subsection.category
    */
   category?: string | null;
   /**
-   * Генерируется автоматически из section, subsection и slug.
+   * Generated automatically
    */
   href?: string | null;
   /**
-   * Краткий анонс статьи для карточек и превью.
+   * Brief summary for cards and previews
    */
   description: string;
   /**
-   * Первый текстовый блок статьи, который задаёт контекст.
+   * First text block that sets context
    */
   intro: string;
   /**
-   * Главное изображение статьи для карточек, превью и SEO.
+   * Main image for cards, previews and SEO
    */
-  image: number | Media;
+  image: Media;
   /**
-   * Например: 5 , 8, 12 .
+   * Example: 5, 8, 12
    */
   readTime: string;
-  /**
-   * Имя автора статьи.
-   */
   author: string;
   /**
-   * Короткие факты и ключевые данные по статье.
+   * Key facts and data
    */
   kratko_items?:
     | {
-        /**
-         * Выберите подходящую иконку для пункта.
-         */
         icon: 'DollarSign' | 'FileText' | 'MapPin' | 'ShieldAlert' | 'Clock' | 'User';
-        /**
-         * Название пункта.
-         */
         label: string;
-        /**
-         * Значение пункта.
-         */
         value: string;
         id?: string | null;
       }[]
     | null;
   /**
-   * Основные смысловые блоки статьи.
+   * Main content sections
    */
   content_blocks?:
     | {
-        /**
-         * Заголовок блока.
-         */
         title: string;
-        /**
-         * Текст блока. Доступно форматирование: жирный, ссылки, списки. Переносы строк и пробелы сохраняются.
-         */
         description: {
           root: {
             type: string;
@@ -257,13 +249,7 @@ export interface Article {
           };
           [k: string]: unknown;
         };
-        /**
-         * Тип дополнительного контента внутри блока.
-         */
         contentType?: ('none' | 'table' | 'warning' | 'checklist' | 'tips') | null;
-        /**
-         * Настройте заголовки и строки таблицы.
-         */
         table?: {
           headers: {
             header1: string;
@@ -279,26 +265,14 @@ export interface Article {
               }[]
             | null;
         };
-        /**
-         * Текст важного предупреждения.
-         */
         warning?: string | null;
-        /**
-         * Добавьте пункты чек-листа.
-         */
         checklist?:
           | {
               item: string;
               id?: string | null;
             }[]
           | null;
-        /**
-         * Текст полезного совета.
-         */
         tips?: string | null;
-        /**
-         * Текст после таблицы/чек-листа/совета. Доступно форматирование: жирный, ссылки, списки.
-         */
         descriptionAfter?: {
           root: {
             type: string;
@@ -317,59 +291,26 @@ export interface Article {
         id?: string | null;
       }[]
     | null;
-  /**
-   * Добавьте ссылки на статьи, разделы или подборки. Ссылка берётся автоматически из выбранного элемента.
-   */
   useful_links?:
     | {
-        /**
-         * Текст который будет отображаться
-         */
+        href: string;
         label: string;
-        /**
-         * Выберите тип элемента для ссылки
-         */
-        linkType: 'article' | 'section' | 'subsection';
-        /**
-         * Выберите статью — ссылка возьмётся автоматически
-         */
-        article?: (number | null) | Article;
-        /**
-         * Выберите раздел — ссылка возьмётся автоматически
-         */
-        section?: (number | null) | Section;
-        /**
-         * Выберите подборку — ссылка возьмётся автоматически
-         */
-        subsection?: (number | null) | Subsection;
         id?: string | null;
       }[]
     | null;
   /**
-   * Выберите статьи, которые нужно показать в блоке похожих. Текущая статья исключена из выбора.
+   * Select articles to show in related section
    */
   related_articles?: (number | Article)[] | null;
-  /**
-   * Параметры для поиска и отображения в выдаче.
-   */
   seo: {
-    /**
-     * Заголовок для поисковиков и соцсетей.
-     */
     title: string;
-    /**
-     * Краткое описание страницы для поиска.
-     */
     description: string;
-    /**
-     * Ключевые слова через отдельные элементы списка.
-     */
     keywords: {
       keyword: string;
       id?: string | null;
     }[];
     /**
-     * Включи, если страницу не нужно индексировать.
+     * Check to prevent search engines from indexing
      */
     noIndex?: boolean | null;
   };
@@ -385,25 +326,13 @@ export interface Subsection {
   status: 'draft' | 'published';
   title: string;
   slug: string;
-  /**
-   * Выберите раздел вручную.
-   */
   section: number | Section;
-  /**
-   * Введите категорию вручную.
-   */
   category: string;
   href?: string | null;
   description: string;
   intro: string;
   image: number | Media;
-  /**
-   * Выберите подборку — bestArticles заполнится автоматически
-   */
   bestSelection?: (number | null) | BestSelection;
-  /**
-   * Выберите подборку — continuePlanning заполнится автоматически
-   */
   continueSelection?: (number | null) | ContinueSelection;
   search?: {
     placeholder?: string | null;
@@ -437,14 +366,14 @@ export interface Section {
   status: 'draft' | 'published';
   title: string;
   /**
-   * Например: on-island, before-trip. Только латиница и дефисы.
+   * Example: on-island, before-trip
    */
   slug: string;
-  /**
-   * Генерируется автоматически из slug
-   */
   href?: string | null;
   description?: string | null;
+  image: number | Media;
+  bestSelection?: (number | null) | BestSelection;
+  continueSelection?: (number | null) | ContinueSelection;
   search?: {
     placeholder?: string | null;
     tags?:
@@ -455,15 +384,6 @@ export interface Section {
         }[]
       | null;
   };
-  image: number | Media;
-  /**
-   * Выберите подборку — лучшие статьи отобразятся на странице раздела
-   */
-  bestSelection?: (number | null) | BestSelection;
-  /**
-   * Выберите подборку — статьи отобразятся в блоке "Продолжить чтение"
-   */
-  continueSelection?: (number | null) | ContinueSelection;
   seo: {
     title: string;
     description: string;
@@ -483,6 +403,9 @@ export interface Section {
  */
 export interface Media {
   id: number;
+  /**
+   * Alternative text for accessibility and SEO
+   */
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -495,8 +418,36 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    hero?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
 }
 /**
+ * Collections of best/featured articles
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bestSelections".
  */
@@ -505,13 +456,19 @@ export interface BestSelection {
   status: 'draft' | 'published';
   title: string;
   /**
-   * В БД хранятся только ID. Данные формируются автоматически.
+   * Optional: for direct URL access
+   */
+  slug?: string | null;
+  /**
+   * Select articles for this collection. IDs stored in DB, data fetched on frontend.
    */
   bestArticles: (number | Article)[];
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * Collections for "Continue Reading" sections
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "continueSelections".
  */
@@ -520,7 +477,11 @@ export interface ContinueSelection {
   status: 'draft' | 'published';
   title: string;
   /**
-   * В БД хранятся только ID. Данные формируются автоматически.
+   * Optional: for direct URL access
+   */
+  slug?: string | null;
+  /**
+   * Select articles for this collection. IDs stored in DB, data fetched on frontend.
    */
   continuePlanning: (number | Article)[];
   updatedAt: string;
@@ -625,6 +586,8 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
+  name?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -706,11 +669,8 @@ export interface ArticlesSelect<T extends boolean = true> {
   useful_links?:
     | T
     | {
+        href?: T;
         label?: T;
-        linkType?: T;
-        article?: T;
-        section?: T;
-        subsection?: T;
         id?: T;
       };
   related_articles?: T;
@@ -747,6 +707,40 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        hero?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -801,6 +795,9 @@ export interface SectionsSelect<T extends boolean = true> {
   slug?: T;
   href?: T;
   description?: T;
+  image?: T;
+  bestSelection?: T;
+  continueSelection?: T;
   search?:
     | T
     | {
@@ -813,9 +810,6 @@ export interface SectionsSelect<T extends boolean = true> {
               id?: T;
             };
       };
-  image?: T;
-  bestSelection?: T;
-  continueSelection?: T;
   seo?:
     | T
     | {
@@ -838,6 +832,7 @@ export interface SectionsSelect<T extends boolean = true> {
 export interface BestSelectionsSelect<T extends boolean = true> {
   status?: T;
   title?: T;
+  slug?: T;
   bestArticles?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -849,6 +844,7 @@ export interface BestSelectionsSelect<T extends boolean = true> {
 export interface ContinueSelectionsSelect<T extends boolean = true> {
   status?: T;
   title?: T;
+  slug?: T;
   continuePlanning?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -914,11 +910,11 @@ export interface CollectionsPage {
       | null;
   };
   /**
-   * Опционально — лучшие статьи отобразятся вверху страницы.
+   * Optional: display best articles at the top
    */
   bestSelection?: (number | null) | BestSelection;
   /**
-   * Опционально — статьи отобразятся в блоке «Продолжить чтение».
+   * Optional: display in continue reading section
    */
   continueSelection?: (number | null) | ContinueSelection;
   seo: {
@@ -957,105 +953,33 @@ export interface HomePage {
     };
   };
   /**
-   * Добавьте до 3 элементов. Ссылка берётся автоматически из выбранного элемента.
+   * Select 3 articles for Popular section
    */
-  popularArticles?:
-    | {
-        /**
-         * Выберите тип элемента для ссылки
-         */
-        linkType: 'article' | 'section' | 'subsection';
-        /**
-         * Выберите статью — ссылка возьмётся автоматически
-         */
-        article?: (number | null) | Article;
-        /**
-         * Выберите раздел — ссылка возьмётся автоматически
-         */
-        section?: (number | null) | Section;
-        /**
-         * Выберите подборку — ссылка возьмётся автоматически
-         */
-        subsection?: (number | null) | Subsection;
-        id?: string | null;
-      }[]
-    | null;
+  popularArticles?: (number | Article)[] | null;
   planningBlock?: {
     /**
-     * Добавьте до 4 элементов. Ссылка берётся автоматически из выбранного элемента.
+     * Select 4 articles for Planning section
      */
-    items?:
+    articles?: (number | Article)[] | null;
+    icons?:
       | {
-          /**
-           * Выберите иконку для элемента
-           */
           icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils';
-          /**
-           * Выберите тип элемента для ссылки
-           */
-          linkType: 'article' | 'section' | 'subsection';
-          /**
-           * Выберите статью — ссылка возьмётся автоматически
-           */
-          article?: (number | null) | Article;
-          /**
-           * Выберите раздел — ссылка возьмётся автоматически
-           */
-          section?: (number | null) | Section;
-          /**
-           * Выберите подборку — ссылка возьмётся автоматически
-           */
-          subsection?: (number | null) | Subsection;
           id?: string | null;
         }[]
       | null;
   };
   /**
-   * Добавьте до 4 элементов. Ссылка берётся автоматически из выбранного элемента.
+   * Select subsections to display
    */
-  collections?:
-    | {
-        /**
-         * Выберите тип элемента для ссылки
-         */
-        linkType: 'section' | 'subsection';
-        /**
-         * Выберите раздел — ссылка возьмётся автоматически
-         */
-        section?: (number | null) | Section;
-        /**
-         * Выберите подборку — ссылка возьмётся автоматически
-         */
-        subsection?: (number | null) | Subsection;
-        id?: string | null;
-      }[]
-    | null;
+  collections?: (number | Subsection)[] | null;
   urgentBlock?: {
     /**
-     * Добавьте до 4 элементов. Ссылка берётся автоматически из выбранного элемента.
+     * Select 4 articles for Urgent section
      */
-    items?:
+    articles?: (number | Article)[] | null;
+    icons?:
       | {
-          /**
-           * Выберите иконку для элемента
-           */
           icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils';
-          /**
-           * Выберите тип элемента для ссылки
-           */
-          linkType: 'article' | 'section' | 'subsection';
-          /**
-           * Выберите статью — ссылка возьмётся автоматически
-           */
-          article?: (number | null) | Article;
-          /**
-           * Выберите раздел — ссылка возьмётся автоматически
-           */
-          section?: (number | null) | Section;
-          /**
-           * Выберите подборку — ссылка возьмётся автоматически
-           */
-          subsection?: (number | null) | Subsection;
           id?: string | null;
         }[]
       | null;
@@ -1081,17 +1005,14 @@ export interface Header {
   id: number;
   status: 'draft' | 'published';
   /**
-   * Добавьте до 8 пунктов навигации. Ссылка берётся автоматически из выбранного элемента.
+   * Add up to 8 navigation items. Links are generated automatically.
    */
   navigationItems?:
     | {
         /**
-         * Текст который будет отображаться в меню
+         * Text displayed in menu
          */
         title: string;
-        /**
-         * Выберите иконку для пункта меню
-         */
         icon:
           | 'Map'
           | 'Plane'
@@ -1109,24 +1030,12 @@ export interface Header {
           | 'Palmtree'
           | 'Camera'
           | 'Backpack';
-        /**
-         * Выберите тип элемента для ссылки
-         */
         linkType: 'section' | 'subsection' | 'article' | 'external';
-        /**
-         * Выберите раздел — ссылка возьмётся автоматически
-         */
         section?: (number | null) | Section;
-        /**
-         * Выберите подборку — ссылка возьмётся автоматически
-         */
         subsection?: (number | null) | Subsection;
-        /**
-         * Выберите статью — ссылка возьмётся автоматически
-         */
         article?: (number | null) | Article;
         /**
-         * Например: https://t.me/phuquocclub
+         * Example: https://example.com
          */
         externalUrl?: string | null;
         id?: string | null;
@@ -1143,7 +1052,7 @@ export interface Footer {
   id: number;
   status: 'draft' | 'published';
   /**
-   * Текст описания в левом блоке футера
+   * Description text in footer
    */
   description?: string | null;
   socialLinks?: {
@@ -1151,220 +1060,40 @@ export interface Footer {
     instagram?: string | null;
     youtube?: string | null;
   };
-  sectionPlanning?: {
-    title?: string | null;
-    item1?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item2?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item3?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item4?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item5?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-  };
-  sectionOnIsland?: {
-    title?: string | null;
-    item1?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item2?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item3?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item4?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item5?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item6?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-  };
-  sectionPractice?: {
-    title?: string | null;
-    item1?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item2?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item3?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item4?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item5?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-  };
-  sectionRoutes?: {
-    title?: string | null;
-    item1?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item2?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item3?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item4?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    item5?: {
-      label?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-  };
-  additionalLinks?: {
-    link1?: {
-      title?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    link2?: {
-      title?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    link3?: {
-      title?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-    link4?: {
-      title?: string | null;
-      linkType?: ('section' | 'subsection' | 'article' | 'external') | null;
-      section?: (number | null) | Section;
-      subsection?: (number | null) | Subsection;
-      article?: (number | null) | Article;
-      externalUrl?: string | null;
-    };
-  };
+  /**
+   * Create footer sections with links
+   */
+  sections?:
+    | {
+        sectionTitle: string;
+        links?:
+          | {
+              label: string;
+              linkType: 'section' | 'subsection' | 'article' | 'external';
+              section?: (number | null) | Section;
+              subsection?: (number | null) | Subsection;
+              article?: (number | null) | Article;
+              externalUrl?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Small links at the bottom (About, Privacy Policy, etc.)
+   */
+  bottomLinks?:
+    | {
+        title: string;
+        linkType: 'section' | 'subsection' | 'article' | 'external';
+        section?: (number | null) | Section;
+        subsection?: (number | null) | Subsection;
+        article?: (number | null) | Article;
+        externalUrl?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1432,48 +1161,27 @@ export interface HomePageSelect<T extends boolean = true> {
                   };
             };
       };
-  popularArticles?:
-    | T
-    | {
-        linkType?: T;
-        article?: T;
-        section?: T;
-        subsection?: T;
-        id?: T;
-      };
+  popularArticles?: T;
   planningBlock?:
     | T
     | {
-        items?:
+        articles?: T;
+        icons?:
           | T
           | {
               icon?: T;
-              linkType?: T;
-              article?: T;
-              section?: T;
-              subsection?: T;
               id?: T;
             };
       };
-  collections?:
-    | T
-    | {
-        linkType?: T;
-        section?: T;
-        subsection?: T;
-        id?: T;
-      };
+  collections?: T;
   urgentBlock?:
     | T
     | {
-        items?:
+        articles?: T;
+        icons?:
           | T
           | {
               icon?: T;
-              linkType?: T;
-              article?: T;
-              section?: T;
-              subsection?: T;
               id?: T;
             };
       };
@@ -1529,279 +1237,33 @@ export interface FooterSelect<T extends boolean = true> {
         instagram?: T;
         youtube?: T;
       };
-  sectionPlanning?:
+  sections?:
+    | T
+    | {
+        sectionTitle?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              linkType?: T;
+              section?: T;
+              subsection?: T;
+              article?: T;
+              externalUrl?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  bottomLinks?:
     | T
     | {
         title?: T;
-        item1?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item2?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item3?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item4?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item5?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-      };
-  sectionOnIsland?:
-    | T
-    | {
-        title?: T;
-        item1?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item2?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item3?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item4?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item5?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item6?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-      };
-  sectionPractice?:
-    | T
-    | {
-        title?: T;
-        item1?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item2?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item3?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item4?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item5?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-      };
-  sectionRoutes?:
-    | T
-    | {
-        title?: T;
-        item1?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item2?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item3?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item4?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        item5?:
-          | T
-          | {
-              label?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-      };
-  additionalLinks?:
-    | T
-    | {
-        link1?:
-          | T
-          | {
-              title?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        link2?:
-          | T
-          | {
-              title?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        link3?:
-          | T
-          | {
-              title?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
-        link4?:
-          | T
-          | {
-              title?: T;
-              linkType?: T;
-              section?: T;
-              subsection?: T;
-              article?: T;
-              externalUrl?: T;
-            };
+        linkType?: T;
+        section?: T;
+        subsection?: T;
+        article?: T;
+        externalUrl?: T;
+        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;

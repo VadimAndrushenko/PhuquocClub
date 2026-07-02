@@ -1,7 +1,9 @@
 import type { MetadataRoute } from 'next'
-import { getAllArticles, getAllSections, getAllSubsections } from '@/lib/payload/payload'
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+import { getAllArticles } from '@/lib/payload/articles'
+import { getAllSections } from '@/lib/payload/sections'
+import { getAllSubsections } from '@/lib/payload/subsections'
+import { siteUrl } from '@/lib/seo/config'
+import { Section } from '@/payload-types'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const urls: MetadataRoute.Sitemap = [
@@ -46,7 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const subsection of subsections) {
       const sectionSlug = typeof subsection.section === 'string' 
         ? subsection.section 
-        : (subsection.section as any)?.slug || ''
+        : (subsection.section as Section)?.slug || ''
       
       if (sectionSlug && subsection.slug) {
         urls.push({

@@ -1,12 +1,5 @@
-import type { AppMedia, PageParams, SectionPageParams, SearchTag } from '@/shared/types'
+import type { AppMedia, PageParams, SearchConfig } from '@/shared/types'
 
-/** Поиск для секции */
-interface SectionSearch {
-  placeholder: string
-  tags: SearchTag[]
-}
-
-/** Данные для Hero на странице раздела */
 export interface HeroSectionProps {
   containerClass?: string
   dataSection: {
@@ -15,12 +8,10 @@ export interface HeroSectionProps {
     intro: string
     category: string
     section: string
-    search: SectionSearch
+    search: SearchConfig
     image: AppMedia
   }
 }
-
-// =========================
 
 export interface SectionPageProps {
   params: PageParams<string>

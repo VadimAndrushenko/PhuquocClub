@@ -114,7 +114,6 @@ export async function getSearchData(forceRefresh = false): Promise<SearchItem[]>
         )
       }
 
-      // 🔥 ЯВНАЯ ТИПИЗАЦИЯ — решает ошибку "never[]"
       const sectionsData = (await sectionsRes.json()) as PayloadResponse<PayloadSection>
       const subSectionsData = (await subSectionsRes.json()) as PayloadResponse<PayloadSubSection>
       const articlesData = (await articlesRes.json()) as PayloadResponse<PayloadArticle>

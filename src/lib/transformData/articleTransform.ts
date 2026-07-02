@@ -14,12 +14,10 @@ import type {
   SectionBlock,
   HeroArticleData,
   KratkoItem,
-  ContentBlock,
   UsefulLink,
   RelatedArticle,
 } from '@/shared/types/pageType/article.type'
-import { AppMedia } from '@/shared/types'
-
+import type { AppMedia } from '@/shared/types'
 
 const iconMap: Record<string, LucideIcon> = {
   DollarSign,
@@ -30,18 +28,24 @@ const iconMap: Record<string, LucideIcon> = {
   User,
 }
 
-export function transformArticle(article: Article): TransformedArticleData {
-  // ============================================
-  // 🎯 ДАННЫЕ ДЛЯ HERO КОМПОНЕНТА
-  // ============================================
+function resolveMedia(image: Article['image']): AppMedia {
+  if (typeof image === 'object' && image !== null) {
+    return image as unknown as AppMedia
+  }
+  return {}
+}
 
-  // Формируем объект для Hero
+function isFullArticle(item: number | Article): item is Article {
+  return typeof item === 'object' && item !== null
+}
+
+export function transformArticle(article: Article): TransformedArticleData {
   const heroData: HeroArticleData = {
     title: article.title || 'Заголовок пуст',
     description: article.description || 'пуст',
     intro: article.intro || 'пуст',
     category: article.category || '',
-    image: article.image as AppMedia,
+    image: resolveMedia(article.image),
     readTime: article.readTime || '',
     author: article.author || 'Phuquoc.Club',
     updatedAt: article.updatedAt,
@@ -51,18 +55,12 @@ export function transformArticle(article: Article): TransformedArticleData {
     slug: article.slug || '',
   }
 
-  // ============================================
-  // 📋 БЛОК "КРАТКО"
-  // ============================================
   const kratkoItems: KratkoItem[] = (article.kratko_items || []).map((item) => ({
     icon: iconMap[item.icon] || FileText,
     label: item.label,
     value: item.value,
   }))
 
-  // ============================================
-  // 🧱 СЕКЦИИ СТАТЬИ
-  // ============================================
   const sectionBlocks: SectionBlock[] = (article.content_blocks || []).map((block) => {
     const result: SectionBlock = {
       title: block.title,
@@ -88,32 +86,22 @@ export function transformArticle(article: Article): TransformedArticleData {
     return result
   })
 
-  // ============================================
-  // 📚 ПОЛЕЗНЫЕ ССЫЛКИ
-  // ============================================
-  const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link: any) => ({
-    href: link.href,
+  const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link) => ({
+    href: (link as { href?: string }).href || '',
     label: link.label,
   }))
 
-  // ============================================
-  // 🔗 СВЯЗАННЫЕ СТАТЬИ
-  // ============================================
-  const relatedArticles: RelatedArticle[] = (article.related_articles || []).map((item) => ({
-    id: typeof item === 'number' ? item : item.id,
-    category:
-      typeof item === 'object' && item !== null && 'category' in item ? item.category || '' : '',
-    title: typeof item === 'object' && item !== null && 'title' in item ? item.title || '' : '',
-    description:
-      typeof item === 'object' && item !== null && 'description' in item ? item.description || '' : '',
-    image:
-      typeof item === 'object' && item !== null && 'image' in item
-        ? (item.image as AppMedia)
-        : { id: 0 },
-    href: typeof item === 'object' && item !== null && 'href' in item ? item.href || '' : '',
-    readTime:
-      typeof item === 'object' && item !== null && 'readTime' in item ? item.readTime || '' : undefined,
-  }))
+  const relatedArticles: RelatedArticle[] = (article.related_articles || [])
+    .filter(isFullArticle)
+    .map((item) => ({
+      id: item.id,
+      category: item.category || '',
+      title: item.title || '',
+      description: item.description || '',
+      image: resolveMedia(item.image),
+      href: item.href || '',
+      readTime: item.readTime || undefined,
+    }))
 
   return {
     heroData,

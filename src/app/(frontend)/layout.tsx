@@ -3,10 +3,11 @@ import { Geist, Geist_Mono, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 
 import { cn } from '@/lib/utils'
-import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
+import { Header, type NavigationItem } from '@/components/layout/header'
+import { Footer, type FooterNavSection, type AdditionalLink } from '@/components/layout/footer'
 import { SearchProvider } from '@/contexts/SearchContext'
-import { getHeader, getFooter } from '@/lib/payload/payload'
+import { getHeader, getFooter } from '@/lib/payload/globals'
+import type { Footer as FooterPayload, Header as HeaderPayload } from '@/payload-types'
 
 // ===============================
 // 🔥 ISR - РЕВАЛИДАЦИЯ КАЖДЫЕ 30 СЕКУНД
@@ -41,27 +42,72 @@ export const metadata: Metadata = {
 }
 
 // ===============================
+// Helpers
+// ===============================
+
+function resolveLinkHref(link: { linkType: string; section?: unknown; subsection?: unknown; article?: unknown; externalUrl?: string | null }): string {
+  switch (link.linkType) {
+    case 'external':
+      return link.externalUrl || '/'
+    case 'section': {
+      const s = link.section as { slug?: string } | null | undefined
+      return s?.slug ? `/${s.slug}` : '/'
+    }
+    case 'subsection': {
+      const s = link.subsection as { href?: string; slug?: string } | null | undefined
+      return s?.href || (s?.slug ? `/${s.slug}` : '/')
+    }
+    case 'article': {
+      const a = link.article as { href?: string } | null | undefined
+      return a?.href || '/'
+    }
+    default:
+      return '/'
+  }
+}
+
+function headerToNavItems(header: HeaderPayload): NavigationItem[] {
+  return (header.navigationItems || []).map((item) => ({
+    id: item.id || '',
+    title: item.title,
+    href: resolveLinkHref(item),
+    icon: item.icon,
+    linkType: item.linkType,
+  }))
+}
+
+function footerToNavSections(footer: FooterPayload): FooterNavSection[] {
+  return (footer.sections || []).map((section) => ({
+    title: section.sectionTitle,
+    items: (section.links || []).map((link) => ({
+      label: link.label,
+      href: resolveLinkHref(link),
+    })),
+  }))
+}
+
+function footerToAdditionalLinks(footer: FooterPayload): AdditionalLink[] {
+  return (footer.bottomLinks || []).map((link, idx) => ({
+    id: link.id || idx + 1,
+    title: link.title,
+    href: resolveLinkHref(link),
+  }))
+}
+
+// ===============================
 // Root Layout
 // ===============================
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Получаем навигацию из админки
   const headerData = await getHeader()
-  const headerNavigationItems = (headerData as any)?.navigationItems || []
-
-  // Получаем данные футера
   const footerData = await getFooter()
+
+  const headerNavigationItems = headerData ? headerToNavItems(headerData) : []
+
   const footerDescription = footerData?.description || undefined
   const footerSocialLinks = footerData?.socialLinks || undefined
-  
-  // 🔥 Собираем секции футера
-  const footerNavigationSections: any[] = []
-  if (footerData?.sectionPlanning) footerNavigationSections.push(footerData.sectionPlanning)
-  if (footerData?.sectionOnIsland) footerNavigationSections.push(footerData.sectionOnIsland)
-  if (footerData?.sectionPractice) footerNavigationSections.push(footerData.sectionPractice)
-  if (footerData?.sectionRoutes) footerNavigationSections.push(footerData.sectionRoutes)
-  
-  const footerAdditionalLinks = (footerData as any)?.additionalLinks || undefined
+  const footerNavigationSections = footerData ? footerToNavSections(footerData) : undefined
+  const footerAdditionalLinks = footerData ? footerToAdditionalLinks(footerData) : undefined
 
   return (
     <html
@@ -75,12 +121,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       )}
     >
       <body className="min-h-screen flex flex-col bg-background text-main">
-        {/* Main content */}
         <SearchProvider>
-          {/* Header */}
           <Header navigationItems={headerNavigationItems} />
           <main className="relative flex-1">{children}</main>
-          {/* Footer */}
           <Footer
             description={footerDescription}
             socialLinks={footerSocialLinks}

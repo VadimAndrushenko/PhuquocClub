@@ -1,4 +1,5 @@
-import type { Section, AppMedia, BestArticleMinimal } from '@/shared/types'
+import type { Section } from '@/payload-types'
+import type { AppMedia, BestArticleMinimal } from '@/shared/types'
 import type { HeroData } from '@/shared/types/blockType/hero.type'
 
 export interface TransformedSectionData {
@@ -7,14 +8,19 @@ export interface TransformedSectionData {
   continuePlanning: BestArticleMinimal[]
 }
 
+interface EnrichedBestSelection {
+  bestArticles: BestArticleMinimal[]
+}
+
+interface EnrichedContinueSelection {
+  continuePlanning: BestArticleMinimal[]
+}
+
 export async function transformSection(section: Section): Promise<TransformedSectionData> {
-  // ============================================
-  // 🎯 HERO — данные секции
-  // ============================================
   const heroData: HeroData = {
     title: section.title || '',
     description: section.description || '',
-    intro: '', // у секции нет intro, только у subsection
+    intro: '',
     category: section.title || '',
     image: section.image as unknown as AppMedia,
     search: {
@@ -24,22 +30,14 @@ export async function transformSection(section: Section): Promise<TransformedSec
     section: section.slug,
   }
 
-  // ============================================
-  // ⭐ BEST COLLECTION DATA — из bestSelection
-  // ============================================
   let bestCollectionData: BestArticleMinimal[] = []
-
   if (typeof section.bestSelection === 'object' && section.bestSelection !== null) {
-    bestCollectionData = (section.bestSelection as any).bestArticles || []
+    bestCollectionData = (section.bestSelection as EnrichedBestSelection).bestArticles || []
   }
 
-  // ============================================
-  // 🔗 CONTINUE PLANNING — из continueSelection
-  // ============================================
   let continuePlanning: BestArticleMinimal[] = []
-
   if (typeof section.continueSelection === 'object' && section.continueSelection !== null) {
-    continuePlanning = (section.continueSelection as any).continuePlanning || []
+    continuePlanning = (section.continueSelection as EnrichedContinueSelection).continuePlanning || []
   }
 
   return {

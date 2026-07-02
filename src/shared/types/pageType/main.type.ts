@@ -1,20 +1,11 @@
-import type { AppMedia, SearchTag } from '@/shared/types'
-
-interface SectionSearch {
-  placeholder: string
-  tags: SearchTag[]
-}
+import type { AppMedia, SearchConfig } from '@/shared/types'
 
 export interface HeroMainProps {
   containerClass?: string
   dataMain: {
-    /** Главный заголовок */
     title: string
-    /** Описание под заголовком */
     description: string
-    /** Настройки поиска */
-    search: SectionSearch
-    /** Путь к изображению */
+    search: SearchConfig
     image: AppMedia
   }
 }

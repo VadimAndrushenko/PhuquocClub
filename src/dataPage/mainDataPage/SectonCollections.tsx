@@ -1,6 +1,6 @@
 import { CollectionsCard } from '@/components/ui/InfoCard'
 import { cn } from '@/lib/utils'
-import type { CollectionCardData } from '@/lib/homePageTransform'
+import type { CollectionCardData } from '@/lib/transformData/homePageTransform'
 
 export default function Collections({
   data,

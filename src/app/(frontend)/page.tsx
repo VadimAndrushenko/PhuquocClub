@@ -3,10 +3,12 @@ import Planning from '@/dataPage/mainDataPage/SectonPlanning'
 import Popular from '@/dataPage/mainDataPage/SectonPopular'
 import Urgent from '@/dataPage/mainDataPage/SectonUrgent'
 import HeroMain from '@/dataPage/mainDataPage/HeroMain'
-import { getHomePage } from '@/lib/payload/payload'
-import { transformHomePage } from '@/lib/homePageTransform'
+import { getHomePage } from '@/lib/payload/globals'
+import { transformHomePage } from '@/lib/transformData/homePageTransform'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/seo/metadata'
+import { siteUrl } from '@/lib/seo/config'
 import { WebSiteStructuredData } from '@/components/seo/StructuredData'
 
 const classContent = 'py-10 max-sm:py-8 container'
@@ -30,35 +32,16 @@ export async function generateMetadata(): Promise<Metadata> {
     }
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const imageUrl = typeof page.heroSection?.image === 'object' && page.heroSection?.image !== null 
-    ? 'url' in page.heroSection.image 
-      ? page.heroSection.image.url 
-      : '' 
-    : ''
+  const img = typeof page.heroSection?.image === 'object' && page.heroSection?.image !== null
+    ? { url: page.heroSection.image.url || '', alt: page.heroSection.image.alt || '' }
+    : null
 
-  return {
+  return buildMetadata({
     title: page.seo?.title ?? 'Гид по Фукуоку',
     description: page.seo?.description ?? 'Всё что нужно туристу - быстро и понятно',
-    keywords: page.seo?.keywords?.map((k: { keyword?: string | null }) => k.keyword).filter(Boolean) as string[] || [],
-    alternates: {
-      canonical: siteUrl,
-    },
-    openGraph: {
-      title: page.seo?.title ?? 'Гид по Фукуоку',
-      description: page.seo?.description ?? 'Всё что нужно туристу - быстро и понятно',
-      type: 'website',
-      images: imageUrl ? [{ url: imageUrl, alt: page.seo?.title || 'Гид по Фукуоку' }] : [],
-      locale: 'ru_RU',
-      siteName: 'Фукуок.Гид',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: page.seo?.title ?? 'Гид по Фукуоку',
-      description: page.seo?.description ?? 'Всё что нужно туристу - быстро и понятно',
-      images: imageUrl ? [imageUrl] : [],
-    },
-  }
+    keywords: page.seo?.keywords,
+    image: img,
+  })
 }
 
 // ============================================
@@ -76,8 +59,6 @@ export default async function Home() {
   }
 
   const { heroData, popularArticles, planningArticles, collectionsData, urgentArticles } = transformHomePage(page)
-
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
   return (
     <div>

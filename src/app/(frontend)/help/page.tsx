@@ -3,7 +3,7 @@ import UrgentHelpSection from '@/dataPage/helpDataPage/UrgentHelpSection'
 import UrgentCardsSection from '@/dataPage/helpDataPage/UrgentCardsSection'
 import WhatHappenedSection from '@/dataPage/helpDataPage/WhatHappenedSection'
 import FaqSection from '@/dataPage/helpDataPage/FaqSection'
-import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/seo/metadata'
 
 // Статичные данные для страницы помощи
 const HELP_DATA = {
@@ -37,27 +37,11 @@ export const dynamic = 'force-static'
 // ============================================
 // 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: 'Помощь на Фукуоке',
   description: 'Быстрые ответы и полезные сервисы, когда нужно сориентироваться на острове',
-  alternates: {
-    canonical: `${siteUrl}/help`,
-  },
-  openGraph: {
-    title: 'Помощь на Фукуоке',
-    description: 'Быстрые ответы и полезные сервисы, когда нужно сориентироваться на острове',
-    type: 'website',
-    locale: 'ru_RU',
-    siteName: 'Фукуок.Гид',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Помощь на Фукуоке',
-    description: 'Быстрые ответы и полезные сервисы, когда нужно сориентироваться на острове',
-  },
-}
+  path: '/help',
+})
 
 const classPY = 'py-10 max-md:py-6'
 
