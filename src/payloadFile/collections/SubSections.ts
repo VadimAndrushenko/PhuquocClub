@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, CollectionBeforeChangeHook } from 'payload'
 import { simplifyRelationships } from '../utils/hooks'
 
 /**
@@ -8,7 +8,7 @@ import { simplifyRelationships } from '../utils/hooks'
  * Optimized with simplified hooks
  */
 
-const generateSubsectionHref = ({ data }: any) => {
+const generateSubsectionHref: CollectionBeforeChangeHook = ({ data }) => {
   if (data?.section && data?.slug) {
     const sectionSlug = typeof data.section === 'object' ? data.section.slug : data.section
     data.href = `/${sectionSlug}/${data.slug}`

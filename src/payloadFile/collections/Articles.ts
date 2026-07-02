@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, CollectionBeforeChangeHook, CollectionBeforeValidateHook } from 'payload'
 import { generateHrefBeforeSave, simplifyRelationships } from '../utils/hooks'
 
 /**
@@ -15,8 +15,12 @@ import { generateHrefBeforeSave, simplifyRelationships } from '../utils/hooks'
 /**
  * Auto-fill section and category from subsection
  */
-const autoFillFromSubsection = async ({ data, req }: any) => {
-  if (!data?.subsection) {
+type AutoFillHook = CollectionBeforeChangeHook & CollectionBeforeValidateHook
+
+const autoFillFromSubsection: AutoFillHook = async ({ data, req }) => {
+  if (!data) return data
+
+  if (!data.subsection) {
     data.section = ''
     data.category = ''
     return data
