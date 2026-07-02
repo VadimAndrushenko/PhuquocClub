@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, X } from 'lucide-react'
+import { Search, X, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   LifeBuoy,
@@ -15,8 +15,12 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useSearch } from '@/contexts/SearchContext'
-import type { SearchItem, SearchInputProps } from '@/shared/types/componentsType/serchInput.type'
+import { searchItems } from '@/lib/search/searchService'
+import type { SearchInputProps } from '@/shared/types/componentsType/searchInput.type'
 import { SearchIconType } from '@/shared/types'
+
+const DEBOUNCE_DELAY = 300
+const MAX_RESULTS = 10
 
 const iconMap: Record<SearchIconType, LucideIcon> = {
   utensilsCrossed: UtensilsCrossed,
@@ -28,106 +32,238 @@ const iconMap: Record<SearchIconType, LucideIcon> = {
   lifeBuoy: LifeBuoy,
 }
 
-const typeLabel: Record<'section' | 'subSection' | 'article', string> = {
+const typeLabel: Record<'section' | 'subsection' | 'article', string> = {
   section: 'Раздел',
-  subSection: 'Подраздел',
+  subsection: 'Подраздел',
   article: 'Статья',
 }
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay)
+    return () => clearTimeout(handler)
+  }, [value, delay])
+
+  return debouncedValue
+}
+
 export default function SearchInput({ search, onClose }: SearchInputProps) {
-  // 🔥 Используем глобальное состояние — данные загружаются 1 раз на всё приложение
-  const { searchItems, isLoading } = useSearch()
+  const { searchItems: allItems, isLoading, error } = useSearch()
 
   const [query, setQuery] = useState('')
-  const wrapperRef = useRef<HTMLDivElement | null>(null)
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const resultsRef = useRef<HTMLDivElement>(null)
 
   const placeholder = search?.placeholder || 'Поиск...'
   const tags = search?.tags || []
 
-  // Текстовый поиск — просто фильтрация (оптимизировано)
+  const debouncedQuery = useDebounce(query, DEBOUNCE_DELAY)
+
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q || !searchItems.length) return []
-    return searchItems.filter((item) => item.searchText.includes(q))
-  }, [query, searchItems])
+    if (!debouncedQuery.trim() || !allItems.length) return []
 
-  const showDropdown = query.trim().length > 0 && !isLoading
+    return searchItems(allItems, {
+      query: debouncedQuery,
+      limit: MAX_RESULTS,
+      minScore: 5,
+    })
+  }, [debouncedQuery, allItems])
 
-  // Клик вне — закрыть dropdown
-  const handleClickOutside = useCallback((event: MouseEvent) => {
-    if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-      setQuery('')
-    }
+  const showDropdown = isOpen && query.trim().length > 0
+
+  const closeDropdown = useCallback(() => {
+    setIsOpen(false)
+    setSelectedIndex(-1)
   }, [])
 
-  useEffect(() => {
-    if (!showDropdown) return
+  const resetSearch = useCallback(() => {
+    setQuery('')
+    closeDropdown()
+  }, [closeDropdown])
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showDropdown, handleClickOutside])
+  const handleSelectResult = useCallback(
+    (href: string) => {
+      resetSearch()
+      onClose?.()
+    },
+    [resetSearch, onClose],
+  )
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (!showDropdown || results.length === 0) return
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault()
+          setSelectedIndex((prev) => (prev < results.length - 1 ? prev + 1 : prev))
+          break
+
+        case 'ArrowUp':
+          e.preventDefault()
+          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+          break
+
+        case 'Enter':
+          e.preventDefault()
+          if (selectedIndex >= 0 && selectedIndex < results.length) {
+            const selected = results[selectedIndex]
+            window.location.href = selected.href
+            handleSelectResult(selected.href)
+          }
+          break
+
+        case 'Escape':
+          e.preventDefault()
+          resetSearch()
+          break
+      }
+    },
+    [showDropdown, results, selectedIndex, handleSelectResult, resetSearch],
+  )
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        closeDropdown()
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen, closeDropdown])
+
+  useEffect(() => {
+    if (selectedIndex >= 0 && resultsRef.current) {
+      const selectedElement = resultsRef.current.children[selectedIndex] as HTMLElement
+      selectedElement?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  }, [selectedIndex])
+
+  useEffect(() => {
+    if (query.trim().length > 0) {
+      setIsOpen(true)
+    }
+  }, [query])
 
   return (
     <>
+      <style>{`input[type="search"]::-webkit-search-cancel-button { display: none; }`}</style>
       <div ref={wrapperRef} className="relative flex items-center w-full">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          disabled={isLoading}
-          className="w-full h-14 pl-12 pr-10 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-[#1D293D] text-[#1D293D] bg-white disabled:opacity-50"
-        />
-
-        {showDropdown && (
-          <button
-            onClick={() => setQuery('')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground cursor-pointer hover:text-zinc-700"
-          >
-            <X size={20} />
-          </button>
+        {isLoading && !query ? (
+          <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground animate-spin" size={20} aria-label="Загрузка" />
+        ) : (
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+            size={20}
+            aria-hidden="true"
+          />
         )}
 
+        <input
+          ref={inputRef}
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          disabled={isLoading && !query}
+          className="
+            w-full h-14 pl-12 pr-10 rounded-2xl shadow-sm
+            focus:outline-none focus:ring-2 focus:ring-blue-500
+            placeholder:text-[#1D293D] text-[#1D293D] bg-white
+            disabled:opacity-50 disabled:cursor-not-allowed
+            transition-all
+          "
+          aria-label="Поиск по сайту"
+          aria-autocomplete="list"
+          aria-controls="search-results"
+          aria-expanded={showDropdown}
+          autoComplete="off"
+        />
+
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          {isLoading && query.trim() && (
+            <Loader2 className="animate-spin text-blue-500" size={18} aria-label="Загрузка" />
+          )}
+          {query.trim() && (
+            <button
+              onClick={resetSearch}
+              className="text-muted-foreground cursor-pointer hover:text-zinc-700 transition-colors"
+              aria-label="Очистить поиск"
+              type="button"
+            >
+              <X size={20} />
+            </button>
+          )}
+        </div>
+
         <div
+          id="search-results"
+          ref={resultsRef}
+          role="listbox"
           className={cn(
-            'absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg transition-all duration-300 origin-top',
-            showDropdown
-              ? 'opacity-100 translate-y-0 visible'
-              : 'opacity-0 -translate-y-15 invisible',
+            'absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg transition-all duration-200 origin-top',
+            showDropdown ? 'opacity-100 scale-y-100 visible' : 'opacity-0 scale-y-95 invisible',
           )}
         >
-          <div className="max-h-80 overflow-y-auto">
-            {results.length > 0 ? (
-              results.map((item) => (
-                <Link
-                  key={`${item.type}-${item.href}`}
-                  href={item.href}
-                  className="block border-b border-zinc-100 px-4 py-3 last:border-b-0 hover:bg-zinc-50 text-left"
-                  onClick={() => {
-                    setQuery('')
-                    onClose?.()
-                  }}
-                >
-                  <div className="text-xs text-zinc-500 flex items-center gap-2">
-                    {typeLabel[item.type]}
-                    {item.searchIcon && (
-                      <>
-                        {item.searchTagText && (
-                          <span className="text-zinc-700">{item.searchTagText}</span>
-                        )}
-                      </>
+          <div className="max-h-[400px] overflow-y-auto">
+            {error && (
+              <div className="px-4 py-3 flex items-center gap-2 text-red-600">
+                <AlertCircle size={16} />
+                <span className="text-sm">Ошибка загрузки данных</span>
+              </div>
+            )}
+
+            {!error && results.length > 0
+              ? results.map((item, index) => (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    role="option"
+                    aria-selected={index === selectedIndex}
+                    className={cn(
+                      'block border-b border-zinc-100 px-4 py-3 last:border-b-0 transition-colors',
+                      index === selectedIndex
+                        ? 'bg-blue-50 border-blue-100'
+                        : 'hover:bg-zinc-50',
                     )}
+                    onClick={() => handleSelectResult(item.href)}
+                  >
+                    <div className="text-xs text-zinc-500 flex items-center gap-2">
+                      {typeLabel[item.type]}
+                      {item.searchTagText && (
+                        <span className="text-zinc-700">{item.searchTagText}</span>
+                      )}
+                    </div>
+                    <div className="font-medium text-zinc-950">{item.title}</div>
+                    {item.description && (
+                      <p className="text-zinc-600 text-sm mt-0.5 line-clamp-2">
+                        {item.description}
+                      </p>
+                    )}
+                  </Link>
+                ))
+              : showDropdown && !isLoading && (
+                  <div className="px-4 py-6 text-center text-sm text-zinc-500">
+                    Ничего не найдено
                   </div>
-                  <div className="font-medium text-zinc-950">{item.title}</div>
-                  {item.description && (
-                    <p className="text-zinc-600 text-sm mt-0.5 line-clamp-2">{item.description}</p>
-                  )}
-                </Link>
-              ))
-            ) : showDropdown ? (
-              <div className="px-4 py-3 text-sm text-zinc-500">Ничего не найдено</div>
-            ) : null}
+                )}
+
+            {isLoading && query.trim() && results.length === 0 && (
+              <div className="px-4 py-6 flex items-center justify-center gap-2 text-zinc-500">
+                <Loader2 className="animate-spin" size={16} />
+                <span className="text-sm">Поиск...</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -139,24 +275,26 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
             return (
               <button
                 key={tag.id || tag.title}
-                className=" bg-white shadow-sm text-sm text-[#314158] max-sm:text-xs max-sm:px-2 max-sm:py-2 transition-all
+                type="button"
+                onClick={() => setQuery(tag.title)}
+                className="
+                  bg-white shadow-sm text-sm text-[#314158]
+                  max-sm:text-xs max-sm:px-2 max-sm:py-2
                   px-4 py-2.5
                   hover:bg-[#E8ECF1]
-                  text-[#4A5565]
-                  text-sm
-                  font-medium
-                  rounded-full
-                  transition-all 
-                  duration-300
-                  hover:-translate-y-0.5
-                  hover:shadow-sm"
-                onClick={() => setQuery(tag.title)}
+                  font-medium rounded-full
+                  transition-all duration-300
+                  hover:-translate-y-0.5 hover:shadow-sm
+                  focus:outline-none focus:ring-2 focus:ring-blue-500
+                "
+                aria-label={`Искать ${tag.title}`}
               >
                 {IconComponent && (
                   <IconComponent
                     size={16}
                     className="inline-block mr-1.5"
                     color="var(--color-accent)"
+                    aria-hidden="true"
                   />
                 )}
                 {tag.title}

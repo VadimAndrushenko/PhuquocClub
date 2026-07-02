@@ -211,7 +211,7 @@ export interface Article {
   /**
    * Main image for cards, previews and SEO
    */
-  image: Media;
+  image: number | Media;
   /**
    * Example: 5, 8, 12
    */

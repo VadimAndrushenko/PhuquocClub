@@ -29,10 +29,7 @@ const iconMap: Record<string, LucideIcon> = {
 }
 
 function resolveMedia(image: Article['image']): AppMedia {
-  if (typeof image === 'object' && image !== null) {
-    return image as unknown as AppMedia
-  }
-  return {}
+  return image as unknown as AppMedia
 }
 
 function isFullArticle(item: number | Article): item is Article {
@@ -87,7 +84,7 @@ export function transformArticle(article: Article): TransformedArticleData {
   })
 
   const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link) => ({
-    href: (link as { href?: string }).href || '',
+    href: link.href || '',
     label: link.label,
   }))
 

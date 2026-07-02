@@ -45,22 +45,27 @@ export const metadata: Metadata = {
 // Helpers
 // ===============================
 
-function resolveLinkHref(link: { linkType: string; section?: unknown; subsection?: unknown; article?: unknown; externalUrl?: string | null }): string {
+interface ResolvableLink {
+  linkType: string
+  externalUrl?: string | null
+  section?: { slug?: string | null } | number | null
+  subsection?: { href?: string | null; slug?: string | null } | number | null
+  article?: { href?: string | null } | number | null
+}
+
+function resolveLinkHref(link: ResolvableLink): string {
   switch (link.linkType) {
     case 'external':
       return link.externalUrl || '/'
-    case 'section': {
-      const s = link.section as { slug?: string } | null | undefined
-      return s?.slug ? `/${s.slug}` : '/'
-    }
-    case 'subsection': {
-      const s = link.subsection as { href?: string; slug?: string } | null | undefined
-      return s?.href || (s?.slug ? `/${s.slug}` : '/')
-    }
-    case 'article': {
-      const a = link.article as { href?: string } | null | undefined
-      return a?.href || '/'
-    }
+    case 'section':
+      if (link.section && typeof link.section === 'object') return `/${link.section.slug || ''}`
+      return '/'
+    case 'subsection':
+      if (link.subsection && typeof link.subsection === 'object') return link.subsection.href || (link.subsection.slug ? `/${link.subsection.slug}` : '/')
+      return '/'
+    case 'article':
+      if (link.article && typeof link.article === 'object') return link.article.href || '/'
+      return '/'
     default:
       return '/'
   }

@@ -1,121 +1,69 @@
 'use client'
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  ReactNode,
-  useRef,
-} from 'react'
-import { getSearchData } from '@/lib/getSearchData'
-import type { SearchItem } from '@/shared/types/componentsType/serchInput.type'
+import { createContext, useContext, ReactNode } from 'react'
+import useSWR from 'swr'
+import type { SearchItem } from '@/lib/search/types'
 
 interface SearchContextType {
   searchItems: SearchItem[]
   isLoading: boolean
-  refreshSearchData: () => Promise<void>
+  error: Error | null
+  mutate: () => void
+  isValidating: boolean
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined)
 
-// 🔥 Глобальное хранилище — общее для всех экземпляров
-let globalSearchItems: SearchItem[] = []
-let globalIsLoading = true
-let globalInitialized = false
-let globalListeners: Set<() => void> = new Set()
+const searchFetcher = async (url: string): Promise<SearchItem[]> => {
+  const response = await fetch(url)
 
-// 🔥 ISR: Автообновление каждые 30 секунд
-let autoUpdateInterval: NodeJS.Timeout | null = null
+  if (!response.ok) {
+    throw new Error(`Search API failed: ${response.status}`)
+  }
 
-function notifyListeners() {
-  globalListeners.forEach((listener) => listener())
+  const data = await response.json()
+  return data.items || []
 }
 
 export function SearchProvider({ children }: { children: ReactNode }) {
-  const [searchItems, setSearchItems] = useState<SearchItem[]>(globalSearchItems)
-  const [isLoading, setIsLoading] = useState(globalIsLoading)
-  const initializedRef = useRef(globalInitialized)
-
-  const updateState = useCallback(() => {
-    setSearchItems(globalSearchItems)
-    setIsLoading(globalIsLoading)
-  }, [])
-
-  const refreshSearchData = useCallback(async () => {
-    try {
-      const items = await getSearchData(true) // forceRefresh = true
-      globalSearchItems = items
-      globalIsLoading = false
-      notifyListeners()
-    } catch (error) {
-      console.error('❌ Ошибка обновления поиска:', error)
-      globalIsLoading = false
-      notifyListeners()
-    }
-  }, [])
-
-  useEffect(() => {
-    // Подписываемся на обновления
-    globalListeners.add(updateState)
-
-    // 🔥 Загружаем только если ещё не загружено
-    if (!initializedRef.current) {
-      globalInitialized = true
-      initializedRef.current = true
-
-      getSearchData()
-        .then((items) => {
-          globalSearchItems = items
-          globalIsLoading = false
-          notifyListeners()
-        })
-        .catch((error) => {
-          console.error('❌ Ошибка загрузки поиска:', error)
-          globalIsLoading = false
-          notifyListeners()
-        })
-
-      // 🔥 ISR: Автообновление каждые 30 секунд
-      autoUpdateInterval = setInterval(() => {
-        getSearchData()
-          .then((items) => {
-            globalSearchItems = items
-            globalIsLoading = false
-            notifyListeners()
-          })
-          .catch((error) => {
-            console.error('❌ Ошибка автообновления поиска:', error)
-          })
-      }, 30000) // 30 секунд
-    }
-
-    return () => {
-      globalListeners.delete(updateState)
-    }
-  }, [updateState])
-
-  // 🔥 Очистка интервала при размонтировании
-  useEffect(() => {
-    return () => {
-      if (autoUpdateInterval) {
-        clearInterval(autoUpdateInterval)
-      }
-    }
-  }, [])
-
-  return (
-    <SearchContext.Provider value={{ searchItems, isLoading, refreshSearchData }}>
-      {children}
-    </SearchContext.Provider>
+  const { data, error, mutate, isValidating, isLoading } = useSWR<SearchItem[], Error>(
+    '/api/search',
+    searchFetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 30000,
+      dedupingInterval: 2000,
+      shouldRetryOnError: true,
+      errorRetryCount: 3,
+      errorRetryInterval: 5000,
+      fallbackData: [],
+      keepPreviousData: true,
+    },
   )
+
+  const value: SearchContextType = {
+    searchItems: data || [],
+    isLoading,
+    error: error || null,
+    mutate,
+    isValidating,
+  }
+
+  return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>
 }
 
-export function useSearch() {
+export function useSearch(): SearchContextType {
   const context = useContext(SearchContext)
+
   if (context === undefined) {
     throw new Error('useSearch должен использоваться внутри SearchProvider')
   }
+
   return context
+}
+
+export function useRefreshSearch() {
+  const { mutate } = useSearch()
+  return mutate
 }

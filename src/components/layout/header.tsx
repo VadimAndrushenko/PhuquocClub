@@ -1,17 +1,17 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useScrollHeader } from '@/hooks/useScrollHeader'
 import { cn } from '@/lib/utils'
 import Logo from '../ui/Logo'
 import BurgerButton from '../ui/BurgerButton'
 import { useSearch } from '@/contexts/SearchContext'
+import dynamic from 'next/dynamic'
 
 import {
   LifeBuoy,
   Search,
-  // Иконки для навигации
   Map,
   Plane,
   Hotel,
@@ -30,8 +30,11 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-import SearchInput from '../ui/SearchInput'
 import Link from 'next/link'
+
+const SearchInput = dynamic(() => import('../ui/SearchInput'), {
+  ssr: false,
+})
 
 // Маппинг названий иконок на компоненты
 const iconMap: Record<string, LucideIcon> = {
@@ -78,6 +81,13 @@ export function Header({ navigationItems = [] }: HeaderProps) {
   const burgerRef = useRef<HTMLButtonElement>(null)
 
   const headerClass = open ? 'top-0' : showHeader ? 'top-0' : '-top-20'
+
+  const activeHref = useMemo(() => {
+    const sorted = [...navigationItems].sort((a, b) => b.href.length - a.href.length)
+    return sorted.find(
+      (item) => pathname === item.href || pathname.startsWith(item.href + '/'),
+    )?.href
+  }, [pathname, navigationItems])
 
   const openSearch = () => {
     setIsSearchOpen(true)
@@ -138,24 +148,10 @@ export function Header({ navigationItems = [] }: HeaderProps) {
           )}
         >
           <nav className="flex items-center max-xl:flex-col max-xl:items-start gap-3">
-            {navigationItems.length > 0 ? (
+            {navigationItems.length > 0 && (
               navigationItems.map((item) => {
-                // 🔥 Исправленная логика isActive:
-                // 1. Точное совпадение пути
-                // 2. ИЛИ путь начинается с item.href + '/' НО только если это самый точный матч среди всех пунктов
-                const isExactMatch = pathname === item.href
-                const isChildPath = pathname.startsWith(item.href + '/')
 
-                // Проверяем есть ли более точный матч среди других пунктов
-                const hasMoreSpecificMatch = navigationItems.some((otherItem) => {
-                  if (otherItem.id === item.id) return false
-                  // Другой пункт более точно соответствует текущему пути
-                  return pathname === otherItem.href || pathname.startsWith(otherItem.href + '/')
-                })
-
-                // Активен только если:
-                // 1. Точное совпадение ИЛИ (путь подходит И нет более точного матча)
-                const isActive = isExactMatch || (isChildPath && !hasMoreSpecificMatch)
+                const isActive = item.href === activeHref
 
                 const IconComponent = iconMap[item.icon] || Map
 
@@ -181,9 +177,6 @@ export function Header({ navigationItems = [] }: HeaderProps) {
                   </button>
                 )
               })
-            ) : (
-              // Fallback menu если навигация не настроена
-              <></>
             )}
           </nav>
         </div>
@@ -192,6 +185,8 @@ export function Header({ navigationItems = [] }: HeaderProps) {
           <div className="flex gap-6 items-center relative max-[500px]:gap-2">
             <button
               onClick={openSearch}
+              aria-label="Открыть поиск"
+              aria-expanded={isSearchOpen}
               className="p-2 hover:bg-[#004E4A33] rounded-xl transition-colors duration-300"
             >
               <Search className="text-[#45556C]" />

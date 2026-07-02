@@ -13,7 +13,7 @@ import BodyArticle from '@/dataPage/articleDataPage/sectionArticle/BodyArticle'
 import NavigationArticle from '@/dataPage/articleDataPage/sectionArticle/NavigationArticle'
 import UsefulArticle from '@/dataPage/articleDataPage/sectionArticle/UsefulArticle'
 import RelatedArticles from '@/dataPage/articleDataPage/sectionArticle/RelatedArticles'
-import NeedHelpArticle from '@/dataPage/articleDataPage/sectionArticle/NeeHelpArticle'
+import NeedHelpArticle from '@/dataPage/articleDataPage/sectionArticle/NeedHelpArticle'
 import HeroArticle from '@/dataPage/articleDataPage/sectionArticle/HeroArticle'
 
 import { getSectionTitle, getSubsectionTitle } from '@/lib/payload/getBreadcrumbsTitles'

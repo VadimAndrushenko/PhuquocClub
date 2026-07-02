@@ -26,7 +26,11 @@ export const Users: CollectionConfig = {
         },
       }
     },
-    create: () => true, // Public registration (can be restricted if needed)
+    create: ({ req }) => {
+      // Только админы могут создавать новых пользователей
+      if (!req.user) return false
+      return req.user.role === 'admin'
+    },
     update: ({ req: { user } }) => {
       if (!user) return false
       if (user.role === 'admin') return true
