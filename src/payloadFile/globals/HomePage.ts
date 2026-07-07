@@ -119,9 +119,8 @@ export const HomePage: GlobalConfig = {
       relationTo: 'Articles',
       label: '🔥 Popular Articles',
       hasMany: true,
-      maxRows: 3,
       admin: {
-        description: 'Select 3 articles for Popular section',
+        description: 'Select articles for Popular section',
       },
     },
 
@@ -132,22 +131,17 @@ export const HomePage: GlobalConfig = {
       label: '📋 Planning Section',
       fields: [
         {
-          name: 'articles',
-          type: 'relationship',
-          relationTo: 'Articles',
-          label: 'Articles',
-          hasMany: true,
-          maxRows: 4,
-          admin: {
-            description: 'Select 4 articles for Planning section',
-          },
-        },
-        {
-          name: 'icons',
+          name: 'items',
           type: 'array',
-          label: 'Icons (same order as articles)',
-          maxRows: 4,
+          label: 'Articles with icons',
           fields: [
+            {
+              name: 'article',
+              type: 'relationship',
+              relationTo: 'Articles',
+              label: 'Article',
+              required: true,
+            },
             {
               name: 'icon',
               type: 'select',
@@ -176,7 +170,6 @@ export const HomePage: GlobalConfig = {
       relationTo: 'subsections',
       label: '📚 Collections (Subsections)',
       hasMany: true,
-      maxRows: 12,
       admin: {
         description: 'Select subsections to display',
       },
@@ -189,22 +182,17 @@ export const HomePage: GlobalConfig = {
       label: '⚡ Urgent Section',
       fields: [
         {
-          name: 'articles',
-          type: 'relationship',
-          relationTo: 'Articles',
-          label: 'Articles',
-          hasMany: true,
-          maxRows: 4,
-          admin: {
-            description: 'Select 4 articles for Urgent section',
-          },
-        },
-        {
-          name: 'icons',
+          name: 'items',
           type: 'array',
-          label: 'Icons (same order as articles)',
-          maxRows: 4,
+          label: 'Articles with icons',
           fields: [
+            {
+              name: 'article',
+              type: 'relationship',
+              relationTo: 'Articles',
+              label: 'Article',
+              required: true,
+            },
             {
               name: 'icon',
               type: 'select',

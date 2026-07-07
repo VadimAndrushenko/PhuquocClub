@@ -953,16 +953,13 @@ export interface HomePage {
     };
   };
   /**
-   * Select 3 articles for Popular section
+   * Select articles for Popular section
    */
   popularArticles?: (number | Article)[] | null;
   planningBlock?: {
-    /**
-     * Select 4 articles for Planning section
-     */
-    articles?: (number | Article)[] | null;
-    icons?:
+    items?:
       | {
+          article: number | Article;
           icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils';
           id?: string | null;
         }[]
@@ -973,12 +970,9 @@ export interface HomePage {
    */
   collections?: (number | Subsection)[] | null;
   urgentBlock?: {
-    /**
-     * Select 4 articles for Urgent section
-     */
-    articles?: (number | Article)[] | null;
-    icons?:
+    items?:
       | {
+          article: number | Article;
           icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils';
           id?: string | null;
         }[]
@@ -1165,10 +1159,10 @@ export interface HomePageSelect<T extends boolean = true> {
   planningBlock?:
     | T
     | {
-        articles?: T;
-        icons?:
+        items?:
           | T
           | {
+              article?: T;
               icon?: T;
               id?: T;
             };
@@ -1177,10 +1171,10 @@ export interface HomePageSelect<T extends boolean = true> {
   urgentBlock?:
     | T
     | {
-        articles?: T;
-        icons?:
+        items?:
           | T
           | {
+              article?: T;
               icon?: T;
               id?: T;
             };

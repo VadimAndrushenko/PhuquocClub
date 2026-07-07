@@ -88,24 +88,26 @@ export async function getHomePage() {
 
   enriched._popularArticlesData = flattenArticles(data.popularArticles)
 
-  if (data.planningBlock?.articles) {
-    const articles = flattenArticles(data.planningBlock.articles)
-    const icons = data.planningBlock.icons || []
-    enriched._planningArticlesData = articles.map((a, i) => ({
-      ...a,
-      icon: icons[i]?.icon || 'Sun',
-    }))
+  if (data.planningBlock?.items) {
+    enriched._planningArticlesData = data.planningBlock.items
+      .filter((item): item is { article: Article; icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils'; id?: string | null } =>
+        !!item && typeof item.article === 'object')
+      .map((item) => ({
+        ...articleToMinimal(item.article as Article),
+        icon: item.icon || 'Sun',
+      }))
   }
 
   enriched._collectionsData = flattenSubsections(data.collections)
 
-  if (data.urgentBlock?.articles) {
-    const articles = flattenArticles(data.urgentBlock.articles)
-    const icons = data.urgentBlock.icons || []
-    enriched._urgentArticlesData = articles.map((a, i) => ({
-      ...a,
-      icon: icons[i]?.icon || 'Sun',
-    }))
+  if (data.urgentBlock?.items) {
+    enriched._urgentArticlesData = data.urgentBlock.items
+      .filter((item): item is { article: Article; icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils'; id?: string | null } =>
+        !!item && typeof item.article === 'object')
+      .map((item) => ({
+        ...articleToMinimal(item.article as Article),
+        icon: item.icon || 'Sun',
+      }))
   }
 
   return enriched
