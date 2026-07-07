@@ -78,7 +78,7 @@ export default function Hero({
         {dataHero?.description && (
           <p
             className={cn(
-              'leading-relaxed text-[#1E2939] font-medium text-xl text-wrap max-sm:text-lg',
+              'leading-relaxed text-[var(--color-paragraph)] font-medium text-xl text-wrap max-sm:text-lg',
               classes.description,
             )}
           >
@@ -134,7 +134,7 @@ export default function Hero({
 
         {/* Интро */}
         {dataHero?.intro && (
-          <p className={cn('font-normal text-wrap sm:text-lg leading-[1.6] text-[#4A5565]', classes.intro)}>
+          <p className={cn('font-normal text-wrap sm:text-lg leading-[1.6] text-[var(--color-paragraph)]', classes.intro)}>
             {dataHero.intro}
           </p>
         )}

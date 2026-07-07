@@ -8,6 +8,7 @@
   --color-main: #004E4A;
   --color-accent: #C9A75D;
   --color-paragraph: #62748E;
+
 }
 
 @theme inline {
@@ -16,6 +17,7 @@
   --color-main: var(--color-main);
   --color-accent: var(--color-accent);
   --color-paragraph: var(--color-paragraph);
+
 }
 
 @utility container {
@@ -129,4 +131,9 @@ html {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+.group:hover .group-hover-card-btn {
+  background-color: var(--color-accent);
+  color: white;
 }

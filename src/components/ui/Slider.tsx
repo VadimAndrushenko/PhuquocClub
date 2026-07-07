@@ -50,6 +50,8 @@ export default function Slider({
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     containScroll: "trimSnaps",
+    watchDrag: true,
+    dragFree: true,
   });
 
   const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -116,7 +118,7 @@ export default function Slider({
   const slides = useMemo(() => {
     return Children.map(children, (child, index) => {
       return (
-        <div key={index} className={slideClass}>
+        <div key={index} className={`${slideClass} flex flex-col`}>
           {child}
         </div>
       );

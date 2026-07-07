@@ -7,7 +7,13 @@ import { Header, type NavigationItem } from '@/components/layout/header'
 import { Footer, type FooterNavSection, type AdditionalLink } from '@/components/layout/footer'
 import { SearchProvider } from '@/contexts/SearchContext'
 import { getHeader, getFooter } from '@/lib/payload/globals'
-import type { Footer as FooterPayload, Header as HeaderPayload } from '@/payload-types'
+import type {
+  Footer as FooterPayload,
+  Header as HeaderPayload,
+  Section,
+  Subsection,
+  Article,
+} from '@/payload-types'
 
 // ===============================
 // 🔥 ISR - РЕВАЛИДАЦИЯ КАЖДЫЕ 30 СЕКУНД
@@ -48,9 +54,9 @@ export const metadata: Metadata = {
 interface ResolvableLink {
   linkType: string
   externalUrl?: string | null
-  section?: { slug?: string | null } | number | null
-  subsection?: { href?: string | null; slug?: string | null } | number | null
-  article?: { href?: string | null } | number | null
+  section?: Section | number | null
+  subsection?: Subsection | number | null
+  article?: Article | number | null
 }
 
 function resolveLinkHref(link: ResolvableLink): string {
@@ -58,14 +64,37 @@ function resolveLinkHref(link: ResolvableLink): string {
     case 'external':
       return link.externalUrl || '/'
     case 'section':
-      if (link.section && typeof link.section === 'object') return `/${link.section.slug || ''}`
+      if (link.section && typeof link.section === 'object') return `/${(link.section as Section).slug || ''}`
       return '/'
-    case 'subsection':
-      if (link.subsection && typeof link.subsection === 'object') return link.subsection.href || (link.subsection.slug ? `/${link.subsection.slug}` : '/')
+    case 'subsection': {
+      const sub = link.subsection as Subsection | null | undefined
+      if (sub) {
+        const s = sub as any
+        const sectionField = s.section
+        const sectionSlug = typeof sectionField === 'object' && sectionField ? sectionField.slug || '' : String(sectionField || '')
+        const subSlug = s.slug
+        if (sectionSlug && subSlug) return `/${sectionSlug}/${subSlug}`
+        const href = s.href
+        if (href && !href.startsWith('/1/')) return href
+        return subSlug ? `/${subSlug}` : '/'
+      }
       return '/'
-    case 'article':
-      if (link.article && typeof link.article === 'object') return link.article.href || '/'
+    }
+    case 'article': {
+      const art = link.article as Article | null | undefined
+      if (art) {
+        const a = art as any
+        const sectionSlug = a.section
+        const subField = a.subsection
+        const subsectionSlug = typeof subField === 'object' && subField ? subField.slug || '' : String(subField || '')
+        const artSlug = a.slug
+        if (sectionSlug && subsectionSlug && artSlug) return `/${sectionSlug}/${subsectionSlug}/${artSlug}`
+        const href = a.href
+        if (href && !href.startsWith('/1/')) return href
+        return artSlug ? `/${artSlug}` : '/'
+      }
       return '/'
+    }
     default:
       return '/'
   }
@@ -126,9 +155,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       )}
     >
       <body className="min-h-screen flex flex-col bg-background text-main">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-[var(--color-main)] focus:text-white focus:rounded-xl focus:shadow-lg"
+        >
+          Перейти к содержанию
+        </a>
         <SearchProvider>
           <Header navigationItems={headerNavigationItems} />
-          <main className="relative flex-1">{children}</main>
+          <main id="main-content" className="relative flex-1">{children}</main>
           <Footer
             description={footerDescription}
             socialLinks={footerSocialLinks}

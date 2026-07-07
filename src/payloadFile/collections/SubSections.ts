@@ -8,9 +8,25 @@ import { simplifyRelationships } from '../utils/hooks'
  * Optimized with simplified hooks
  */
 
-const generateSubsectionHref: CollectionBeforeChangeHook = ({ data }) => {
+const generateSubsectionHref: CollectionBeforeChangeHook = async ({ data, req }) => {
   if (data?.section && data?.slug) {
-    const sectionSlug = typeof data.section === 'object' ? data.section.slug : data.section
+    let sectionSlug = ''
+
+    if (typeof data.section === 'object' && 'slug' in data.section) {
+      sectionSlug = data.section.slug
+    } else {
+      try {
+        const section = await req.payload.findByID({
+          collection: 'sections',
+          id: typeof data.section === 'object' ? data.section.id : data.section,
+          depth: 0,
+        })
+        sectionSlug = section?.slug || ''
+      } catch {
+        sectionSlug = String(data.section)
+      }
+    }
+
     data.href = `/${sectionSlug}/${data.slug}`
   }
   return data

@@ -29,6 +29,7 @@ interface PayloadArticle {
   id: string | number
   title: string
   slug: string
+  subsection?: string | number | { slug: string; id: string | number }
   description?: string | null
   href?: string
   status: 'draft' | 'published'
@@ -70,6 +71,16 @@ export async function GET() {
 
     const items: SearchItem[] = []
 
+    // Build subsection lookup: id → { slug, sectionSlug }
+    const subsectionMap = new Map<string | number, { slug: string; sectionSlug: string }>()
+    if (subsectionsResult.status === 'fulfilled') {
+      const subsections = subsectionsResult.value.docs as PayloadSubSection[]
+      subsections.forEach((sub) => {
+        const sectionSlug = getSectionSlug(sub.section)
+        subsectionMap.set(sub.id, { slug: sub.slug, sectionSlug })
+      })
+    }
+
     if (sectionsResult.status === 'fulfilled') {
       const sections = sectionsResult.value.docs as PayloadSection[]
       sections.forEach((section) => {
@@ -92,7 +103,7 @@ export async function GET() {
           id: `subsection-${sub.id}`,
           title: sub.title,
           description: sub.description ?? null,
-          href: sub.href || `/${sectionSlug}/${sub.slug}`,
+          href: `/${sectionSlug}/${sub.slug}`,
           type: 'subsection',
           searchText: buildSearchText(sub.title, sub.description),
           searchTagText: sub.searchSettings?.searchTagText,
@@ -104,11 +115,22 @@ export async function GET() {
     if (articlesResult.status === 'fulfilled') {
       const articles = articlesResult.value.docs as PayloadArticle[]
       articles.forEach((article) => {
+        const subData =
+          article.subsection
+            ? typeof article.subsection === 'object'
+              ? subsectionMap.get(article.subsection.id)
+              : subsectionMap.get(article.subsection)
+            : undefined
+
+        const href =
+          article.href ||
+          (subData ? `/${subData.sectionSlug}/${subData.slug}/${article.slug}` : `/${article.slug}`)
+
         items.push({
           id: `article-${article.id}`,
           title: article.title,
           description: article.description ?? null,
-          href: article.href || `/${article.slug}`,
+          href,
           type: 'article',
           searchText: buildSearchText(article.title, article.description),
         })

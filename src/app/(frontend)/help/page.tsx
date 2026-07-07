@@ -4,6 +4,8 @@ import UrgentCardsSection from '@/dataPage/helpDataPage/UrgentCardsSection'
 import WhatHappenedSection from '@/dataPage/helpDataPage/WhatHappenedSection'
 import FaqSection from '@/dataPage/helpDataPage/FaqSection'
 import { buildMetadata } from '@/lib/seo/metadata'
+import { WebPageStructuredData } from '@/components/seo/StructuredData'
+import { siteUrl } from '@/lib/seo/config'
 
 // Статичные данные для страницы помощи
 const HELP_DATA = {
@@ -47,7 +49,13 @@ const classPY = 'py-10 max-md:py-6'
 
 export default function HelpPage() {
   return (
-    <div className="container">
+    <>
+      <WebPageStructuredData
+        title={HELP_DATA.title}
+        description={HELP_DATA.description}
+        siteUrl={`${siteUrl}/help`}
+      />
+      <div className="container">
       {/* Hero блок */}
       <Hero
         dataHero={HELP_DATA}
@@ -68,6 +76,7 @@ export default function HelpPage() {
 
       {/* Блок "Популярные вопросы" */}
       <FaqSection containerClass={classPY} />
-    </div>
+      </div>
+    </>
   )
 }

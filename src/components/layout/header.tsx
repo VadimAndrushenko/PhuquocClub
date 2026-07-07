@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useScrollHeader } from '@/hooks/useScrollHeader'
 import { cn } from '@/lib/utils'
@@ -89,17 +89,20 @@ export function Header({ navigationItems = [] }: HeaderProps) {
     )?.href
   }, [pathname, navigationItems])
 
-  const openSearch = () => {
+  const searchButtonRef = useRef<HTMLButtonElement>(null)
+
+  const openSearch = useCallback(() => {
     setIsSearchOpen(true)
     setTimeout(() => setIsSearchVisible(true), 10)
-  }
+  }, [])
 
-  const closeSearch = () => {
+  const closeSearch = useCallback(() => {
     setIsSearchVisible(false)
     setTimeout(() => {
       setIsSearchOpen(false)
+      searchButtonRef.current?.focus()
     }, 300)
-  }
+  }, [])
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -140,8 +143,9 @@ export function Header({ navigationItems = [] }: HeaderProps) {
 
         <div
           ref={menuRef}
+          id="mobile-menu"
           className={cn(
-            'max-xl:absolute duration-300 transition max-xl:top-full max-xl:left-0 max-xl:w-full max-xl:bg-background/95 max-xl:border-t max-xl:border-white/5 max-xl:px-6 max-xl:py-8',
+            'max-xl:absolute duration-300 transition max-xl:top-full max-xl:left-0 max-xl:w-full max-xl:bg-background/95 max-xl:border-t max-xl:border-white/5 max-xl:px-6 max-xl:py-8 max-xl:overscroll-contain max-xl:max-h-[calc(100vh-5rem)] max-xl:overflow-y-auto',
             open
               ? 'max-xl:translate-y-0 max-xl:opacity-100 visible'
               : 'max-xl:-translate-y-5 max-xl:opacity-0 max-xl:pointer-events-none max-xl:-z-10',
@@ -169,7 +173,7 @@ export function Header({ navigationItems = [] }: HeaderProps) {
                     }}
                     className={cn(
                       'hover-underline px-1.5 py-1 center flex items-center gap-1 text-sm transition-all duration-300',
-                      isActive ? 'text-black active' : 'text-[#314158] hover:text-black',
+                      isActive ? 'text-black active' : 'text-[var(--color-paragraph)] hover:text-black',
                     )}
                   >
                     <IconComponent size={16} />
@@ -184,9 +188,11 @@ export function Header({ navigationItems = [] }: HeaderProps) {
         <div className="flex items-center gap-2">
           <div className="flex gap-6 items-center relative max-[500px]:gap-2">
             <button
+              ref={searchButtonRef}
               onClick={openSearch}
               aria-label="Открыть поиск"
               aria-expanded={isSearchOpen}
+              aria-controls="search-overlay"
               className="p-2 hover:bg-[#004E4A33] rounded-xl transition-colors duration-300"
             >
               <Search className="text-[#45556C]" />
@@ -214,24 +220,48 @@ export function Header({ navigationItems = [] }: HeaderProps) {
       </div>
 
       <div
+        id="search-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Поиск по сайту"
+        aria-hidden={!isSearchVisible}
         className={cn(
-          'fixed inset-0 bg-black/70 backdrop-blur-md flex items-start justify-center pt-28 px-4 transition-opacity duration-300',
+          'fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-20 sm:pt-28 px-4 transition-all duration-300',
           isSearchVisible ? 'opacity-100 z-[100]' : 'opacity-0 pointer-events-none',
         )}
         onClick={closeSearch}
+        onKeyDown={(e) => {
+          if (e.key === 'Tab' && isSearchVisible) {
+            const overlay = e.currentTarget
+            const focusable = overlay.querySelectorAll<HTMLElement>(
+              'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+            )
+            if (focusable.length === 0) return
+            const first = focusable[0]
+            const last = focusable[focusable.length - 1]
+            if (e.shiftKey && document.activeElement === first) {
+              e.preventDefault()
+              last.focus()
+            } else if (!e.shiftKey && document.activeElement === last) {
+              e.preventDefault()
+              first.focus()
+            }
+          }
+        }}
       >
         <div
           className={cn(
             'w-full max-w-2xl transition-all duration-300',
-            isSearchVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
+            isSearchVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4',
           )}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative">
             <SearchInput onClose={closeSearch} />
           </div>
-          <p className="text-center text-white/70 text-sm mt-6">
-            Нажмите ESC или кликните по тёмному фону чтобы закрыть
+          <p className="text-center text-white/50 text-xs sm:text-sm mt-6 tracking-wide">
+            <kbd className="inline-flex items-center justify-center w-5 h-5 rounded border border-white/20 text-white/60 text-[10px] mr-1">ESC</kbd>
+            {' '}или клик вне поля — закрыть
           </p>
         </div>
       </div>

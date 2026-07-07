@@ -20,10 +20,10 @@ function TripPlanningCards({ arr }: TripPlanningProps) {
       <Link
         key={item.href}
         href={item.href}
-        className="group flex flex-col p-6 rounded-[22px] min-h-[210px] shadow-[0_4px_24px_0_rgba(0,0,0,0.02)] bg-white hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] transition-all duration-500 ease-out"
+        className="group flex flex-col p-6 rounded-[22px] min-h-[210px] shadow-[0_4px_24px_0_rgba(0,0,0,0.04)] bg-white hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.06)] transition-all duration-500 ease-out h-full"
       >
         <div className="flex items-center gap-4 mb-4">
-          <span className="flex items-center justify-center bg-[#004E4A0D] rounded-[14px] px-3 w-12 h-12 group-hover:scale-110 transition-transform duration-300">
+          <span className="flex items-center justify-center bg-main/5 rounded-[14px] px-3 w-12 h-12 group-hover:scale-110 transition-transform duration-300">
             <Icon size={24} className="group-hover:text-accent transition-colors" />
           </span>
 
@@ -65,7 +65,7 @@ function PopularCards({ data }: { data: BestArticleMinimal[] }) {
           <Link
             key={item.id}
             href={item.href || '#'}
-            className="group flex gap-6 p-3 justify-between items-center bg-white rounded-[20px] shadow-[0_4px_24px_0_rgba(0,0,0,0.04)] hover:-translate-y-3 hover:shadow-[0_10px_40px_0_rgba(0,0,0,0.06)] transition-all duration-500 ease-out overflow-hidden"
+            className="group flex gap-6 p-3 justify-between items-center bg-white rounded-[22px] shadow-[0_4px_24px_0_rgba(0,0,0,0.04)] hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.06)] transition-all duration-500 ease-out overflow-hidden h-full"
           >
             <div className="p-3 pr-0 flex flex-col h-full flex-1">
               <span className="text-accent font-bold text-xs leading-snug tracking-wider mb-3 uppercase">
@@ -82,7 +82,7 @@ function PopularCards({ data }: { data: BestArticleMinimal[] }) {
               >
                 {item.description}
               </p>
-              <span className="flex gap-1.5 text-[#90A1B9] font-medium text-xs leading-[1.33333] mt-auto">
+              <span className="flex gap-1.5 text-paragraph/60 font-medium text-xs leading-[1.33333] mt-auto">
                 <Clock size={14} />
                 {item.readTime || '5 мин чтения'}
               </span>
@@ -125,7 +125,7 @@ function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
           <Link
             href={item.href}
             key={item.id || i}
-            className="group relative rounded-[22px] overflow-hidden hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.03)] transition-all duration-500 ease-out block"
+            className="group relative rounded-[22px] overflow-hidden hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.06)] transition-all duration-500 ease-out block"
             style={{ height: `${heightInPx}px` }}
           >
             {hasImage ? (
@@ -134,19 +134,19 @@ function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
                 alt={imgAlt}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
-                priority
+                loading="lazy"
                 unoptimized={process.env.NODE_ENV === 'development'}
               />
             ) : (
               <div className="flex items-center justify-center h-full bg-gray-200">
-                <span className="text-gray-500">Изображение отсутствует</span>
+                <span className="text-gray-500">{item.title || 'Изображение недоступно'} — Phuquoc.Club</span>
               </div>
             )}
 
-            <div className="relative z-10 flex h-full flex-col justify-between text-white p-6">
+            <div className="relative z-20 flex h-full flex-col justify-between text-white p-6">
               <div className="flex items-start justify-between">
                 {item.category && (
-                  <span className="font-bold text-white text-[11px] leading-normal uppercase py-1.5 px-3.5 rounded-full text-xs items-center gap-x-1 bg-[#3c383d79] backdrop-blur-sm border border-white/20 ">
+                  <span className="font-bold text-white text-[11px] leading-normal uppercase py-1.5 px-3.5 rounded-full text-xs items-center gap-x-1 bg-black/30 backdrop-blur-sm border border-white/20 ">
                     {item.category}
                   </span>
                 )}
@@ -156,24 +156,26 @@ function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
                 </span>
               </div>
 
-              <div className="flex items-end justify-between gap-6">
-                <div>
-                  {/* 👇 ИЗМЕНЕНИЕ ЗДЕСЬ: group-hover:text-accent и duration-300 */}
-                  <h3 className="font-bold text-2xl leading-[1.33333] mb-2 group-hover:text-accent transition-colors duration-300">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm leading-[1.42857] opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="flex flex-col gap-3">
+                
+                <h3 className="font-bold text-white text-2xl leading-[1.33333] mb-2 group-hover:text-accent transition-colors duration-300 leading-8 h-[64px] overflow-y-auto">
+                  {item.title}
+                </h3>
+
+                <div className="flex justify-between gap-3">
+                  <p className="text-sm text-white/80 leading-[1.42857] opacity-80 group-hover:opacity-100 transition-opacity duration-300">
                     {item.description}
                   </p>
-                </div>
+                  
 
-                <div className="flex shrink-0 items-center justify-center h-11 w-11 rounded-full bg-white text-black group/btn hover:bg-accent hover:text-white transition-all duration-300">
-                  <ArrowRight className="transition-transform duration-300 group-hover/btn:translate-x-1" />
+                  <div className="flex shrink-0 items-center justify-center h-11 w-11 rounded-full bg-white text-black group-hover-card-btn transition-all duration-300 self-end">
+                    <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {bg && <div className={cn(bg, 'absolute inset-0')}></div>}
+            <div className={cn(bg ?? 'card-overlay', 'absolute inset-0 z-10')}></div>
           </Link>
         )
       })}
@@ -188,7 +190,7 @@ function CollectionsCardAccent({ data, className = '' }: CollectionsCardAccentPr
         <Link
           key={item.href}
           href={item.href}
-          className={`group relative bg-white rounded-[22px] overflow-hidden shadow-[0_4px_24px_0_rgba(0,0,0,0.05)] hover:-translate-y-3 transition-all duration-500 ease-out flex flex-col h-full ${className}`}
+          className={`group relative bg-white rounded-[22px] overflow-hidden shadow-[0_4px_24px_0_rgba(0,0,0,0.04)] hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.06)] transition-all duration-500 ease-out flex flex-col h-full ${className}`}
         >
           {item.category && (
             <div className="absolute top-4 left-4 z-10">
@@ -239,7 +241,7 @@ function CollectionsCardAccent({ data, className = '' }: CollectionsCardAccentPr
               </span>
 
               {item.readTime && (
-                <span className="text-xs text-muted-foreground">{item.readTime}</span>
+                <span className="text-xs text-muted-foreground group-hover:text-accent">{item.readTime} мин</span>
               )}
             </div>
           </div>

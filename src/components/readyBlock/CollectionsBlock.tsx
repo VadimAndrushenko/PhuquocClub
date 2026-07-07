@@ -317,7 +317,9 @@ export default function CollectionsBlock({
                           selectedCategory === category ? 'bg-main text-white' : 'bg-gray-100',
                         )}
                       >
-                        {CATEGORY_ICONS[category] || '📄'}
+                        <span role="img" aria-label={category.toLowerCase()}>
+                          {CATEGORY_ICONS[category] || '📄'}
+                        </span>
                       </div>
                       <div className="text-left flex-1">
                         <div
@@ -377,7 +379,7 @@ export default function CollectionsBlock({
       <div ref={gridRef} className="relative scroll-mt-[120px]">
         <div
           className={cn(
-            'grid grid-cols-1 sm:grid-cols-2 gap-6 transition-all duration-300',
+            'grid grid-cols-1 sm:grid-cols-2 gap-6 auto-rows-1fr transition-all duration-300',
             isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100',
           )}
         >

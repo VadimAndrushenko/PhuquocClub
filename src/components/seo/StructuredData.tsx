@@ -117,6 +117,34 @@ export function WebSiteStructuredData({ siteName, siteUrl }: WebSiteStructuredDa
 }
 
 /**
+ * ℹ️ Schema.org для обычной страницы (WebPage)
+ */
+export function WebPageStructuredData({
+  title,
+  description,
+  siteUrl,
+}: {
+  title: string
+  description: string
+  siteUrl: string
+}) {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: title,
+    description,
+    url: siteUrl,
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+    />
+  )
+}
+
+/**
  * 📚 Schema.org для страницы коллекции (CollectionPage)
  */
 export function CollectionPageStructuredData({

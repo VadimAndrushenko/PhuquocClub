@@ -32,10 +32,10 @@ const iconMap: Record<SearchIconType, LucideIcon> = {
   lifeBuoy: LifeBuoy,
 }
 
-const typeLabel: Record<'section' | 'subsection' | 'article', string> = {
-  section: 'Раздел',
-  subsection: 'Подраздел',
-  article: 'Статья',
+const typeLabel: Record<'section' | 'subsection' | 'article', { label: string; dot: string }> = {
+  section: { label: 'Раздел', dot: 'bg-[var(--color-main)]' },
+  subsection: { label: 'Подраздел', dot: 'bg-[var(--color-accent)]' },
+  article: { label: 'Статья', dot: 'bg-[var(--color-paragraph)]' },
 }
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -178,10 +178,11 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
           disabled={isLoading && !query}
           className="
             w-full h-14 pl-12 pr-10 rounded-2xl shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-blue-500
+            focus:outline-none focus:ring-2 focus:ring-[var(--color-main)]/30 focus:border-[var(--color-main)]/50
             placeholder:text-[#1D293D] text-[#1D293D] bg-white
             disabled:opacity-50 disabled:cursor-not-allowed
-            transition-all
+            border border-zinc-200
+            transition-all duration-200
           "
           aria-label="Поиск по сайту"
           aria-autocomplete="list"
@@ -210,6 +211,9 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
           id="search-results"
           ref={resultsRef}
           role="listbox"
+          aria-label="Результаты поиска"
+          aria-live="polite"
+          aria-atomic="false"
           className={cn(
             'absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg transition-all duration-200 origin-top',
             showDropdown ? 'opacity-100 scale-y-100 visible' : 'opacity-0 scale-y-95 invisible',
@@ -233,13 +237,17 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
                     className={cn(
                       'block border-b border-zinc-100 px-4 py-3 last:border-b-0 transition-colors',
                       index === selectedIndex
-                        ? 'bg-blue-50 border-blue-100'
+                        ? 'bg-[var(--color-main)]/[0.06] border-[var(--color-main)]/10'
                         : 'hover:bg-zinc-50',
                     )}
                     onClick={() => handleSelectResult(item.href)}
                   >
-                    <div className="text-xs text-zinc-500 flex items-center gap-2">
-                      {typeLabel[item.type]}
+                    <div className="text-xs text-zinc-500 flex items-center gap-1.5">
+                      <span className={cn('w-1.5 h-1.5 rounded-full', typeLabel[item.type].dot)} />
+                      {typeLabel[item.type].label}
+                      {item.searchTagText && (
+                        <span className="text-zinc-400 mx-1">·</span>
+                      )}
                       {item.searchTagText && (
                         <span className="text-zinc-700">{item.searchTagText}</span>
                       )}
@@ -281,11 +289,11 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
                   bg-white shadow-sm text-sm text-[#314158]
                   max-sm:text-xs max-sm:px-2 max-sm:py-2
                   px-4 py-2.5
-                  hover:bg-[#E8ECF1]
-                  font-medium rounded-full
+                  hover:bg-[var(--color-main)]/[0.06] hover:text-[var(--color-main)]
+                  font-medium rounded-full border border-zinc-200
                   transition-all duration-300
-                  hover:-translate-y-0.5 hover:shadow-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500
+                  hover:-translate-y-0.5 hover:shadow-md
+                  focus:outline-none focus:ring-2 focus:ring-[var(--color-main)]/30
                 "
                 aria-label={`Искать ${tag.title}`}
               >
