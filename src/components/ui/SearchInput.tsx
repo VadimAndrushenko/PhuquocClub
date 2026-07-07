@@ -227,44 +227,51 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
               </div>
             )}
 
-            {!error && results.length > 0
-              ? results.map((item, index) => (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    role="option"
-                    aria-selected={index === selectedIndex}
-                    className={cn(
-                      'block border-b border-zinc-100 px-4 py-3 last:border-b-0 transition-colors',
-                      index === selectedIndex
-                        ? 'bg-[var(--color-main)]/[0.06] border-[var(--color-main)]/10'
-                        : 'hover:bg-zinc-50',
-                    )}
-                    onClick={() => handleSelectResult(item.href)}
-                  >
-                    <div className="text-xs text-zinc-500 flex items-center gap-1.5">
-                      <span className={cn('w-1.5 h-1.5 rounded-full', typeLabel[item.type].dot)} />
-                      {typeLabel[item.type].label}
-                      {item.searchTagText && (
-                        <span className="text-zinc-400 mx-1">·</span>
+            {!error && showDropdown && (
+              <div className="relative">
+                <div className={cn('transition-all duration-200', results.length > 0 ? 'opacity-100 relative' : 'opacity-0 absolute inset-0 pointer-events-none')}>
+                  {results.map((item, index) => (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      role="option"
+                      aria-selected={index === selectedIndex}
+                      className={cn(
+                        'block border-b border-zinc-100 px-4 py-3 last:border-b-0 transition-colors',
+                        index === selectedIndex
+                          ? 'bg-[var(--color-main)]/[0.06] border-[var(--color-main)]/10'
+                          : 'hover:bg-zinc-50',
                       )}
-                      {item.searchTagText && (
-                        <span className="text-zinc-700">{item.searchTagText}</span>
+                      onClick={() => handleSelectResult(item.href)}
+                    >
+                      <div className="text-xs text-zinc-500 flex items-center gap-1.5">
+                        <span className={cn('w-1.5 h-1.5 rounded-full', typeLabel[item.type].dot)} />
+                        {typeLabel[item.type].label}
+                        {item.searchTagText && (
+                          <span className="text-zinc-400 mx-1">·</span>
+                        )}
+                        {item.searchTagText && (
+                          <span className="text-zinc-700">{item.searchTagText}</span>
+                        )}
+                      </div>
+                      <div className="font-medium text-zinc-950" title={item.title}>{item.title}</div>
+                      {item.description && (
+                        <p className="text-zinc-600 text-sm mt-0.5 line-clamp-2" title={item.description ?? ''}>
+                          {item.description}
+                        </p>
                       )}
+                    </Link>
+                  ))}
+                </div>
+                {!isLoading && (
+                  <div className={cn('transition-all duration-200', results.length === 0 ? 'opacity-100 relative' : 'opacity-0 absolute inset-0 pointer-events-none')}>
+                    <div className="px-4 py-6 text-center text-sm text-zinc-500">
+                      Ничего не найдено
                     </div>
-                    <div className="font-medium text-zinc-950">{item.title}</div>
-                    {item.description && (
-                      <p className="text-zinc-600 text-sm mt-0.5 line-clamp-2">
-                        {item.description}
-                      </p>
-                    )}
-                  </Link>
-                ))
-              : showDropdown && !isLoading && (
-                  <div className="px-4 py-6 text-center text-sm text-zinc-500">
-                    Ничего не найдено
                   </div>
                 )}
+              </div>
+            )}
 
             {isLoading && query.trim() && results.length === 0 && (
               <div className="px-4 py-6 flex items-center justify-center gap-2 text-zinc-500">

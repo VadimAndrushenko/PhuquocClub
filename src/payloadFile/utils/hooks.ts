@@ -38,6 +38,13 @@ export const simplifyRelationships: CollectionAfterReadHook = async ({ doc }) =>
     doc.subsection = doc.subsection.slug
   }
 
+  // Fix broken href (e.g., /1/transport/zagluskaa instead of /transport/zagluskaa)
+  if (doc.href && /^\/\d+\//.test(doc.href) && doc.slug) {
+    const sectionSlug = typeof doc.section === 'string' ? doc.section : ''
+    const subsectionSlug = typeof doc.subsection === 'string' ? doc.subsection : ''
+    doc.href = generateHref(sectionSlug, subsectionSlug, doc.slug)
+  }
+
   return doc
 }
 
@@ -68,13 +75,21 @@ export const generateHrefBeforeSave: CollectionBeforeChangeHook = async ({ data,
 
         if (subsection) {
           subsectionSlug = subsection.slug || ''
-          
-          // Get section from subsection
+
           if (subsection.section) {
-            if (typeof subsection.section === 'object' && 'slug' in subsection.section) {
-              sectionSlug = subsection.section.slug
-            } else if (typeof subsection.section === 'string') {
-              sectionSlug = subsection.section
+            const secId =
+              typeof subsection.section === 'object' && subsection.section !== null
+                ? (subsection.section as { id: number | string }).id
+                : subsection.section
+            try {
+              const section = await req.payload.findByID({
+                collection: 'sections',
+                id: secId,
+                depth: 0,
+              })
+              sectionSlug = section?.slug || ''
+            } catch {
+              sectionSlug = ''
             }
           }
         }

@@ -137,3 +137,18 @@ html {
   background-color: var(--color-accent);
   color: white;
 }
+
+.scroll-shadow {
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background:
+    linear-gradient(white 30%, transparent) center top / 100% 20px,
+    linear-gradient(transparent, white 70%) center bottom / 100% 20px,
+    radial-gradient(farthest-side at 50% 0, rgba(0,0,0,0.12), transparent) center top / 100% 8px,
+    radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,0.12), transparent) center bottom / 100% 8px;
+  background-repeat: no-repeat;
+  background-attachment: local, local, scroll, scroll;
+}
+
+.scroll-shadow::-webkit-scrollbar { display: none; }

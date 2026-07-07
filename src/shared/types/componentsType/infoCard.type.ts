@@ -11,7 +11,6 @@ export interface TripPlanningProps {
     title: string
     description: string
     href: string
-    titleLink?: string
   }[]
 }
 

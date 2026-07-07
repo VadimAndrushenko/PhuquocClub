@@ -123,8 +123,11 @@ export async function GET() {
             : undefined
 
         const href =
-          article.href ||
-          (subData ? `/${subData.sectionSlug}/${subData.slug}/${article.slug}` : `/${article.slug}`)
+          article.href && !/^\/\d+\//.test(article.href)
+            ? article.href
+            : subData
+              ? `/${subData.sectionSlug}/${subData.slug}/${article.slug}`
+              : `/${article.slug}`
 
         items.push({
           id: `article-${article.id}`,
