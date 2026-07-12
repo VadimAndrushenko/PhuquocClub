@@ -1,11 +1,9 @@
-import { LucideIcon } from 'lucide-react'
-import { PayloadMedia } from '../global.type'
+import type { LucideIcon } from 'lucide-react'
+import type { AppMedia } from '@/shared/types'
 
 // ==============================
-
-// CollectionsCardAccent TYPES
-
-//==============================
+// TripPlanning TYPES
+// ==============================
 
 export interface TripPlanningProps {
   arr: {
@@ -13,45 +11,37 @@ export interface TripPlanningProps {
     title: string
     description: string
     href: string
-    titleLink?: string
   }[]
 }
 
 // ==============================
+// CollectionsCard TYPES
+// ==============================
 
-// CollectionsCardAccent TYPES
-
-//==============================
-
-export interface CollectionsCardData {
-  id?: string | number
+export interface CollectionCardData {
   href: string
   category?: string
-  image: {
-    url: string
-    alt?: string
-  }
+  image: AppMedia
   title: string
   description: string
-  number?: string | number
+  number?: number
+  id?: number | string
 }
 
 export interface CollectionsCardProps {
-  data: CollectionsCardData[]
+  data: CollectionCardData[]
   bg?: string
   heightInPx: number
 }
 
 // ==============================
-
 // CollectionsCardAccent TYPES
-
-//==============================
+// ==============================
 
 export interface CollectionsCardAccentData {
   href: string
   category: string
-  image: PayloadMedia
+  image: AppMedia
   title: string
   description: string
   readTime?: string

@@ -1,109 +1,55 @@
 import type { LucideIcon } from 'lucide-react'
-import { HeroData } from '../blockType/hero.type'
-import { PayloadMedia } from '../global.type'
+import type { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
+import type { AppMedia, ArticlePageParams, PageParams, PayloadSEO } from '@/shared/types'
 
-// ============================================
-// 🎯 ТИПЫ ДЛЯ СЫРЫХ ДАННЫХ ИЗ PAYLOAD CMS
-// ============================================
-
-/** Элемент блока "Кратко" */
-export interface PayloadKratkoItem {
-  id?: string
-  icon: 'DollarSign' | 'FileText' | 'MapPin' | 'ShieldAlert' | 'Clock' | 'User'
+export interface KratkoItem {
+  icon: LucideIcon
   label: string
   value: string
 }
 
-/** Блок "Кратко" */
-export interface PayloadKratko {
-  items?: PayloadKratkoItem[]
-}
-
-/** Таблица в секции */
-export interface PayloadTable {
-  headers: {
-    header1: string
-    header2: string
-    header3: string
-  }
-  rows: Array<{
-    id?: string
-    cell1: string
-    cell2: string
-    cell3: string
-  }>
-}
-
-/** Чек-лист в секции */
-export interface PayloadChecklist {
-  id?: string
-  item: string
-}
-
-/** Секция контента */
-export interface PayloadSectionBlock {
-  blockType: 'section'
+export interface ContentBlock {
   id?: string
   title: string
-  description: string
+  description?: SerializedEditorState | null
+  descriptionAfter?: SerializedEditorState | null
   contentType: 'none' | 'table' | 'warning' | 'checklist' | 'tips'
-  table?: PayloadTable
-  warning?: string
-  checklist?: PayloadChecklist[]
-  tips?: string
+  table?: {
+    headers: {
+      header1: string
+      header2: string
+      header3: string
+    }
+    rows?: Array<{
+      id?: string | null
+      cell1: string
+      cell2: string
+      cell3: string
+    }> | null
+  } | null
+  warning?: string | null
+  checklist?: Array<{
+    id?: string | null
+    item: string
+  }> | null
+  tips?: string | null
 }
 
-/** Любой блок контента */
-export type PayloadContentBlock = PayloadSectionBlock
-
-/** Связанная статья */
-export interface PayloadRelatedArticle {
-  id?: string
-  category?: string
-  title: string
-  description?: string
-  image: PayloadMedia
-  href: string
-  readTime?: string
-}
-
-/** Полезная ссылка */
-export interface PayloadUsefulLink {
-  id?: string
+export interface UsefulLink {
   href: string
   label: string
 }
 
-/** SEO настройки */
-export interface PayloadSEO {
+export interface RelatedArticle {
+  id: number
+  category: string
   title: string
   description: string
-  keywords?: Array<{ id?: string; keyword: string }>
-  noIndex?: boolean
+  image: AppMedia
+  href: string
+  readTime?: string
 }
 
-/** Полная статья из Payload */
-export interface PayloadArticle {
-  id: string | number
-  status: 'draft' | 'published'
-  title: string
-  slug: string
-  section: string
-  subsection: string
-  category: string
-  readTime: string
-  author: string
-  description: string
-  intro: string
-  image: PayloadMedia
-  kratko_items?: PayloadKratkoItem[]
-  content_blocks?: any[] // теперь array, не blocks
-  related_articles?: PayloadRelatedArticle[]
-  useful_links?: PayloadUsefulLink[]
-  seo: PayloadSEO
-  createdAt: string
-  updatedAt: string
-}
 
 // ============================================
 // 🎯 ТИПЫ ДЛЯ ТРАНСФОРМИРОВАННЫХ ДАННЫХ
@@ -121,48 +67,22 @@ export type HeroArticleData = {
   author: string
   updatedAt?: string
   createdAt?: string
-  image: PayloadMedia
-}
-
-/** Элемент блока "Кратко" для компонента */
-export interface KratkoItem {
-  icon: LucideIcon
-  label: string
-  value: string
-}
-
-/** Данные таблицы для компонента */
-export interface TableData {
-  headers: string[]
-  rows: string[][]
+  image: AppMedia
 }
 
 /** Секция для компонента BodyArticle */
 export interface SectionBlock {
   title: string
-  description: string
+  description: SerializedEditorState | null
+  descriptionAfter?: SerializedEditorState | null
   typeContent?: 'table' | 'warning' | 'checklist' | 'tips'
-  table?: TableData
+  table?: {
+    headers: string[]
+    rows: string[][]
+  }
   warning?: string
   checklist?: string[]
   tips?: string
-}
-
-/** Связанная статья для компонента */
-export interface RelatedArticle {
-  id: string | number
-  category: string
-  title: string
-  description: string
-  image: PayloadMedia
-  href: string
-  readTime?: string
-}
-
-/** Полезная ссылка для компонента */
-export interface UsefulLink {
-  href: string
-  label: string
 }
 
 /** Результат трансформации статьи */
@@ -178,48 +98,37 @@ export interface TransformedArticleData {
 // 🎯 ТИПЫ ДЛЯ КОМПОНЕНТОВ
 // ============================================
 
-/** Props для HederArticle */
 export interface HeroArticleProps {
   containerClass?: string
   dataArticle: HeroArticleData
 }
 
-/** Props для KratkoArticle */
 export interface KratkoArticleProps {
   containerClass?: string
   items: KratkoItem[]
 }
 
-/** Props для NavigationArticle */
 export interface NavigationArticleProps {
   containerClass?: string
   blocks: SectionBlock[]
 }
 
-/** Props для BodyArticle */
 export interface BodyArticleProps {
   containerClass?: string
   contentArticle: SectionBlock[]
 }
 
-/** Props для UsefulArticle */
 export interface UsefulArticleProps {
   containerClass?: string
   links?: UsefulLink[]
 }
 
-/** Props для RelatedArticles */
 export interface RelatedArticlesProps {
   containerClass?: string
   articles: RelatedArticle[]
   title?: string
 }
 
-/** Props для страницы статьи */
 export interface ArticlePageProps {
-  params: Promise<{
-    section: string
-    subSection: string
-    article: string
-  }>
+  params: PageParams<string>
 }

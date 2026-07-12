@@ -1,0 +1,155 @@
+import {
+  DollarSign,
+  MapPin,
+  FileText,
+  ShieldAlert,
+  Clock,
+  User,
+  type LucideIcon,
+} from 'lucide-react'
+
+import type { Article } from '@/payload-types'
+import type {
+  TransformedArticleData,
+  SectionBlock,
+  HeroArticleData,
+  KratkoItem,
+  UsefulLink,
+  RelatedArticle,
+} from '@/shared/types/pageType/article.type'
+import type { AppMedia } from '@/shared/types'
+import { withLocale } from '@/lib/locale'
+
+const iconMap: Record<string, LucideIcon> = {
+  DollarSign,
+  FileText,
+  MapPin,
+  ShieldAlert,
+  Clock,
+  User,
+}
+
+function resolveMedia(image: Article['image']): AppMedia {
+  return image as unknown as AppMedia
+}
+
+function isFullArticle(item: number | Article): item is Article {
+  return typeof item === 'object' && item !== null
+}
+
+export function transformArticle(article: Article, locale = 'ru'): TransformedArticleData {
+  const heroData: HeroArticleData = {
+    title: article.title || (locale === 'en' ? 'Title is empty' : 'Заголовок пуст'),
+    description: article.description || (locale === 'en' ? 'empty' : 'пуст'),
+    intro: article.intro || (locale === 'en' ? 'empty' : 'пуст'),
+    category: article.category || '',
+    image: resolveMedia(article.image),
+    readTime: article.readTime || '',
+    author: article.author || 'Phuquoc.Club',
+    updatedAt: article.updatedAt,
+    createdAt: article.createdAt,
+    section: article.section || '',
+    subsection: typeof article.subsection === 'string' ? article.subsection : '',
+    slug: article.slug || '',
+  }
+
+  const kratkoItems: KratkoItem[] = (article.kratko_items || []).map((item) => ({
+    icon: iconMap[item.icon] || FileText,
+    label: item.label,
+    value: item.value,
+  }))
+
+  const sectionBlocks: SectionBlock[] = (article.content_blocks || []).map((block) => {
+    const result: SectionBlock = {
+      title: block.title,
+      description: block.description || null,
+      descriptionAfter: block.descriptionAfter || null,
+      typeContent: block.contentType === 'none' ? undefined : (block.contentType as SectionBlock['typeContent']),
+    }
+
+    if (block.contentType === 'table' && block.table) {
+      const { headers, rows } = block.table
+      result.table = {
+        headers: [headers.header1, headers.header2, headers.header3].filter(Boolean) as string[],
+        rows: rows?.map((r) => [r.cell1, r.cell2, r.cell3]) || [],
+      }
+    } else if (block.contentType === 'warning') {
+      result.warning = block.warning || undefined
+    } else if (block.contentType === 'checklist') {
+      result.checklist = block.checklist?.map((c) => c.item) || []
+    } else if (block.contentType === 'tips') {
+      result.tips = block.tips || undefined
+    }
+
+    return result
+  })
+
+  const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link) => {
+    let href = '/'
+    switch (link.linkType) {
+      case 'external':
+        href = link.externalUrl || '/'
+        break
+      case 'section':
+        if (link.section && typeof link.section === 'object') {
+          href = `/${(link.section as any).slug || ''}`
+        }
+        break
+      case 'subsection': {
+        const sub = link.subsection as any
+        if (sub) {
+          const sectionField = sub.section
+          const sectionSlug =
+            typeof sectionField === 'object' && sectionField ? sectionField.slug || '' : ''
+          const subSlug = sub.slug
+          if (sectionSlug && subSlug) {
+            href = `/${sectionSlug}/${subSlug}`
+            break
+          }
+          href = sub.href || (subSlug ? `/${subSlug}` : '/')
+        }
+        break
+      }
+      case 'article': {
+        const art = link.article as any
+        if (art) {
+          const sectionSlug = art.section
+          const subField = art.subsection
+          const subsectionSlug =
+            typeof subField === 'object' && subField ? subField.slug || '' : ''
+          const artSlug = art.slug
+          if (sectionSlug && subsectionSlug && artSlug) {
+            href = `/${sectionSlug}/${subsectionSlug}/${artSlug}`
+            break
+          }
+          href = art.href || (artSlug ? `/${artSlug}` : '/')
+        }
+        break
+      }
+    }
+    return {
+      href: withLocale(href, locale),
+      label: link.label,
+    }
+  })
+
+  const relatedArticles: RelatedArticle[] = (article.related_articles || [])
+    .filter(isFullArticle)
+    .map((item) => ({
+      id: item.id,
+      category: item.category || '',
+      title: item.title || '',
+      description: item.description || '',
+      image: resolveMedia(item.image),
+      href: withLocale(item.href || '', locale),
+      readTime: item.readTime || undefined,
+    }))
+
+  return {
+    heroData,
+    kratkoItems,
+    sectionBlocks,
+    relatedArticles,
+    usefulLinks,
+  }
+}

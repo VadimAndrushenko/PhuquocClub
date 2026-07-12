@@ -1,20 +1,11 @@
-import { PayloadMedia } from '../global.type'
-
-interface SectionSearch {
-  placeholder: string
-  tags: boolean
-}
+import type { AppMedia, SearchConfig } from '@/shared/types'
 
 export interface HeroMainProps {
   containerClass?: string
   dataMain: {
-    /** Главный заголовок */
     title: string
-    /** Описание под заголовком */
     description: string
-    /** Настройки поиска */
-    search: SectionSearch
-    /** Путь к изображению */
-    image: PayloadMedia
+    search: SearchConfig
+    image: AppMedia
   }
 }

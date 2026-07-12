@@ -1,14 +1,8 @@
-import type { PayloadMedia } from '../global.type'
+import type { AppMedia, SearchConfig } from '@/shared/types'
 
 // ============================================
 // 🖼️ ТИПЫ ДАННЫХ
 // ============================================
-
-/** Настройки поиска */
-interface HeroSearch {
-  placeholder: string
-  tags: boolean
-}
 
 /** Основные данные для Hero компонента */
 export interface HeroData {
@@ -23,7 +17,9 @@ export interface HeroData {
   /** Категория (бейдж) */
   category?: string
   /** Изображение */
-  image: PayloadMedia
+  image?: AppMedia
+  /** 🔥 Скрывать изображение (по умолчанию false) */
+  noImage?: boolean
   /** Раздел (для хлебных крошек) */
   section?: string
   /** Подраздел (для хлебных крошек) */
@@ -39,7 +35,7 @@ export interface HeroData {
   /** Дата создания (ISO строка) */
   createdAt?: string
   /** Настройки поиска */
-  search?: HeroSearch
+  search?: SearchConfig
 }
 
 // ============================================

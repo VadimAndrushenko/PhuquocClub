@@ -1,12 +1,12 @@
 import { cn } from '@/lib/utils'
 import type { KratkoArticleProps } from '@/shared/types/pageType/article.type'
 
-export default function KratkoArticle({ containerClass = '', items }: KratkoArticleProps) {
+export default function KratkoArticle({ containerClass = '', items, locale = 'ru' }: KratkoArticleProps & { locale?: string }) {
   return (
     <section className={cn(containerClass)}>
       <div className="bg-block">
         <h3 className="mb-6 text-lg font-semibold uppercase tracking-[0.12em] text-[#101828]">
-          Коротко
+          {locale === 'en' ? 'In brief' : 'Коротко'}
         </h3>
 
         <div className="grid gap-6 min-[500px]:grid-cols-2">

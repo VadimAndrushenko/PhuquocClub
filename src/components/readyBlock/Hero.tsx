@@ -2,19 +2,18 @@ import Image from 'next/image'
 import { CalendarDays, Clock3, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Breadcrumbs from '../ui/Breadcrumbs'
-import SearchInput from '../ui/SearchInput'
 import type { HeroProps } from '@/shared/types/blockType/hero.type'
-import { PayloadMedia } from '@/shared/types/global.type'
+import SearchInput from '../ui/SearchInput'
 
 // ============================================
 // 🔧 ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ============================================
 
-/** Форматирует дату в русский формат */
-function formatDate(dateString: string | undefined): string | null {
+/** Форматирует дату */
+function formatDate(dateString: string | undefined, locale = 'ru'): string | null {
   if (!dateString) return null
 
-  return new Date(dateString).toLocaleDateString('ru-RU', {
+  return new Date(dateString).toLocaleDateString(locale === 'en' ? 'en-US' : 'ru-RU', {
     month: 'long',
     year: 'numeric',
   })
@@ -29,21 +28,21 @@ export default function Hero({
   thisHeader = false,
   classes = {},
   className = '',
-}: HeroProps) {
+  locale = 'ru',
+}: HeroProps & { locale?: string }) {
   const Tag = thisHeader ? 'header' : 'section'
 
   // Дата: приоритет updatedAt, fallback на createdAt
   const dateToShow = dataHero?.updatedAt || dataHero?.createdAt
-  const updatedLabel = formatDate(dateToShow)
+  const updatedLabel = formatDate(dateToShow, locale)
 
   // Показываем мета-блок только если есть что показывать
   const showMeta = dataHero?.readTime || updatedLabel || dataHero?.author
-
   return (
     <Tag
       className={cn(
         // 🔥 ОБЩИЕ классы
-        'relative flex items-center justify-between gap-13 max-xl:justify-center',
+        'relative flex items-center justify-between gap-13 max-xl:justify-left',
         className,
         classes.container,
       )}
@@ -57,7 +56,7 @@ export default function Hero({
           >
             {dataHero.category}
           </div>
-        )}
+        )}        
 
         {/* Хлебные крошки */}
         {dataHero?.section && (
@@ -67,19 +66,20 @@ export default function Hero({
               ...(dataHero.subsection && { subsection: dataHero.subsection }),
               ...(dataHero.slug && { article: dataHero.slug }),
             }}
+            locale={locale}
           />
         )}
 
         {/* Заголовок H1 */}
-        <h1 className={cn('font-bold leading-[1.1] text-main', classes.title)}>
-          {dataHero?.title || 'Заголовок'}
+        <h1 className={cn('font-bold leading-[1.1] text-main text-5xl max-sm:text-[8vw]', classes.title)}>
+          {dataHero?.title || (locale === 'en' ? 'Title' : 'Заголовок')}
         </h1>
 
         {/* Описание */}
         {dataHero?.description && (
           <p
             className={cn(
-              'leading-relaxed text-[#1E2939] font-medium text-xl text-wrap max-sm:text-lg',
+              'leading-relaxed text-paragraph font-medium text-xl text-wrap max-sm:text-lg',
               classes.description,
             )}
           >
@@ -103,7 +103,7 @@ export default function Hero({
                 )}
               >
                 <Clock3 size={16} className="text-accent" />
-                {dataHero.readTime} мин чтения
+                {dataHero.readTime} {locale === 'en' ? 'min read' : 'мин чтения'}
               </span>
             )}
 
@@ -115,7 +115,7 @@ export default function Hero({
                 )}
               >
                 <CalendarDays size={16} className="text-accent" />
-                Обновлено: {updatedLabel}
+                {locale === 'en' ? 'Updated:' : 'Обновлено:'} {updatedLabel}
               </span>
             )}
 
@@ -135,35 +135,36 @@ export default function Hero({
 
         {/* Интро */}
         {dataHero?.intro && (
-          <p className={cn('font-normal sm:text-lg leading-[1.6] text-[#4A5565]', classes.intro)}>
+          <p className={cn('font-normal text-wrap sm:text-lg leading-[1.6] text-paragraph', classes.intro)}>
             {dataHero.intro}
           </p>
         )}
 
         {/* Поиск */}
         {dataHero?.search && (
-          <div className={classes.search}>
-            <SearchInput placeholder={dataHero.search.placeholder} tags={dataHero.search.tags} />
+          <div className={classes?.search}>
+            <SearchInput search={dataHero?.search}/>
           </div>
         )}
       </div>
 
-      {/* Правая часть: картинка */}
-      <div className={cn('max-lg:hidden', classes.imageWrapper)}>
-        {dataHero.image.url ? (
-          <Image
-            className={cn('rounded-4xl', classes.image)}
-            src={dataHero.image.url}
-            alt={dataHero.image.alt}
-            width={472}
-            height={420}
-            priority
-            unoptimized={process.env.NODE_ENV === 'development'}
-          />
-        ) : (
-          <div className="bg-red-100 text-red-500 p-4 rounded">проверте url картинки</div>
-        )}
-      </div>
+      {!dataHero?.noImage && (
+        <div className={cn('max-lg:hidden', classes.imageWrapper)}>
+          {dataHero.image?.url && dataHero?.image.alt ? (
+            <Image
+              className={cn('rounded-4xl', classes.image)}
+              src={dataHero.image.url}
+              alt={dataHero.image.alt}
+              width={472}
+              height={420}
+              priority
+              unoptimized={process.env.NODE_ENV === 'development'}
+            />
+          ) : (
+            <div className="bg-red-100 text-red-500 p-4 rounded">{locale === 'en' ? 'Check image URL or alt' : 'проверте url или alt картинки'}</div>
+          )}
+        </div>
+      )}
     </Tag>
   )
 }

@@ -17,6 +17,8 @@ export default function MobileMenu({
       ref={burgerRef}
       type="button"
       aria-label="Open menu"
+      aria-expanded={isMenuOpen}
+      aria-controls="mobile-menu"
       title="Open menu"
       onClick={() => setIsMenuOpen((prev) => !prev)}
       className={cn(

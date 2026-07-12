@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { cn, slugify } from '@/lib/utils'
 import type { NavigationArticleProps } from '@/shared/types/pageType/article.type'
 
-export default function NavigationArticle({ containerClass = '', blocks }: NavigationArticleProps) {
+export default function NavigationArticle({ containerClass = '', blocks, locale = 'ru' }: NavigationArticleProps & { locale?: string }) {
   return (
     <section className={containerClass}>
       <div className="bg-block">
-        <div className="mb-6 text-lg font-semibold tracking-[0.12em] text-[#101828]">В статье</div>
+        <div className="mb-6 text-lg font-semibold tracking-[0.12em] text-[#101828]">{locale === 'en' ? 'In this article' : 'В статье'}</div>
         <nav>
           <ul className="border-l-2 border-gray-100 space-y-3">
             {blocks.map((item, i) => (

@@ -32,6 +32,7 @@ interface SliderProps {
   className?: string;
   cols?: number | ColsConfig;
   gap?: string | number;
+  locale?: string;
 }
 
 const NAMED_BREAKPOINTS: Record<string, number> = {
@@ -46,10 +47,12 @@ export default function Slider({
   className = "",
   cols = 1,
   gap = "2rem",
+  locale = 'ru',
 }: SliderProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     containScroll: "trimSnaps",
+    watchDrag: true,
   });
 
   const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -116,7 +119,7 @@ export default function Slider({
   const slides = useMemo(() => {
     return Children.map(children, (child, index) => {
       return (
-        <div key={index} className={slideClass}>
+        <div key={index} className={`${slideClass} flex flex-col`}>
           {child}
         </div>
       );
@@ -141,7 +144,7 @@ export default function Slider({
             type="button"
             onClick={scrollPrev}
             disabled={!canScrollPrev}
-            aria-label="Предыдущий слайд"
+            aria-label={locale === 'en' ? 'Previous slide' : 'Предыдущий слайд'}
             className="z-20 absolute top-1/2 -translate-y-1/2 -left-3 flex aspect-square w-8 items-center justify-center rounded-full bg-white/95 shadow-lg backdrop-blur transition-all hover:bg-white hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed "
           >
             <ChevronLeft size={22} strokeWidth={2.5} />
@@ -151,7 +154,7 @@ export default function Slider({
             type="button"
             onClick={scrollNext}
             disabled={!canScrollNext}
-            aria-label="Следующий слайд"
+            aria-label={locale === 'en' ? 'Next slide' : 'Следующий слайд'}
             className="z-20 absolute top-1/2 -translate-y-1/2 -right-3 flex aspect-square w-8 items-center justify-center rounded-full bg-white/95 shadow-lg backdrop-blur transition-all hover:bg-white hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed "
           >
             <ChevronRight size={22} strokeWidth={2.5} />
