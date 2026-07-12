@@ -19,9 +19,11 @@ function transformArticleToCard(article: BestArticleMinimal): CollectionCardData
 export default function ContinuePlanning({
   data,
   className = '',
+  locale = 'ru',
 }: {
   data: BestArticleMinimal[]
   className?: string
+  locale?: string
 }) {
   const transformedData: CollectionCardData[] = Array.isArray(data)
     ? data
@@ -33,12 +35,13 @@ export default function ContinuePlanning({
     <section className={cn('rounded-3xl', className)}>
       <div className="">
         <div className="flex items-center gap-2">
-          <h2 className="title">Продолжить планирование</h2>
+          <h2 className="title">{locale === 'en' ? 'Continue planning' : 'Продолжить планирование'}</h2>
         </div>
         <CollectionsCard
           bg="bg-[linear-gradient(0deg,_rgba(0,78,74,0.9)_0%,_rgba(0,78,74,0.3)_50%,_rgba(0,0,0,0)_100%)]"
           heightInPx={280}
           data={transformedData}
+          locale={locale}
         />
       </div>
     </section>

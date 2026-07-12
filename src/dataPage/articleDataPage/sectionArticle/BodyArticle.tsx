@@ -3,7 +3,7 @@ import { ContentComponents } from '@/components/ui/ContentComponents'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { BodyArticleProps } from '@/shared/types/pageType/article.type'
 
-export default function BodyArticle({ containerClass = '', contentArticle }: BodyArticleProps) {
+export default function BodyArticle({ containerClass = '', contentArticle, locale = 'ru' }: BodyArticleProps & { locale?: string }) {
   return (
     <>
       {contentArticle.map((item, index) => {
@@ -22,7 +22,7 @@ export default function BodyArticle({ containerClass = '', contentArticle }: Bod
               </div>
             )}
 
-            {Component && <Component item={item} />}
+            {Component && <Component item={item} locale={locale} />}
 
             {item.descriptionAfter && (
               <div className="font-normal text-xl leading-[1.6] text-[#364153] max-[500px]:text-lg prose prose-lg max-w-none mt-6">

@@ -3,7 +3,7 @@ import type { SectionBlock } from '@/shared/types/pageType/article.type'
 import { CircleAlert, CircleCheck, Lightbulb } from 'lucide-react'
 
 export const ContentComponents = {
-  table: ({ item }: { item: SectionBlock }) => {
+  table: ({ item, locale = 'ru' }: { item: SectionBlock; locale?: string }) => {
     if (!item.table) return null
 
     return (
@@ -46,14 +46,14 @@ export const ContentComponents = {
     )
   },
 
-  warning: ({ item }: { item: SectionBlock }) => {
+  warning: ({ item, locale = 'ru' }: { item: SectionBlock; locale?: string }) => {
     if (!item.warning) return null
 
     return (
       <div className="mt-12 border border-[#d0fae5] rounded-[20px] p-6 shadow-[0_1px_2px_-1px_rgba(0,0,0,0.1),0_1px_3px_0_rgba(0,0,0,0.1)] bg-[#ecfdf5]/50 font-normal text-[17px] leading-relaxed text-[#006045]/90">
         <span className="flex gap-3 font-bold text-lg leading-normal mb-2">
           <CircleAlert size={24} />
-          Важно знать
+          {locale === 'en' ? 'Important to know' : 'Важно знать'}
         </span>
         <span className="opacity-80 flex">
           <span className="h-full w-9 shrink-0 max-sm:hidden"></span>
@@ -63,14 +63,14 @@ export const ContentComponents = {
     )
   },
 
-  tips: ({ item }: { item: SectionBlock }) => {
+  tips: ({ item, locale = 'ru' }: { item: SectionBlock; locale?: string }) => {
     if (!item.tips) return null
 
     return (
       <div className="mt-12 border border-[rgba(201,167,93,0.3)] rounded-[20px] p-6 shadow bg-[#fdf9f0] font-normal text-[17px] leading-relaxed text-[#9A7D3E]">
         <span className="flex gap-3 font-bold text-lg leading-normal mb-2">
           <Lightbulb size={24} />
-          Полезный совет
+          {locale === 'en' ? 'Useful tip' : 'Полезный совет'}
         </span>
         <span className="opacity-80 flex">
           <span className="h-full w-9 shrink-0 max-sm:hidden"></span>
@@ -80,7 +80,7 @@ export const ContentComponents = {
     )
   },
 
-  checklist: ({ item }: { item: SectionBlock }) => {
+  checklist: ({ item, locale = 'ru' }: { item: SectionBlock; locale?: string }) => {
     if (!item.checklist) return null
 
     return (

@@ -12,7 +12,7 @@ import type {
 } from '@/shared/types/componentsType/infoCard.type'
 import type { BestArticleMinimal } from '@/shared/types'
 
-function TripPlanningCards({ arr }: TripPlanningProps) {
+function TripPlanningCards({ arr, locale = 'ru' }: TripPlanningProps & { locale?: string }) {
   return arr.map((item) => {
     const Icon = item.icon
 
@@ -27,15 +27,17 @@ function TripPlanningCards({ arr }: TripPlanningProps) {
             <Icon size={24} className="group-hover:text-accent transition-colors" />
           </span>
 
-          <h3 className="flex items-center font-bold text-[22px] leading-[1.16667] group-hover:text-accent transition-colors min-h-[77px] line-clamp-3 " title={item.title ?? ''}>
-            {item.title}
-          </h3>
+          <div className="flex items-center h-[77px]">
+            <h3 className="font-bold text-[22px] leading-[1.16667] group-hover:text-accent transition-colors line-clamp-3" title={item.title ?? ''}>
+              {item.title}
+            </h3>
+          </div>
         </div>
 
         <p className="scroll-shadow max-h-16 text-sm text-paragraph flex-1">{item.description}</p>
 
         <div className="font-semibold flex items-center gap-1 mt-auto group-hover:text-accent transition-colors">
-          Подробнее
+          {locale === 'en' ? 'Read more' : 'Подробнее'}
           <ArrowRight
             size={16}
             className="transition-transform duration-300 group-hover:translate-x-1"
@@ -46,22 +48,22 @@ function TripPlanningCards({ arr }: TripPlanningProps) {
   })
 }
 
-function PopularCards({ data }: { data: BestArticleMinimal[] }) {
+function PopularCards({ data, locale = 'ru' }: { data: BestArticleMinimal[]; locale?: string }) {
   return (
-    <Slider cols={{ md: 2, xl: 3 }} gap="2rem">
-      {data.slice(0, 3).map((item, i) => {
+    <Slider cols={{ md: 2, xl: 3 }} gap="2rem" locale={locale}>
+      {data.map((item, i) => {
         const imgUrl = item.image?.url || ''
         const imgAlt = item.image?.alt || item.title || ''
 
         return (
           <Link
             key={item.id}
-            href={item.href || '#'}
+            href={item.href }
             className="group flex gap-6 p-3 justify-between items-center bg-white rounded-[22px] shadow-[0_4px_24px_0_rgba(0,0,0,0.04)] hover:-translate-y-3 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.06)] transition-all duration-500 ease-out overflow-hidden h-full"
           >
             <div className="p-3 pr-0 flex flex-col gap-y-3 h-full flex-1">
               <span className="text-accent font-bold text-xs leading-snug tracking-wider  uppercase">
-                {item.category || 'КАТЕГОРИЯ'}
+                {item.category || (locale === 'en' ? 'CATEGORY' : 'КАТЕГОРИЯ')}
               </span>
               <h3 className="font-bold text-xl leading-tight  group-hover:text-accent transition-colors min-h-[75px] line-clamp-3" title={item.title ?? ''}>
                 {item.title}
@@ -71,7 +73,7 @@ function PopularCards({ data }: { data: BestArticleMinimal[] }) {
               </p>
               <span className="flex gap-1.5 text-paragraph/60 font-medium text-xs leading-[1.33333] mt-auto">
                 <Clock size={14} />
-                {`${item.readTime} мин чтения` || '5 мин чтения'} 
+                {item.readTime ? `${item.readTime} ${locale === 'en' ? 'min read' : 'мин чтения'}` : (locale === 'en' ? '5 min read' : '5 мин чтения')} 
               </span>
             </div>
             <div className="relative w-[90px] h-[120px] sm:w-[110px] sm:h-[196px] shrink-0 overflow-hidden rounded-xl">
@@ -94,9 +96,9 @@ function PopularCards({ data }: { data: BestArticleMinimal[] }) {
   )
 }
 
-function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
+function CollectionsCard({ data, bg, heightInPx, locale = 'ru' }: CollectionsCardProps & { locale?: string }) {
   return (
-    <Slider cols={{ sm: 2, lg: 3 }} gap="2rem">
+    <Slider cols={{ sm: 2, lg: 3 }} gap="2rem" locale={locale}>
       {data.map((item: CollectionCardData, i: number) => {
         const imgUrl =
           item.image && typeof item.image === 'object' && item.image !== null
@@ -126,7 +128,7 @@ function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
               />
             ) : (
               <div className="flex items-center justify-center h-full bg-gray-200">
-                <span className="text-gray-500">{item.title || 'Изображение недоступно'} — Phuquoc.Club</span>
+                <span className="text-gray-500">{item.title || (locale === 'en' ? 'Image unavailable' : 'Изображение недоступно')} — Phuquoc.Club</span>
               </div>
             )}
 
@@ -164,7 +166,7 @@ function CollectionsCard({ data, bg, heightInPx }: CollectionsCardProps) {
   )
 }
 
-function CollectionsCardAccent({ data, className = '' }: CollectionsCardAccentProps) {
+function CollectionsCardAccent({ data, className = '', locale = 'ru' }: CollectionsCardAccentProps & { locale?: string }) {
   return (
     <>
       {data.map((item: CollectionsCardAccentData) => (
@@ -197,7 +199,7 @@ function CollectionsCardAccent({ data, className = '' }: CollectionsCardAccentPr
             ) : (
               <div className="flex items-center justify-center h-full bg-gray-200">
                 <span className="text-gray-500">
-                  проверте изоброжения и alt(описания для картинки)
+                  {locale === 'en' ? 'Check image and alt text' : 'проверте изоброжения и alt(описания для картинки)'}
                 </span>
               </div>
             )}
@@ -214,7 +216,7 @@ function CollectionsCardAccent({ data, className = '' }: CollectionsCardAccentPr
 
             <div className="flex items-center justify-between text-sm font-semibold text-foreground mt-auto">
               <span className="group-hover:text-accent transition-colors flex items-center gap-1.5">
-                Читать статью
+                {locale === 'en' ? 'Read article' : 'Читать статью'}
                 <ArrowRight
                   size={18}
                   className="transition-transform duration-300 group-hover:translate-x-1"
@@ -222,7 +224,7 @@ function CollectionsCardAccent({ data, className = '' }: CollectionsCardAccentPr
               </span>
 
               {item.readTime && (
-                <span className="text-xs text-muted-foreground group-hover:text-accent">{item.readTime} мин</span>
+                <span className="text-xs text-muted-foreground group-hover:text-accent">{item.readTime} {locale === 'en' ? 'min' : 'мин'}</span>
               )}
             </div>
           </div>

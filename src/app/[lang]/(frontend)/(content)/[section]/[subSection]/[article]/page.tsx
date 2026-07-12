@@ -22,27 +22,20 @@ import { getSectionTitle, getSubsectionTitle } from '@/lib/payload/getBreadcrumb
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
 export async function generateStaticParams() {
+  const locales = ['ru', 'en']
   try {
     const articles = await getAllArticles()
-
-    if (!articles || articles.length === 0) {
-      return []
-    }
-
-    return articles
-      .filter((article) => {
-        if (!article.subsection) return false
-        return true
-      })
-      .map((article) => {
+    const result = []
+    for (const locale of locales) {
+      for (const article of articles) {
+        if (!article.subsection) continue
         const subsectionObj =
           typeof article.subsection === 'object' && article.subsection !== null
             ? article.subsection
             : null
-
         const subsectionSlug = subsectionObj?.slug || ''
+        if (!subsectionSlug) continue
         let sectionSlug = article.section || ''
-
         if (subsectionObj && 'section' in subsectionObj) {
           const subsectionSection = subsectionObj.section
           if (
@@ -53,34 +46,29 @@ export async function generateStaticParams() {
             sectionSlug = subsectionSection.slug
           }
         }
-
-        return {
-          section: sectionSlug,
-          subSection: subsectionSlug,
-          article: article.slug,
-        }
-      })
+        result.push({ lang: locale, section: sectionSlug, subSection: subsectionSlug, article: article.slug })
+      }
+    }
+    return result
   } catch (error) {
     console.error('❌ Ошибка generateStaticParams для статей:', error)
-    // 🔥 Возвращаем пустой массив - страницы будут сгенерированы on-demand но останутся статическими!
     return []
   }
 }
 
-export const dynamic = 'force-static'
 export const revalidate = 30
 
 // ============================================
 // 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
-  const { article: slug } = await params
-  const rawArticle = await getArticleBySlug(slug)
+  const { article: slug, lang } = await params
+  const rawArticle = await getArticleBySlug(slug, lang || 'ru')
 
   if (!rawArticle) {
     return {
-      title: 'Статья не найдена',
-      description: 'Такой статьи не существует',
+      title: lang === 'en' ? 'Article not found' : 'Статья не найдена',
+      description: lang === 'en' ? 'This article does not exist' : 'Такой статьи не существует',
     }
   }
 
@@ -98,6 +86,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
     publishedTime: rawArticle.createdAt,
     modifiedTime: rawArticle.updatedAt,
     authors: [rawArticle.author || 'Phuquoc.Club'],
+    locale: lang,
   })
 }
 
@@ -108,21 +97,21 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 const classPY = 'py-10 max-md:py-6'
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
-  const { article: slug, section: sectionSlug, subSection: subsectionSlug } = await params
+  const { article: slug, section: sectionSlug, subSection: subsectionSlug, lang } = await params
 
-  const rawArticle = await getArticleBySlug(slug)
+  const rawArticle = await getArticleBySlug(slug, lang || 'ru')
 
   if (!rawArticle) {
     notFound()
   }
 
   const { heroData, kratkoItems, sectionBlocks, usefulLinks, relatedArticles } =
-    transformArticle(rawArticle)
+    transformArticle(rawArticle, lang || 'ru')
 
   // 🔥 Получаем заголовки для хлебных крошек
   const [sectionTitle, subsectionTitle] = await Promise.all([
-    getSectionTitle(sectionSlug),
-    getSubsectionTitle(subsectionSlug),
+    getSectionTitle(sectionSlug, lang || 'ru'),
+    getSubsectionTitle(subsectionSlug, lang || 'ru'),
   ])
 
   // 🔥 Строим breadcrumb items для Schema.org
@@ -143,23 +132,23 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       <BreadcrumbStructuredData items={breadcrumbItems} />
 
       <article>
-        <HeroArticle containerClass={classPY} dataArticle={heroData} />
+        <HeroArticle containerClass={classPY} dataArticle={heroData} locale={lang} />
 
-        {kratkoItems.length > 0 && <KratkoArticle containerClass={classPY} items={kratkoItems} />}
+        {kratkoItems.length > 0 && <KratkoArticle containerClass={classPY} items={kratkoItems} locale={lang} />}
 
         {sectionBlocks.length > 0 && (
           <>
-            <NavigationArticle blocks={sectionBlocks} containerClass={classPY} />
-            <BodyArticle contentArticle={sectionBlocks} containerClass={classPY} />
+            <NavigationArticle blocks={sectionBlocks} containerClass={classPY} locale={lang} />
+            <BodyArticle contentArticle={sectionBlocks} containerClass={classPY} locale={lang} />
           </>
         )}
 
-        {usefulLinks.length > 0 && <UsefulArticle containerClass={classPY} links={usefulLinks} />}
+        {usefulLinks.length > 0 && <UsefulArticle containerClass={classPY} links={usefulLinks} locale={lang} />}
 
-        <NeedHelpArticle containerClass={classPY} />
+        <NeedHelpArticle containerClass={classPY} locale={lang} />
 
         {relatedArticles.length > 0 && (
-          <RelatedArticles containerClass={classPY} articles={relatedArticles} />
+          <RelatedArticles containerClass={classPY} articles={relatedArticles} locale={lang} />
         )}
       </article>
     </div>

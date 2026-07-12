@@ -18,6 +18,7 @@ import type {
   RelatedArticle,
 } from '@/shared/types/pageType/article.type'
 import type { AppMedia } from '@/shared/types'
+import { withLocale } from '@/lib/locale'
 
 const iconMap: Record<string, LucideIcon> = {
   DollarSign,
@@ -36,11 +37,11 @@ function isFullArticle(item: number | Article): item is Article {
   return typeof item === 'object' && item !== null
 }
 
-export function transformArticle(article: Article): TransformedArticleData {
+export function transformArticle(article: Article, locale = 'ru'): TransformedArticleData {
   const heroData: HeroArticleData = {
-    title: article.title || 'Заголовок пуст',
-    description: article.description || 'пуст',
-    intro: article.intro || 'пуст',
+    title: article.title || (locale === 'en' ? 'Title is empty' : 'Заголовок пуст'),
+    description: article.description || (locale === 'en' ? 'empty' : 'пуст'),
+    intro: article.intro || (locale === 'en' ? 'empty' : 'пуст'),
     category: article.category || '',
     image: resolveMedia(article.image),
     readTime: article.readTime || '',
@@ -83,10 +84,54 @@ export function transformArticle(article: Article): TransformedArticleData {
     return result
   })
 
-  const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link) => ({
-    href: link.href || '',
-    label: link.label,
-  }))
+  const usefulLinks: UsefulLink[] = (article.useful_links || []).map((link) => {
+    let href = '/'
+    switch (link.linkType) {
+      case 'external':
+        href = link.externalUrl || '/'
+        break
+      case 'section':
+        if (link.section && typeof link.section === 'object') {
+          href = `/${(link.section as any).slug || ''}`
+        }
+        break
+      case 'subsection': {
+        const sub = link.subsection as any
+        if (sub) {
+          const sectionField = sub.section
+          const sectionSlug =
+            typeof sectionField === 'object' && sectionField ? sectionField.slug || '' : ''
+          const subSlug = sub.slug
+          if (sectionSlug && subSlug) {
+            href = `/${sectionSlug}/${subSlug}`
+            break
+          }
+          href = sub.href || (subSlug ? `/${subSlug}` : '/')
+        }
+        break
+      }
+      case 'article': {
+        const art = link.article as any
+        if (art) {
+          const sectionSlug = art.section
+          const subField = art.subsection
+          const subsectionSlug =
+            typeof subField === 'object' && subField ? subField.slug || '' : ''
+          const artSlug = art.slug
+          if (sectionSlug && subsectionSlug && artSlug) {
+            href = `/${sectionSlug}/${subsectionSlug}/${artSlug}`
+            break
+          }
+          href = art.href || (artSlug ? `/${artSlug}` : '/')
+        }
+        break
+      }
+    }
+    return {
+      href: withLocale(href, locale),
+      label: link.label,
+    }
+  })
 
   const relatedArticles: RelatedArticle[] = (article.related_articles || [])
     .filter(isFullArticle)
@@ -96,7 +141,7 @@ export function transformArticle(article: Article): TransformedArticleData {
       title: item.title || '',
       description: item.description || '',
       image: resolveMedia(item.image),
-      href: item.href || '',
+      href: withLocale(item.href || '', locale),
       readTime: item.readTime || undefined,
     }))
 

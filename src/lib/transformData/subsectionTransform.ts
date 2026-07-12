@@ -4,6 +4,7 @@ import type {
   TransformedSubsectionData,
   HeroSubSectionData,
 } from '@/shared/types/pageType/subSection.type'
+import { withLocale } from '@/lib/locale'
 
 interface EnrichedBestSelection {
   bestArticles: BestArticleMinimal[]
@@ -15,6 +16,7 @@ interface EnrichedContinueSelection {
 
 export async function transformSubsection(
   subsection: Subsection,
+  locale = 'ru',
 ): Promise<TransformedSubsectionData> {
   const sectionSlug =
     typeof subsection.section === 'object'
@@ -28,7 +30,7 @@ export async function transformSubsection(
     category: subsection.category || '',
     image: subsection.image as AppMedia,
     search: {
-      placeholder: subsection.search?.placeholder || 'Поиск...',
+      placeholder: subsection.search?.placeholder || (locale === 'en' ? 'Search...' : 'Поиск...'),
       tags: subsection.search?.tags || [],
     },
     section: sectionSlug,
@@ -39,13 +41,19 @@ export async function transformSubsection(
   let bestCollectionData: BestArticleMinimal[] = []
 
   if (typeof subsection.bestSelection === 'object' && subsection.bestSelection !== null) {
-    bestCollectionData = (subsection.bestSelection as EnrichedBestSelection).bestArticles || []
+    bestCollectionData = ((subsection.bestSelection as EnrichedBestSelection).bestArticles || []).map((a) => ({
+      ...a,
+      href: withLocale(a.href || '', locale),
+    }))
   }
 
   let continuePlanning: BestArticleMinimal[] = []
 
   if (typeof subsection.continueSelection === 'object' && subsection.continueSelection !== null) {
-    continuePlanning = (subsection.continueSelection as EnrichedContinueSelection).continuePlanning || []
+    continuePlanning = ((subsection.continueSelection as EnrichedContinueSelection).continuePlanning || []).map((a) => ({
+      ...a,
+      href: withLocale(a.href || '', locale),
+    }))
   }
 
   return {

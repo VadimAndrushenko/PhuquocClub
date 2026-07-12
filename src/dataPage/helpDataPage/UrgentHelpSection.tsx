@@ -1,15 +1,18 @@
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { LifeBuoy } from 'lucide-react'
+import { withLocale } from '@/lib/locale'
 
 interface UrgentHelpSectionProps {
   className?: string
   containerClass?: string
+  locale?: string
 }
 
 export default function UrgentHelpSection({
   className = '',
   containerClass = '',
+  locale = 'ru',
 }: UrgentHelpSectionProps) {
   return (
     <div
@@ -30,18 +33,18 @@ export default function UrgentHelpSection({
               <LifeBuoy className="text-white/70" size={24} />
             </div>
             <h2 className="text-2xl font-bold text-white">
-              Нужно срочно?
+              {locale === 'en' ? 'Need help urgently?' : 'Нужно срочно?'}
             </h2>
           </div>
 
           {/* Описание */}
           <p className="text-white/70 text-sm mb-6 max-w-xl text-left">
-            Выберите ситуацию — покажем, куда обратиться и что сделать в первую очередь.
+            {locale === 'en' ? 'Select a situation — we\'ll show you where to go and what to do first.' : 'Выберите ситуацию — покажем, куда обратиться и что сделать в первую очередь.'}
           </p>
 
           {/* Кнопка */}
           <Link
-            href="/help"
+            href={withLocale('/help', locale)}
             className="
               inline-block
               px-6 py-3 
@@ -56,12 +59,12 @@ export default function UrgentHelpSection({
               hover:shadow-lg
             "
           >
-            Выбрать ситуацию
+            {locale === 'en' ? 'Select situation' : 'Выбрать ситуацию'}
           </Link>
 
           {/* Disclaimer внизу */}
           <p className="text-white/40 text-xs mt-8 pt-6 border-t border-white/10">
-            Не заменяет экстренные службы, но помогает быстро сориентироваться.
+            {locale === 'en' ? 'Does not replace emergency services, but helps you quickly find your way.' : 'Не заменяет экстренные службы, но помогает быстро сориентироваться.'}
           </p>
         </div>
       </div>

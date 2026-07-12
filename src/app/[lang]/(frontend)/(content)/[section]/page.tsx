@@ -28,32 +28,35 @@ function declOfNum(number: number, titles: [string, string, string]): string {
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
 export async function generateStaticParams() {
+  const locales = ['ru', 'en']
   try {
     const sections = await getAllSections()
-    return sections.map((section) => ({
-      section: section.slug,
-    }))
+    const result = []
+    for (const locale of locales) {
+      for (const section of sections) {
+        result.push({ lang: locale, section: section.slug })
+      }
+    }
+    return result
   } catch (error) {
     console.error('❌ Ошибка generateStaticParams для sections:', error)
-    // 🔥 Возвращаем пустой массив - страницы будут сгенерированы on-demand но останутся статическими!
     return []
   }
 }
 
-export const dynamic = 'force-static'
 export const revalidate = 30
 
 // ============================================
 // 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
 export async function generateMetadata({ params }: SectionPageProps): Promise<Metadata> {
-  const { section: sectionSlug } = await params
-  const section = await getSectionBySlugs(sectionSlug)
+  const { section: sectionSlug, lang } = await params
+  const section = await getSectionBySlugs(sectionSlug, lang || 'ru')
 
   if (!section) {
     return {
-      title: 'Раздел не найден',
-      description: 'Такой раздел не существует',
+      title: lang === 'en' ? 'Section not found' : 'Раздел не найден',
+      description: lang === 'en' ? 'This section does not exist' : 'Такой раздел не существует',
     }
   }
 
@@ -67,6 +70,7 @@ export async function generateMetadata({ params }: SectionPageProps): Promise<Me
     keywords: section.seo?.keywords,
     path: `/${section.slug}`,
     image: img,
+    locale: lang,
   })
 }
 
@@ -76,16 +80,16 @@ export async function generateMetadata({ params }: SectionPageProps): Promise<Me
 const classPY = 'py-10 max-md:py-6'
 
 export default async function SectionPage({ params }: SectionPageProps) {
-  const { section: sectionSlug } = await params
+  const { section: sectionSlug, lang } = await params
 
   // Получаем секцию
-  const rawSection = await getSectionBySlugs(sectionSlug)
+  const rawSection = await getSectionBySlugs(sectionSlug, lang || 'ru')
   // все subsections этой секции
-  const rawSubsections = await getSubsectionsBySection(sectionSlug)
+  const rawSubsections = await getSubsectionsBySection(sectionSlug, lang || 'ru')
 
   if (!rawSection) notFound()
 
-  const { heroData, bestCollectionData, continuePlanning } = await transformSection(rawSection)
+  const { heroData, bestCollectionData, continuePlanning } = await transformSection(rawSection, lang || 'ru')
 
   // 🔥 Строим breadcrumb items для Schema.org
   const breadcrumbItems = buildBreadcrumbItems({
@@ -106,6 +110,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
 
       <Hero
         dataHero={heroData}
+        locale={lang || 'ru'}
         classes={{
           container: `${classPY}`,
           content: 'lg:max-w-[550px] lg:max-xl:max-w-[430px]',
@@ -116,21 +121,22 @@ export default async function SectionPage({ params }: SectionPageProps) {
 
       {/* ⭐ Лучшие подборки из bestSelection */}
       {bestCollectionData.length > 0 && (
-        <BestSelections className={classPY} data={bestCollectionData} />
+        <BestSelections className={classPY} data={bestCollectionData} locale={lang} />
       )}
 
       {/* 📚 Все subsections секции */}
       <CollectionsBlock
         collections={rawSubsections}
         haveCategories={true}
-        title={`Все подборки раздела:`}
+        title={lang === 'en' ? 'All section collections:' : 'Все подборки раздела:'}
         containerClass={classPY}
         itemsPerPage={6}
+        locale={lang}
       />
 
       {/* 🔗 Продолжить чтение из continueSelection */}
       {continuePlanning.length > 0 && (
-        <ContinuePlanning className={classPY} data={continuePlanning} />
+        <ContinuePlanning className={classPY} data={continuePlanning} locale={lang} />
       )}
     </div>
   )

@@ -1,16 +1,8 @@
 import type { GlobalConfig } from 'payload'
 
-/**
- * ============================================
- * 🌐 GLOBAL: Home Page
- * ============================================
- * Optimized: Removed unused hooks
- * Data fetching handled on frontend for better performance
- */
-
 export const HomePage: GlobalConfig = {
   slug: 'homePage',
-  label: '🏠 Home Page',
+  label: '🏠 Главная страница',
 
   access: {
     read: () => true,
@@ -25,10 +17,10 @@ export const HomePage: GlobalConfig = {
     {
       name: 'status',
       type: 'select',
-      label: 'Publication Status',
+      label: 'Статус',
       options: [
-        { label: '📝 Draft', value: 'draft' },
-        { label: '✅ Published', value: 'published' },
+        { label: '📝 Черновик', value: 'draft' },
+        { label: '✅ Опубликовано', value: 'published' },
       ],
       defaultValue: 'draft',
       required: true,
@@ -39,71 +31,102 @@ export const HomePage: GlobalConfig = {
     {
       name: 'heroSection',
       type: 'group',
-      label: '🎯 Hero Section',
+      label: '🎯 Шапка главной (Hero)',
+      admin: {
+        description: 'Верхний блок главной страницы: заголовок, описание, фоновая картинка и поиск.',
+      },
       fields: [
         {
           name: 'title',
           type: 'text',
-          label: 'Title',
+          label: 'Заголовок',
           required: true,
           maxLength: 100,
+          localized: true,
           defaultValue: 'Гид по Фукуоку',
+          admin: {
+            description: 'Главный заголовок на странице. Например: "Гид по Фукуоку"',
+          },
         },
         {
           name: 'description',
           type: 'textarea',
-          label: 'Description',
+          label: 'Описание',
           required: true,
           maxLength: 300,
-          admin: { rows: 3 },
-          defaultValue: 'Всё что нужно туристу - быстро и понятно',
+          localized: true,
+          admin: {
+            rows: 3,
+            description: 'Текст под заголовком. Например: "Всё что нужно туристу — быстро и понятно"',
+          },
         },
         {
           name: 'image',
           type: 'upload',
           relationTo: 'media',
-          label: 'Hero Image',
+          label: 'Фоновое изображение',
           required: true,
+          admin: {
+            description: 'Большая фоновая картинка в шапке главной страницы.',
+          },
         },
         {
           name: 'search',
           type: 'group',
-          label: '🔍 Search Settings',
+          label: '🔍 Настройки поиска',
+          admin: {
+            description: 'Настройки строки поиска на главной странице.',
+          },
           fields: [
             {
               name: 'placeholder',
               type: 'text',
-              label: 'Placeholder',
+              label: 'Текст-подсказка',
               maxLength: 200,
+              localized: true,
               defaultValue: 'Поиск по сайту: пляжи, отели, еда, транспорт...',
+              admin: {
+                description: 'Серый текст внутри поля поиска.',
+              },
             },
             {
               name: 'tags',
               type: 'array',
-              label: 'Tags',
+              label: 'Теги для быстрого поиска',
               maxRows: 10,
+              localized: true,
+              admin: {
+                description: 'Популярные теги под строкой поиска для быстрой навигации.',
+              },
               fields: [
                 {
                   name: 'title',
                   type: 'text',
-                  label: 'Tag Name',
+                  label: 'Название тега',
                   required: true,
                   maxLength: 50,
+                  localized: true,
+                  admin: {
+                    description: 'Текст тега. Например: "Пляжи", "Отели"',
+                  },
                 },
                 {
                   name: 'icon',
                   type: 'select',
-                  label: 'Icon',
+                  label: 'Иконка',
                   required: true,
                   options: [
-                    { label: '🍴 Food', value: 'utensilsCrossed' },
-                    { label: '🗺️ Attractions', value: 'map' },
-                    { label: '🏖️ Beaches', value: 'waves' },
-                    { label: '🚌 Transport', value: 'bus' },
-                    { label: '💰 Prices', value: 'dollarSign' },
-                    { label: '📄 Visa', value: 'fileText' },
-                    { label: '🛟 Help', value: 'lifeBuoy' },
+                    { label: '🍴 Еда', value: 'utensilsCrossed' },
+                    { label: '🗺️ Достопримечательности', value: 'map' },
+                    { label: '🏖️ Пляжи', value: 'waves' },
+                    { label: '🚌 Транспорт', value: 'bus' },
+                    { label: '💰 Цены', value: 'dollarSign' },
+                    { label: '📄 Виза', value: 'fileText' },
+                    { label: '🛟 Помощь', value: 'lifeBuoy' },
                   ],
+                  admin: {
+                    description: 'Иконка рядом с тегом.',
+                  },
                 },
               ],
             },
@@ -117,10 +140,10 @@ export const HomePage: GlobalConfig = {
       name: 'popularArticles',
       type: 'relationship',
       relationTo: 'Articles',
-      label: '🔥 Popular Articles',
+      label: '🔥 Популярные статьи',
       hasMany: true,
       admin: {
-        description: 'Select articles for Popular section',
+        description: 'Выберите статьи для блока "Популярные" на главной странице.',
       },
     },
 
@@ -128,35 +151,47 @@ export const HomePage: GlobalConfig = {
     {
       name: 'planningBlock',
       type: 'group',
-      label: '📋 Planning Section',
+      label: '📋 Блок "Планируете поездку"',
+      admin: {
+        description: 'Статьи с иконками для блока планирования поездки на главной странице.',
+      },
       fields: [
         {
           name: 'items',
           type: 'array',
-          label: 'Articles with icons',
+          label: 'Статьи с иконками',
+          admin: {
+            description: 'Добавьте статьи с иконками для этого блока.',
+          },
           fields: [
             {
               name: 'article',
               type: 'relationship',
               relationTo: 'Articles',
-              label: 'Article',
+              label: 'Статья',
               required: true,
+              admin: {
+                description: 'Выберите статью.',
+              },
             },
             {
               name: 'icon',
               type: 'select',
-              label: 'Icon',
+              label: 'Иконка',
               required: true,
               options: [
-                { label: '☀️ Sun', value: 'Sun' },
-                { label: '📖 Book', value: 'BookType' },
-                { label: '💰 Wallet', value: 'Wallet' },
-                { label: '🏠 House', value: 'House' },
-                { label: '✈️ Plane', value: 'Plane' },
-                { label: '🗺️ Map', value: 'Map' },
-                { label: '🌊 Waves', value: 'Waves' },
-                { label: '🍴 Food', value: 'Utensils' },
+                { label: '☀️ Солнце', value: 'Sun' },
+                { label: '📖 Книга', value: 'BookType' },
+                { label: '💰 Кошелёк', value: 'Wallet' },
+                { label: '🏠 Дом', value: 'House' },
+                { label: '✈️ Самолёт', value: 'Plane' },
+                { label: '🗺️ Карта', value: 'Map' },
+                { label: '🌊 Волны', value: 'Waves' },
+                { label: '🍴 Еда', value: 'Utensils' },
               ],
+              admin: {
+                description: 'Иконка, отображаемая рядом со статьёй.',
+              },
             },
           ],
         },
@@ -168,10 +203,10 @@ export const HomePage: GlobalConfig = {
       name: 'collections',
       type: 'relationship',
       relationTo: 'subsections',
-      label: '📚 Collections (Subsections)',
+      label: '📚 Подборки (подразделы)',
       hasMany: true,
       admin: {
-        description: 'Select subsections to display',
+        description: 'Выберите подразделы для отображения в блоке "Лучшие подборки" на главной.',
       },
     },
 
@@ -179,35 +214,47 @@ export const HomePage: GlobalConfig = {
     {
       name: 'urgentBlock',
       type: 'group',
-      label: '⚡ Urgent Section',
+      label: '⚡ Блок "Срочно нужно"',
+      admin: {
+        description: 'Статьи с иконками для блока срочной информации на главной странице.',
+      },
       fields: [
         {
           name: 'items',
           type: 'array',
-          label: 'Articles with icons',
+          label: 'Статьи с иконками',
+          admin: {
+            description: 'Добавьте статьи с иконками для блока "Срочно нужно".',
+          },
           fields: [
             {
               name: 'article',
               type: 'relationship',
               relationTo: 'Articles',
-              label: 'Article',
+              label: 'Статья',
               required: true,
+              admin: {
+                description: 'Выберите статью.',
+              },
             },
             {
               name: 'icon',
               type: 'select',
-              label: 'Icon',
+              label: 'Иконка',
               required: true,
               options: [
-                { label: '☀️ Sun', value: 'Sun' },
-                { label: '📖 Book', value: 'BookType' },
-                { label: '💰 Wallet', value: 'Wallet' },
-                { label: '🏠 House', value: 'House' },
-                { label: '✈️ Plane', value: 'Plane' },
-                { label: '🗺️ Map', value: 'Map' },
-                { label: '🌊 Waves', value: 'Waves' },
-                { label: '🍴 Food', value: 'Utensils' },
+                { label: '☀️ Солнце', value: 'Sun' },
+                { label: '📖 Книга', value: 'BookType' },
+                { label: '💰 Кошелёк', value: 'Wallet' },
+                { label: '🏠 Дом', value: 'House' },
+                { label: '✈️ Самолёт', value: 'Plane' },
+                { label: '🗺️ Карта', value: 'Map' },
+                { label: '🌊 Волны', value: 'Waves' },
+                { label: '🍴 Еда', value: 'Utensils' },
               ],
+              admin: {
+                description: 'Иконка, отображаемая рядом со статьёй.',
+              },
             },
           ],
         },
@@ -218,22 +265,53 @@ export const HomePage: GlobalConfig = {
     {
       name: 'seo',
       type: 'group',
-      label: '🔍 SEO & Meta',
+      label: '🔍 SEO и метаданные',
+      admin: {
+        description: 'Настройки для поисковых систем.',
+      },
       fields: [
-        { name: 'title', type: 'text', label: 'SEO Title', required: true, maxLength: 70 },
+        {
+          name: 'title',
+          type: 'text',
+          label: 'SEO-заголовок',
+          required: true,
+          maxLength: 70,
+          localized: true,
+          admin: {
+            description: 'Заголовок для поисковой выдачи (title). До 70 символов.',
+          },
+        },
         {
           name: 'description',
           type: 'textarea',
-          label: 'SEO Description',
-          admin: { rows: 3 },
+          label: 'SEO-описание',
           required: true,
           maxLength: 160,
+          localized: true,
+          admin: {
+            rows: 3,
+            description: 'Описание для поисковой выдачи (meta description). До 160 символов.',
+          },
         },
         {
           name: 'keywords',
           type: 'array',
+          label: 'Ключевые слова',
           maxRows: 10,
-          fields: [{ name: 'keyword', type: 'text', maxLength: 50 }],
+          localized: true,
+          admin: {
+            description: 'Ключевые слова для SEO.',
+          },
+          fields: [{
+            name: 'keyword',
+            type: 'text',
+            label: 'Ключевое слово',
+            maxLength: 50,
+            localized: true,
+            admin: {
+              description: 'Одно ключевое слово или фраза.',
+            },
+          }],
         },
       ],
     },

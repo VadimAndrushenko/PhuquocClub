@@ -12,6 +12,7 @@ export interface BuildMetadataInput {
   publishedTime?: string | null
   modifiedTime?: string | null
   authors?: string[]
+  locale?: string
 }
 
 export function buildMetadata(seo: BuildMetadataInput): Metadata {
@@ -31,8 +32,8 @@ export function buildMetadata(seo: BuildMetadataInput): Metadata {
       url: canonical,
       type: seo.type || 'website',
       images: images.length > 0 ? images : undefined,
-      locale: 'ru_RU',
-      siteName: 'Фукуок.Гид',
+      locale: seo.locale === 'en' ? 'en_US' : 'ru_RU',
+      siteName: seo.locale === 'en' ? 'Phu Quoc Guide' : 'Фукуок.Гид',
       ...(seo.type === 'article' && seo.publishedTime ? { publishedTime: seo.publishedTime } : {}),
       ...(seo.type === 'article' && seo.modifiedTime ? { modifiedTime: seo.modifiedTime } : {}),
       ...(seo.type === 'article' && seo.authors ? { authors: seo.authors } : {}),

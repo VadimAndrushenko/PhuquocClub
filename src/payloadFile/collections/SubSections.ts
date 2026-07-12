@@ -1,13 +1,6 @@
 import type { CollectionConfig, CollectionBeforeChangeHook } from 'payload'
 import { simplifyRelationships } from '../utils/hooks'
 
-/**
- * ============================================
- * 📦 COLLECTION: Subsections
- * ============================================
- * Optimized with simplified hooks
- */
-
 const generateSubsectionHref: CollectionBeforeChangeHook = async ({ data, req }) => {
   if (data?.section && data?.slug) {
     let sectionSlug = ''
@@ -45,13 +38,14 @@ export const SubSections: CollectionConfig = {
   },
 
   labels: {
-    singular: 'Subsection',
-    plural: 'Subsections',
+    singular: 'Подраздел',
+    plural: 'Подразделы',
   },
 
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'section', 'category', 'status'],
+    description: 'Подразделы внутри разделов. Например, в разделе "Когда ехать" подразделы "Сезоны" и "Погода". Содержат статьи.',
   },
 
   versions: {
@@ -67,143 +61,192 @@ export const SubSections: CollectionConfig = {
     {
       name: 'status',
       type: 'select',
-      label: 'Publication Status',
+      label: 'Статус',
       options: [
-        { label: '📝 Draft', value: 'draft' },
-        { label: '✅ Published', value: 'published' },
+        { label: '📝 Черновик', value: 'draft' },
+        { label: '✅ Опубликовано', value: 'published' },
       ],
       defaultValue: 'draft',
       required: true,
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+        description: 'Черновик — подраздел не виден на сайте.',
+      },
       index: true,
     },
     {
       name: 'title',
       type: 'text',
-      label: 'Subsection Title',
+      label: 'Название подраздела',
       required: true,
       minLength: 3,
       maxLength: 200,
-      admin: { position: 'sidebar' },
+      localized: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Название подраздела. Например: "Сезоны", "Погода", "Еда", "Транспорт"',
+      },
     },
     {
       name: 'slug',
       type: 'text',
-      label: 'URL Slug',
+      label: 'URL-идентификатор',
       required: true,
       unique: true,
       minLength: 2,
       maxLength: 200,
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+        description: 'Часть URL подраздела. Только латиница и дефисы. Пример: seasons, weather',
+      },
       index: true,
     },
     {
       name: 'section',
       type: 'relationship',
       relationTo: 'sections',
-      label: '📁 Parent Section',
+      label: '📁 Родительский раздел',
       required: true,
       admin: {
         position: 'sidebar',
+        description: 'Выберите раздел, к которому относится подраздел.',
       },
       index: true,
     },
     {
       name: 'category',
       type: 'text',
-      label: '🏷️ Category',
+      label: '🏷️ Категория',
       required: true,
       maxLength: 100,
+      localized: true,
       admin: {
         position: 'sidebar',
+        description: 'Категория подраздела. Используется для группировки статей. Например: "Погода", "Транспорт", "Проживание"',
       },
       index: true,
     },
     {
       name: 'href',
       type: 'text',
-      label: '🔗 URL (auto)',
+      label: '🔗 URL (авто)',
       admin: {
         readOnly: true,
         position: 'sidebar',
+        description: 'Генерируется автоматически из раздела и slug.',
       },
     },
     {
       name: 'description',
       type: 'textarea',
-      label: 'Description',
+      label: 'Краткое описание',
       required: true,
       minLength: 10,
       maxLength: 500,
-      admin: { rows: 3 },
+      localized: true,
+      admin: {
+        rows: 3,
+        description: 'Краткое описание подраздела для карточек и превью.',
+      },
     },
     {
       name: 'intro',
       type: 'textarea',
-      label: 'Introduction',
+      label: 'Вступление',
       required: true,
       minLength: 20,
       maxLength: 2000,
-      admin: { rows: 5 },
+      localized: true,
+      admin: {
+        rows: 5,
+        description: 'Вступительный текст на странице подраздела, задающий контекст.',
+      },
     },
     {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
-      label: 'Cover Image',
+      label: 'Обложка',
       required: true,
+      admin: {
+        description: 'Изображение для страницы подраздела.',
+      },
     },
     {
       name: 'bestSelection',
       type: 'relationship',
       relationTo: 'bestSelections',
-      label: '⭐ Best Articles Collection',
+      label: '⭐ Подборка лучших статей',
       hasMany: false,
+      admin: {
+        description: 'Коллекция лучших статей для отображения на странице подраздела.',
+      },
     },
     {
       name: 'continueSelection',
       type: 'relationship',
       relationTo: 'continueSelections',
-      label: '📖 Continue Reading Collection',
+      label: '📖 Продолжить чтение',
       hasMany: false,
+      admin: {
+        description: 'Коллекция статей для блока "Продолжить чтение".',
+      },
     },
     {
       name: 'search',
       type: 'group',
-      label: '🔍 Search Settings',
+      label: '🔍 Настройки поиска',
+      admin: {
+        description: 'Настройки поиска для страницы подраздела.',
+      },
       fields: [
         {
           name: 'placeholder',
           type: 'text',
-          label: 'Placeholder',
+          label: 'Текст-подсказка',
           maxLength: 200,
+          localized: true,
+          admin: {
+            description: 'Текст в поле поиска. Например: "Поиск по разделу..."',
+          },
         },
         {
           name: 'tags',
           type: 'array',
-          label: 'Tags',
+          label: 'Теги для поиска',
+          localized: true,
+          admin: {
+            description: 'Популярные теги под строкой поиска.',
+          },
           fields: [
             {
               name: 'title',
               type: 'text',
-              label: 'Tag Name',
+              label: 'Название тега',
               required: true,
               maxLength: 50,
+              localized: true,
+              admin: {
+                description: 'Текст тега. Например: "Пляжи", "Отели"',
+              },
             },
             {
               name: 'icon',
               type: 'select',
-              label: 'Icon',
+              label: 'Иконка',
               required: true,
               options: [
-                { label: '🍴 Food', value: 'utensilsCrossed' },
-                { label: '🗺️ Attractions', value: 'map' },
-                { label: '🏖️ Beaches', value: 'waves' },
-                { label: '🚌 Transport', value: 'bus' },
-                { label: '💰 Prices', value: 'dollarSign' },
-                { label: '📄 Visa', value: 'fileText' },
-                { label: '🛟 Help', value: 'lifeBuoy' },
+                { label: '🍴 Еда', value: 'utensilsCrossed' },
+                { label: '🗺️ Достопримечательности', value: 'map' },
+                { label: '🏖️ Пляжи', value: 'waves' },
+                { label: '🚌 Транспорт', value: 'bus' },
+                { label: '💰 Цены', value: 'dollarSign' },
+                { label: '📄 Виза', value: 'fileText' },
+                { label: '🛟 Помощь', value: 'lifeBuoy' },
               ],
+              admin: {
+                description: 'Иконка рядом с тегом.',
+              },
             },
           ],
         },
@@ -212,22 +255,53 @@ export const SubSections: CollectionConfig = {
     {
       name: 'seo',
       type: 'group',
-      label: '🔍 SEO & Meta',
+      label: '🔍 SEO и метаданные',
+      admin: {
+        description: 'Настройки для поисковых систем.',
+      },
       fields: [
-        { name: 'title', type: 'text', label: 'SEO Title', required: true, maxLength: 70 },
+        {
+          name: 'title',
+          type: 'text',
+          label: 'SEO-заголовок',
+          required: true,
+          maxLength: 70,
+          localized: true,
+          admin: {
+            description: 'Заголовок для поисковой выдачи (title). До 70 символов.',
+          },
+        },
         {
           name: 'description',
           type: 'textarea',
-          label: 'SEO Description',
-          admin: { rows: 3 },
+          label: 'SEO-описание',
           required: true,
           maxLength: 160,
+          localized: true,
+          admin: {
+            rows: 3,
+            description: 'Описание для поисковой выдачи (meta description). До 160 символов.',
+          },
         },
         {
           name: 'keywords',
           type: 'array',
+          label: 'Ключевые слова',
           maxRows: 10,
-          fields: [{ name: 'keyword', type: 'text', maxLength: 50 }],
+          localized: true,
+          admin: {
+            description: 'Ключевые слова для SEO.',
+          },
+          fields: [{
+            name: 'keyword',
+            type: 'text',
+            label: 'Ключевое слово',
+            maxLength: 50,
+            localized: true,
+            admin: {
+              description: 'Одно ключевое слово или фраза.',
+            },
+          }],
         },
       ],
     },

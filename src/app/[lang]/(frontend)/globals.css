@@ -123,7 +123,7 @@ html {
 }
 
 .bg-urgent {
-  background-image: url("../../../public/bg-urgent.png");
+  background-image: url("/bg-urgent.png");
 }
 
 @keyframes searchPop {

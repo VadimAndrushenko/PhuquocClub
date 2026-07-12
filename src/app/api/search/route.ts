@@ -44,8 +44,10 @@ function getSectionSlug(section: string | { slug: string; id: string | number })
   return typeof section === 'string' ? section : section.slug
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const locale = searchParams.get('locale') || 'ru'
     const payload = await getPayloadClient()
 
     const [sectionsResult, subsectionsResult, articlesResult] = await Promise.allSettled([
@@ -54,18 +56,21 @@ export async function GET() {
         where: { status: { equals: 'published' } },
         depth: 0,
         pagination: false,
+        locale: locale as 'ru' | 'en',
       }),
       payload.find({
         collection: 'subsections',
         where: { status: { equals: 'published' } },
         depth: 1,
         pagination: false,
+        locale: locale as 'ru' | 'en',
       }),
       payload.find({
         collection: 'Articles',
         where: { status: { equals: 'published' } },
         depth: 0,
         pagination: false,
+        locale: locale as 'ru' | 'en',
       }),
     ])
 

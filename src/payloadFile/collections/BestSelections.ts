@@ -1,13 +1,5 @@
 import type { CollectionConfig } from 'payload'
 
-/**
- * ============================================
- * 📦 COLLECTION: BestSelections
- * ============================================
- * Optimized: No heavy afterRead hooks
- * Articles are fetched efficiently on the frontend
- */
-
 export const BestSelections: CollectionConfig = {
   slug: 'bestSelections',
 
@@ -19,14 +11,14 @@ export const BestSelections: CollectionConfig = {
   },
 
   labels: {
-    singular: 'Best Articles Collection',
-    plural: 'Best Articles Collections',
+    singular: 'Подборка лучших статей',
+    plural: 'Подборки лучших статей',
   },
 
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'status'],
-    description: 'Collections of best/featured articles',
+    description: 'Коллекции лучших/избранных статей. Отображаются в блоке "Лучшие подборки" на страницах разделов и подразделов.',
   },
 
   versions: {
@@ -37,45 +29,51 @@ export const BestSelections: CollectionConfig = {
     {
       name: 'status',
       type: 'select',
-      label: 'Status',
+      label: 'Статус',
       options: [
-        { label: '📝 Draft', value: 'draft' },
-        { label: '✅ Published', value: 'published' },
+        { label: '📝 Черновик', value: 'draft' },
+        { label: '✅ Опубликовано', value: 'published' },
       ],
       defaultValue: 'draft',
       required: true,
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+        description: 'Черновик — подборка не отображается на сайте.',
+      },
     },
     {
       name: 'title',
       type: 'text',
-      label: 'Collection Name',
+      label: 'Название подборки',
       required: true,
       minLength: 3,
       maxLength: 200,
+      admin: {
+        description: 'Внутреннее название подборки для админки. Посетители его не видят.',
+      },
     },
     {
       name: 'slug',
       type: 'text',
-      label: 'URL Slug',
+      label: 'URL-идентификатор',
       unique: true,
       minLength: 2,
       maxLength: 200,
       admin: {
-        description: 'Optional: for direct URL access',
+        description: 'Необязательный URL для прямого доступа к подборке.',
       },
     },
     {
       name: 'bestArticles',
       type: 'relationship',
       relationTo: 'Articles',
-      label: '⭐ Featured Articles',
+      label: '⭐ Избранные статьи',
       hasMany: true,
       required: true,
       minRows: 1,
       maxRows: 12,
       admin: {
-        description: 'Select articles for this collection. IDs stored in DB, data fetched on frontend.',
+        description: 'Выберите статьи для этой подборки. Можно добавить от 1 до 12 статей.',
       },
     },
   ],

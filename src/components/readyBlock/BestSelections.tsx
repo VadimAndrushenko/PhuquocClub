@@ -19,9 +19,11 @@ function transformArticleToCard(article: BestArticleMinimal): CollectionCardData
 export default function BestSelections({
   data,
   className = '',
+  locale = 'ru',
 }: {
   data: CollectionCardData[] | BestArticleMinimal[]
   className?: string
+  locale?: string
 }) {
   const transformedData: CollectionCardData[] = Array.isArray(data)
     ? data
@@ -33,9 +35,9 @@ export default function BestSelections({
     <section className={cn('rounded-3xl', className)}>
       <div className="">
         <div className="flex items-center gap-2">
-          <h2 className="title">Лучшие подборки</h2>
+          <h2 className="title">{locale === 'en' ? 'Best collections' : 'Лучшие подборки'}</h2>
         </div>
-        <CollectionsCard heightInPx={280} data={transformedData} />
+        <CollectionsCard heightInPx={280} data={transformedData} locale={locale} />
       </div>
     </section>
   )

@@ -10,76 +10,45 @@ export interface HelpCardData {
   href: string
 }
 
+function getDefaultCards(locale: string): HelpCardData[] {
+  if (locale === 'en') {
+    return [
+      { icon: Car, title: 'Taxi', description: 'How to order a car, which apps work, and approximate trip cost.', linkText: 'Find a taxi', href: '/en/help/taxi' },
+      { icon: Pill, title: 'Pharmacy', description: 'Where to find pharmacies, how to explain the issue, and what to bring.', linkText: 'Find a pharmacy', href: '/en/help/pharmacy' },
+      { icon: Wifi, title: 'Internet', description: 'SIM cards, eSIM, mobile internet and Wi-Fi on the island.', linkText: 'Get connected', href: '/en/help/internet' },
+      { icon: ShoppingBag, title: 'Shops', description: 'Supermarkets, markets, essentials and opening hours.', linkText: 'View shops', href: '/en/help/shops' },
+      { icon: Phone, title: 'Medicine', description: 'Clinics, doctors, consultation fees and emergency medical care.', linkText: 'Find a doctor', href: '/en/help/medicine' },
+      { icon: FileText, title: 'Documents', description: 'Visa, insurance, lost documents and important embassy contacts.', linkText: 'Learn more', href: '/en/help/documents' },
+      { icon: Shield, title: 'Safety', description: 'Emergency services, safe areas and how to avoid trouble.', linkText: 'Read about safety', href: '/en/help/safety' },
+      { icon: HelpCircle, title: 'More help', description: 'Other useful services and answers to frequent tourist questions.', linkText: 'View all', href: '/en/help/all' },
+    ]
+  }
+  return [
+    { icon: Car, title: 'Такси', description: 'Как заказать машину, какие приложения работают и сколько примерно стоит поездка.', linkText: 'Найти такси', href: '/help/taxi' },
+    { icon: Pill, title: 'Аптека', description: 'Где искать аптеки, как объяснить проблему и что взять с собой.', linkText: 'Найти аптеку', href: '/help/pharmacy' },
+    { icon: Wifi, title: 'Интернет', description: 'SIM-карты, eSIM, мобильный интернет и Wi-Fi на острове.', linkText: 'Подключиться', href: '/help/internet' },
+    { icon: ShoppingBag, title: 'Магазины', description: 'Супермаркеты, рынки, товары первой необходимости и график работы.', linkText: 'Смотреть магазины', href: '/help/shops' },
+    { icon: Phone, title: 'Медицина', description: 'Клиники, врачи, стоимость приёма и экстренная медицинская помощь.', linkText: 'Найти врача', href: '/help/medicine' },
+    { icon: FileText, title: 'Документы', description: 'Виза, страховка, потерянные документы и важные контакты посольств.', linkText: 'Узнать подробнее', href: '/help/documents' },
+    { icon: Shield, title: 'Безопасность', description: 'Экстренные службы, безопасные районы и как избежать проблем.', linkText: 'Читать о безопасности', href: '/help/safety' },
+    { icon: HelpCircle, title: 'Ещё помощь', description: 'Другие полезные сервисы и ответы на частые вопросы туристов.', linkText: 'Смотреть всё', href: '/help/all' },
+  ]
+}
+
 interface UrgentCardsBlockProps {
   className?: string
   containerClass?: string
   cards?: HelpCardData[]
+  locale?: string
 }
-
-const defaultCards: HelpCardData[] = [
-  {
-    icon: Car,
-    title: 'Такси',
-    description: 'Как заказать машину, какие приложения работают и сколько примерно стоит поездка.',
-    linkText: 'Найти такси',
-    href: '/help/taxi',
-  },
-  {
-    icon: Pill,
-    title: 'Аптека',
-    description: 'Где искать аптеки, как объяснить проблему и что взять с собой.',
-    linkText: 'Найти аптеку',
-    href: '/help/pharmacy',
-  },
-  {
-    icon: Wifi,
-    title: 'Интернет',
-    description: 'SIM-карты, eSIM, мобильный интернет и Wi-Fi на острове.',
-    linkText: 'Подключиться',
-    href: '/help/internet',
-  },
-  {
-    icon: ShoppingBag,
-    title: 'Магазины',
-    description: 'Супермаркеты, рынки, товары первой необходимости и график работы.',
-    linkText: 'Смотреть магазины',
-    href: '/help/shops',
-  },
-  {
-    icon: Phone,
-    title: 'Медицина',
-    description: 'Клиники, врачи, стоимость приёма и экстренная медицинская помощь.',
-    linkText: 'Найти врача',
-    href: '/help/medicine',
-  },
-  {
-    icon: FileText,
-    title: 'Документы',
-    description: 'Виза, страховка, потерянные документы и важные контакты посольств.',
-    linkText: 'Узнать подробнее',
-    href: '/help/documents',
-  },
-  {
-    icon: Shield,
-    title: 'Безопасность',
-    description: 'Экстренные службы, безопасные районы и как избежать проблем.',
-    linkText: 'Читать о безопасности',
-    href: '/help/safety',
-  },
-  {
-    icon: HelpCircle,
-    title: 'Ещё помощь',
-    description: 'Другие полезные сервисы и ответы на частые вопросы туристов.',
-    linkText: 'Смотреть всё',
-    href: '/help/all',
-  },
-]
 
 export default function UrgentCardsBlock({
   className = '',
   containerClass = '',
-  cards = defaultCards,
+  cards,
+  locale = 'ru',
 }: UrgentCardsBlockProps) {
+  const resolvedCards = cards || getDefaultCards(locale)
   return (
     <section
       className={cn(
@@ -90,12 +59,12 @@ export default function UrgentCardsBlock({
     >
       {/* Заголовок секции */}
       <h2 className="text-3xl font-bold text-[#0A5D56] mb-8">
-        Срочно нужно
+        {locale === 'en' ? 'Urgently needed' : 'Срочно нужно'}
       </h2>
 
       {/* Сетка карточек */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {cards.map((card) => {
+        {resolvedCards.map((card) => {
           const IconComponent = card.icon
           return (
             <div

@@ -10,7 +10,6 @@ interface InfoCard {
   title: string
   description: string
   href: string
-  titleLink?: string
 }
 
 // Маппинг названий иконок на компоненты
@@ -27,14 +26,13 @@ const iconMap: Record<string, LucideIcon> = {
 
 // Маппинг статей на карточки с иконками
 function mapArticlesToCards(articles: BestArticleMinimal[]): InfoCard[] {
-  return articles.slice(0, 4).map((article) => {
+  return articles.map((article) => {
     const IconComponent = article.icon ? iconMap[article.icon] : Sun
     return {
       icon: IconComponent || Sun,
       title: article.title || '',
       description: article.description || '',
       href: article.href || '/',
-      titleLink: 'Подробнее',
     }
   })
 }
@@ -42,9 +40,11 @@ function mapArticlesToCards(articles: BestArticleMinimal[]): InfoCard[] {
 export default function Urgent({
   data,
   containerClass = '',
+  locale = 'ru',
 }: {
   data: BestArticleMinimal[]
   containerClass?: string
+  locale?: string
 }) {
   const infoCards = mapArticlesToCards(data)
 
@@ -52,11 +52,11 @@ export default function Urgent({
     <section className="bg-urgent bg-cover bg-center py-20">
       <div className={cn('', containerClass)}>
         <div className="flex items-center gap-2 mb-4">
-          <h2 className="title text-white">Срочно нужно</h2>
+          <h2 className="title text-white">{locale === 'en' ? 'Urgent' : 'Срочно нужно'}</h2>
         </div>
 
-        <Slider cols={{ 520: 2, lg: 3, xl: 4 }} gap="2rem">
-          <TripPlanningCards arr={infoCards} />
+        <Slider cols={{ 520: 2, lg: 3, xl: 4 }} gap="2rem" locale={locale}>
+          <TripPlanningCards arr={infoCards} locale={locale} />
         </Slider>
       </div>
     </section>

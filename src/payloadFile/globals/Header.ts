@@ -1,16 +1,9 @@
 import type { GlobalConfig } from 'payload'
 import { navigationIconOptions, linkTypeField, linkRelationshipFields } from '../utils/fields'
 
-/**
- * ============================================
- * 📦 GLOBAL: Header Navigation
- * ============================================
- * Site-wide navigation menu
- */
-
 export const Header: GlobalConfig = {
   slug: 'header',
-  label: '📱 Header (Navigation)',
+  label: '📱 Шапка сайта (меню)',
 
   access: {
     read: () => true,
@@ -25,10 +18,10 @@ export const Header: GlobalConfig = {
     {
       name: 'status',
       type: 'select',
-      label: 'Status',
+      label: 'Статус',
       options: [
-        { label: '📝 Draft', value: 'draft' },
-        { label: '✅ Published', value: 'published' },
+        { label: '📝 Черновик', value: 'draft' },
+        { label: '✅ Опубликовано', value: 'published' },
       ],
       defaultValue: 'published',
       required: true,
@@ -39,26 +32,27 @@ export const Header: GlobalConfig = {
     {
       name: 'navigationItems',
       type: 'array',
-      label: '🧭 Navigation Menu',
+      label: '🧭 Пункты меню',
       maxRows: 8,
       admin: {
-        description: 'Add up to 8 navigation items. Links are generated automatically.',
+        description: 'Кнопки в шапке сайта. Максимум 8 штук. Можно добавить раздел, подраздел, статью или внешнюю ссылку.',
       },
       fields: [
         {
           name: 'title',
           type: 'text',
-          label: 'Menu Title',
+          label: 'Текст кнопки',
           required: true,
           maxLength: 50,
+          localized: true,
           admin: {
-            description: 'Text displayed in menu',
+            description: 'Текст, который увидит пользователь в меню. Например: "Когда ехать", "На острове"',
           },
         },
         {
           name: 'icon',
           type: 'select',
-          label: 'Icon',
+          label: 'Иконка',
           required: true,
           defaultValue: 'Map',
           options: navigationIconOptions,

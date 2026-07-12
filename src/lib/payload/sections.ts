@@ -1,7 +1,8 @@
 import type { Section } from '@/payload-types'
 import { getPayloadClient } from './payload'
+import { withLocale } from '@/lib/locale'
 
-export async function getSectionBySlugs(sectionSlug: string) {
+export async function getSectionBySlugs(sectionSlug: string, locale = 'ru') {
   const payload = await getPayloadClient()
 
   const { docs } = await payload.find({
@@ -12,12 +13,13 @@ export async function getSectionBySlugs(sectionSlug: string) {
     },
     depth: 3,
     limit: 1,
+    locale: locale as 'ru' | 'en',
   })
 
   return docs[0]
 }
 
-export async function getSubsectionsBySection(sectionSlug: string) {
+export async function getSubsectionsBySection(sectionSlug: string, locale = 'ru') {
   const payload = await getPayloadClient()
 
   const { docs: sections } = await payload.find({
@@ -39,6 +41,7 @@ export async function getSubsectionsBySection(sectionSlug: string) {
     depth: 2,
     limit: 1000,
     sort: '-createdAt',
+    locale: locale as 'ru' | 'en',
   })
 
   return docs.map((subsection) => {
@@ -53,7 +56,7 @@ export async function getSubsectionsBySection(sectionSlug: string) {
         : subsection.title
 
     return {
-      href: subsection.href || '/',
+      href: withLocale(subsection.href || '/', locale),
       category: subsection.category || '',
       image: {
         url: imageUrl,
@@ -66,7 +69,7 @@ export async function getSubsectionsBySection(sectionSlug: string) {
   })
 }
 
-export async function getAllSections() {
+export async function getAllSections(locale = 'ru') {
   try {
     const payload = await getPayloadClient()
 
@@ -75,6 +78,7 @@ export async function getAllSections() {
       where: { status: { equals: 'published' } },
       depth: 1,
       limit: 1000,
+      locale: locale as 'ru' | 'en',
     })
 
     return docs

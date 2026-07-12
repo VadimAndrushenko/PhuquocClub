@@ -21,15 +21,15 @@ interface EnrichedContinueSelection {
   continuePlanning: BestArticleMinimal[]
 }
 
-export function transformCollectionsPage(page: EnrichedCollectionsPage): TransformedCollectionsPageData {
+export function transformCollectionsPage(page: EnrichedCollectionsPage, locale = 'ru'): TransformedCollectionsPageData {
   const heroData: HeroData = {
-    title: page?.title || 'Все подборки',
+    title: page?.title || (locale === 'en' ? 'All collections' : 'Все подборки'),
     description: page?.description || '',
-    intro: '',
+    intro: page?.intro || '',
     category: '',
     image: page?.image as AppMedia,
     search: {
-      placeholder: page?.search?.placeholder || 'Поиск по подборкам...',
+      placeholder: page?.search?.placeholder || (locale === 'en' ? 'Search collections...' : 'Поиск по подборкам...'),
       tags: page?.search?.tags || [],
     },
   }

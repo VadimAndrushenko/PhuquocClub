@@ -20,39 +20,38 @@ import { siteUrl } from '@/lib/seo/config'
 // 🔥 СТАТИЧЕСКАЯ ГЕНЕРАЦИЯ (ISR)
 // ============================================
 export async function generateStaticParams() {
+  const locales = ['ru', 'en']
   try {
     const subsections = await getAllSubsections()
-
-    return subsections
-      .filter((sub) => {
+    const result = []
+    for (const locale of locales) {
+      for (const sub of subsections) {
         const sectionSlug = typeof sub.section === 'string' ? sub.section : ''
-        return sectionSlug && sub.slug
-      })
-      .map((sub) => ({
-        section: typeof sub.section === 'string' ? sub.section : '',
-        subSection: sub.slug || '',
-      }))
+        if (sectionSlug && sub.slug) {
+          result.push({ lang: locale, section: sectionSlug, subSection: sub.slug })
+        }
+      }
+    }
+    return result
   } catch (error) {
     console.error('❌ Ошибка generateStaticParams для subsections:', error)
-    // 🔥 Возвращаем пустой массив - страницы будут сгенерированы on-demand но останутся статическими!
     return []
   }
 }
 
-export const dynamic = 'force-static'
 export const revalidate = 30
 
 // ============================================
 // 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
 export async function generateMetadata({ params }: SubSectionPageProps): Promise<Metadata> {
-  const { section, subSection } = await params
-  const subsection = await getSubsectionBySlugs(subSection)
+  const { section, subSection, lang } = await params
+  const subsection = await getSubsectionBySlugs(subSection, lang || 'ru')
 
   if (!subsection) {
     return {
-      title: 'Подборка не найдена',
-      description: 'Такой подборки не существует',
+      title: lang === 'en' ? 'Collection not found' : 'Подборка не найдена',
+      description: lang === 'en' ? 'This collection does not exist' : 'Такой подборки не существует',
     }
   }
 
@@ -66,6 +65,7 @@ export async function generateMetadata({ params }: SubSectionPageProps): Promise
     keywords: subsection.seo?.keywords,
     path: `/${section}/${subSection}`,
     image: img,
+    locale: lang,
   })
 }
 
@@ -75,20 +75,20 @@ export async function generateMetadata({ params }: SubSectionPageProps): Promise
 const classPY = 'py-10 max-md:py-6'
 
 export default async function SubSectionPage({ params }: SubSectionPageProps) {
-  const { subSection: subsectionSlug, section: sectionSlug } = await params
+  const { subSection: subsectionSlug, section: sectionSlug, lang } = await params
 
   // Получаем подборку
-  const rawSubsection = await getSubsectionBySlugs(subsectionSlug)
+  const rawSubsection = await getSubsectionBySlugs(subsectionSlug, lang || 'ru')
   // все статьи этого раздела
-  const rawArticle = await getArticlesBySubsection(subsectionSlug)
+  const rawArticle = await getArticlesBySubsection(subsectionSlug, lang || 'ru')
 
   if (!rawSubsection) notFound()
 
   const { heroData, bestCollectionData, continuePlanning } =
-    await transformSubsection(rawSubsection)
+    await transformSubsection(rawSubsection, lang || 'ru')
 
   // 🔥 Получаем заголовок раздела для хлебных крошек
-  const sectionTitle = await getSectionTitle(sectionSlug)
+  const sectionTitle = await getSectionTitle(sectionSlug, lang || 'ru')
 
   // 🔥 Строим breadcrumb items для Schema.org
   const breadcrumbItems = buildBreadcrumbItems({
@@ -117,6 +117,7 @@ export default async function SubSectionPage({ params }: SubSectionPageProps) {
 
       <Hero
         dataHero={heroData}
+        locale={lang || 'ru'}
         classes={{
           container: `${classPY}`,
           content: 'lg:max-w-[550px] lg:max-xl:max-w-[430px]',
@@ -127,19 +128,21 @@ export default async function SubSectionPage({ params }: SubSectionPageProps) {
 
       {/* ⭐ Лучшие подборки из bestSelection */}
       {bestCollectionData.length > 0 && (
-        <BestSelections className={classPY} data={bestCollectionData} />
+        <BestSelections className={classPY} data={bestCollectionData} locale={lang} />
       )}
 
       <CollectionsBlock
         collections={rawArticle}
-        title={`Все статьи подборки: `}
+        title={lang === 'en' ? 'All collection articles:' : 'Все статьи подборки:'}
         containerClass={classPY}
         itemsPerPage={4}
+        locale={lang}
+        countLabel={lang === 'en' ? ['article', 'articles', 'articles'] : ['статья', 'статьи', 'статей']}
       />
 
       {/* 🔗 Продолжить чтение из continueSelection */}
       {continuePlanning.length > 0 && (
-        <ContinuePlanning className={classPY} data={continuePlanning} />
+        <ContinuePlanning className={classPY} data={continuePlanning} locale={lang} />
       )}
     </div>
   )

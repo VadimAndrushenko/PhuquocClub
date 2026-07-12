@@ -10,7 +10,6 @@ interface InfoCard {
   title: string
   description: string
   href: string
-  titleLink?: string
 }
 
 // Маппинг названий иконок на компоненты
@@ -27,14 +26,13 @@ const iconMap: Record<string, LucideIcon> = {
 
 // Маппинг статей на карточки с иконками
 function mapArticlesToCards(articles: BestArticleMinimal[]): InfoCard[] {
-  return articles.slice(0, 4).map((article) => {
+  return articles.map((article) => {
     const IconComponent = article.icon ? iconMap[article.icon] : Sun
     return {
       icon: IconComponent || Sun,
       title: article.title || '',
       description: article.description || '',
       href: article.href || '/',
-      titleLink: 'Подробнее',
     }
   })
 }
@@ -42,17 +40,19 @@ function mapArticlesToCards(articles: BestArticleMinimal[]): InfoCard[] {
 export default function Planning({
   data,
   containerClass = '',
+  locale = 'ru',
 }: {
   data: BestArticleMinimal[]
   containerClass?: string
+  locale?: string
 }) {
   const infoCards = mapArticlesToCards(data)
 
   return (
     <section className={cn('', containerClass)}>
-      <h2 className="title">Планируете поездку</h2>
-      <Slider cols={{ 520: 2, lg: 3, xl: 4 }} gap="2rem">
-        <TripPlanningCards arr={infoCards} />
+      <h2 className="title">{locale === 'en' ? 'Plan your trip' : 'Планируете поездку'}</h2>
+      <Slider cols={{ 520: 2, lg: 3, xl: 4 }} gap="2rem" locale={locale}>
+        <TripPlanningCards arr={infoCards} locale={locale} />
       </Slider>
     </section>
   )

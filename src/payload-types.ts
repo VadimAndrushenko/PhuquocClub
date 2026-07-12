@@ -96,20 +96,22 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  fallbackLocale: null;
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('ru' | 'en') | ('ru' | 'en')[];
   globals: {
     collectionsPage: CollectionsPage;
     homePage: HomePage;
+    helpPage: HelpPage;
     header: Header;
     footer: Footer;
   };
   globalsSelect: {
     collectionsPage: CollectionsPageSelect<false> | CollectionsPageSelect<true>;
     homePage: HomePageSelect<false> | HomePageSelect<true>;
+    helpPage: HelpPageSelect<false> | HelpPageSelect<true>;
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
   };
-  locale: null;
+  locale: 'ru' | 'en';
   widgets: {
     collections: CollectionsWidget;
   };
@@ -138,17 +140,19 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Пользователи админ-панели. Администраторы могут управлять всеми пользователями. Редакторы могут редактировать контент.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
   /**
-   * User role determines permissions
+   * Роль определяет права доступа: админ — полный доступ, редактор — управление контентом, пользователь — ограниченный доступ.
    */
   role: 'admin' | 'editor' | 'user';
   /**
-   * Optional: Display name
+   * Отображаемое имя пользователя (необязательно).
    */
   name?: string | null;
   updatedAt: string;
@@ -171,69 +175,93 @@ export interface User {
   collection: 'users';
 }
 /**
- * Manage articles for the website
+ * Статьи сайта — основной контент. Каждая статья привязана к подразделу и содержит текст, таблицы, полезные ссылки и SEO-данные.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "Articles".
  */
 export interface Article {
   id: number;
+  /**
+   * Черновик — статья не видна на сайте. Опубликовано — статья доступна посетителям.
+   */
   status: 'draft' | 'published';
+  /**
+   * Главный заголовок статьи. Отображается в карточках, хлебных крошках и SEO.
+   */
   title: string;
   /**
-   * Unique identifier for URL
+   * Уникальная часть URL статьи. Только латиница, дефисы и цифры. Пример: "kak-dobratsya-do-fukuoka"
    */
   slug: string;
   /**
-   * Section and category will be filled automatically
+   * Выберите подраздел, к которому относится статья. Раздел и категория заполнятся автоматически.
    */
   subsection: number | Subsection;
   /**
-   * Filled automatically from subsection
+   * Заполняется автоматически из выбранного подраздела. Изменение вручную невозможно.
    */
   section?: string | null;
   /**
-   * Filled from subsection.category
+   * Заполняется автоматически из категории подраздела. Изменение вручную невозможно.
    */
   category?: string | null;
   /**
-   * Generated automatically
+   * Генерируется автоматически на основе раздела, подраздела и slug. Изменение вручную невозможно.
    */
   href?: string | null;
   /**
-   * Brief summary for cards and previews
+   * Краткое описание для карточек, превью и SEO. Отображается под заголовком в списках статей.
    */
   description: string;
   /**
-   * First text block that sets context
+   * Первый абзац статьи, который задаёт контекст. Отображается сразу под заголовком на странице статьи.
    */
   intro: string;
   /**
-   * Main image for cards, previews and SEO
+   * Главное изображение статьи. Используется в карточках, превью и SEO-разметке. Рекомендуемый размер: 1200×630px.
    */
   image: number | Media;
   /**
-   * Example: 5, 8, 12
+   * Время чтения в минутах. Только цифра. Пример: 5, 8, 12
    */
   readTime: string;
+  /**
+   * Имя автора статьи. Отображается в шапке статьи.
+   */
   author: string;
   /**
-   * Key facts and data
+   * Ключевые факты и данные, которые отображаются в блоке "Коротко" в верхней части статьи. Например: валюта, документы, время полёта.
    */
   kratko_items?:
     | {
+        /**
+         * Иконка, которая отображается рядом с фактом.
+         */
         icon: 'DollarSign' | 'FileText' | 'MapPin' | 'ShieldAlert' | 'Clock' | 'User';
+        /**
+         * Короткая подпись. Например: "Валюта", "Документы", "Время полёта"
+         */
         label: string;
+        /**
+         * Значение факта. Например: "Вьетнамский донг (VND)", "Загранпаспорт", "3.5 часа"
+         */
         value: string;
         id?: string | null;
       }[]
     | null;
   /**
-   * Main content sections
+   * Основное содержание статьи. Каждый блок — это заголовок + текст + опциональный дополнительный элемент (таблица, предупреждение, чеклист или совет).
    */
   content_blocks?:
     | {
+        /**
+         * Заголовок смыслового блока. Отображается как подзаголовок в статье и в навигации по статье.
+         */
         title: string;
+        /**
+         * Основное содержание блока. Поддерживает форматирование: жирный, курсив, списки, ссылки.
+         */
         description: {
           root: {
             type: string;
@@ -249,13 +277,25 @@ export interface Article {
           };
           [k: string]: unknown;
         };
+        /**
+         * Дополнительный элемент после текста: таблица с данными, предупреждение, список для проверки или полезный совет.
+         */
         contentType?: ('none' | 'table' | 'warning' | 'checklist' | 'tips') | null;
+        /**
+         * Таблица с тремя колонками. Заголовки и строки локализуются отдельно для каждого языка.
+         */
         table?: {
+          /**
+           * Названия трёх колонок таблицы.
+           */
           headers: {
             header1: string;
             header2: string;
             header3: string;
           };
+          /**
+           * Данные таблицы. Каждая строка — три ячейки, соответствующие колонкам.
+           */
           rows?:
             | {
                 cell1: string;
@@ -265,14 +305,29 @@ export interface Article {
               }[]
             | null;
         };
+        /**
+         * Важное предупреждение или примечание. Отображается в выделенном блоке.
+         */
         warning?: string | null;
+        /**
+         * Список пунктов для проверки. Каждый пункт — отдельный элемент списка.
+         */
         checklist?:
           | {
+              /**
+               * Один пункт чеклиста. Например: "Взять загранпаспорт"
+               */
               item: string;
               id?: string | null;
             }[]
           | null;
+        /**
+         * Полезный совет или лайфхак. Отображается в выделенном блоке с иконкой.
+         */
         tips?: string | null;
+        /**
+         * Дополнительный текст, который отображается после таблицы/предупреждения/чеклиста/совета.
+         */
         descriptionAfter?: {
           root: {
             type: string;
@@ -291,26 +346,66 @@ export interface Article {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Ссылки на связанные статьи, разделы или внешние ресурсы. Отображаются в блоке "Полезно" внизу статьи.
+   */
   useful_links?:
     | {
-        href: string;
+        /**
+         * Текст, который увидит пользователь. Например: "Как добраться до Фукуока"
+         */
         label: string;
+        /**
+         * Выберите тип ссылки: раздел сайта, подраздел, статья или внешний URL
+         */
+        linkType: 'section' | 'subsection' | 'article' | 'external';
+        /**
+         * Выберите раздел сайта (например: "Когда ехать", "На острове")
+         */
+        section?: (number | null) | Section;
+        /**
+         * Выберите подраздел внутри раздела (например: "Сезоны", "Погода")
+         */
+        subsection?: (number | null) | Subsection;
+        /**
+         * Выберите конкретную статью сайта
+         */
+        article?: (number | null) | Article;
+        /**
+         * Полный URL внешнего ресурса. Например: https://example.com/page
+         */
+        externalUrl?: string | null;
         id?: string | null;
       }[]
     | null;
   /**
-   * Select articles to show in related section
+   * Выберите статьи, которые будут отображаться в блоке "Похожие статьи" внизу страницы. Максимум 6 статей.
    */
   related_articles?: (number | Article)[] | null;
+  /**
+   * Настройки для поисковых систем: заголовок, описание, ключевые слова. Заполняются отдельно для каждого языка.
+   */
   seo: {
+    /**
+     * Заголовок для поисковой выдачи (title). До 70 символов. Должен быть уникальным и содержать ключевые слова.
+     */
     title: string;
+    /**
+     * Описание для поисковой выдачи (meta description). До 160 символов. Кратко и по делу.
+     */
     description: string;
+    /**
+     * Ключевые слова для SEO. От 1 до 10 слов. Например: "Фукуок, отдых, пляжи, отели"
+     */
     keywords: {
+      /**
+       * Одно ключевое слово или фраза.
+       */
       keyword: string;
       id?: string | null;
     }[];
     /**
-     * Check to prevent search engines from indexing
+     * Отметьте, чтобы запретить поисковым системам индексировать эту страницу (noindex).
      */
     noIndex?: boolean | null;
   };
@@ -318,37 +413,102 @@ export interface Article {
   createdAt: string;
 }
 /**
+ * Подразделы внутри разделов. Например, в разделе "Когда ехать" подразделы "Сезоны" и "Погода". Содержат статьи.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "subsections".
  */
 export interface Subsection {
   id: number;
+  /**
+   * Черновик — подраздел не виден на сайте.
+   */
   status: 'draft' | 'published';
+  /**
+   * Название подраздела. Например: "Сезоны", "Погода", "Еда", "Транспорт"
+   */
   title: string;
+  /**
+   * Часть URL подраздела. Только латиница и дефисы. Пример: seasons, weather
+   */
   slug: string;
+  /**
+   * Выберите раздел, к которому относится подраздел.
+   */
   section: number | Section;
+  /**
+   * Категория подраздела. Используется для группировки статей. Например: "Погода", "Транспорт", "Проживание"
+   */
   category: string;
+  /**
+   * Генерируется автоматически из раздела и slug.
+   */
   href?: string | null;
+  /**
+   * Краткое описание подраздела для карточек и превью.
+   */
   description: string;
+  /**
+   * Вступительный текст на странице подраздела, задающий контекст.
+   */
   intro: string;
+  /**
+   * Изображение для страницы подраздела.
+   */
   image: number | Media;
+  /**
+   * Коллекция лучших статей для отображения на странице подраздела.
+   */
   bestSelection?: (number | null) | BestSelection;
+  /**
+   * Коллекция статей для блока "Продолжить чтение".
+   */
   continueSelection?: (number | null) | ContinueSelection;
+  /**
+   * Настройки поиска для страницы подраздела.
+   */
   search?: {
+    /**
+     * Текст в поле поиска. Например: "Поиск по разделу..."
+     */
     placeholder?: string | null;
+    /**
+     * Популярные теги под строкой поиска.
+     */
     tags?:
       | {
+          /**
+           * Текст тега. Например: "Пляжи", "Отели"
+           */
           title: string;
+          /**
+           * Иконка рядом с тегом.
+           */
           icon: 'utensilsCrossed' | 'map' | 'waves' | 'bus' | 'dollarSign' | 'fileText' | 'lifeBuoy';
           id?: string | null;
         }[]
       | null;
   };
+  /**
+   * Настройки для поисковых систем.
+   */
   seo: {
+    /**
+     * Заголовок для поисковой выдачи (title). До 70 символов.
+     */
     title: string;
+    /**
+     * Описание для поисковой выдачи (meta description). До 160 символов.
+     */
     description: string;
+    /**
+     * Ключевые слова для SEO.
+     */
     keywords?:
       | {
+          /**
+           * Одно ключевое слово или фраза.
+           */
           keyword?: string | null;
           id?: string | null;
         }[]
@@ -358,37 +518,90 @@ export interface Subsection {
   createdAt: string;
 }
 /**
+ * Основные разделы сайта. Например: "Когда ехать", "На острове". Каждый раздел содержит подразделы и статьи.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sections".
  */
 export interface Section {
   id: number;
+  /**
+   * Черновик — раздел не виден на сайте. Опубликовано — раздел доступен.
+   */
   status: 'draft' | 'published';
+  /**
+   * Название раздела. Отображается в меню, хлебных крошках и заголовках страниц. Например: "Когда ехать"
+   */
   title: string;
   /**
-   * Example: on-island, before-trip
+   * Часть URL раздела. Только латиница, дефисы. Пример: on-island, when-to-go
    */
   slug: string;
+  /**
+   * Генерируется автоматически из slug. Изменение вручную невозможно.
+   */
   href?: string | null;
+  /**
+   * Краткое описание раздела для карточки на главной странице.
+   */
   description?: string | null;
+  /**
+   * Изображение для карточки раздела на главной странице.
+   */
   image: number | Media;
+  /**
+   * Выберите коллекцию лучших статей для отображения на странице раздела.
+   */
   bestSelection?: (number | null) | BestSelection;
+  /**
+   * Выберите коллекцию статей для блока "Продолжить чтение".
+   */
   continueSelection?: (number | null) | ContinueSelection;
+  /**
+   * Настройки поиска для страницы раздела.
+   */
   search?: {
+    /**
+     * Текст, отображаемый в поле поиска. Например: "Поиск по разделу..."
+     */
     placeholder?: string | null;
+    /**
+     * Популярные теги, отображаемые под строкой поиска для быстрой навигации.
+     */
     tags?:
       | {
+          /**
+           * Текст тега. Например: "Пляжи", "Отели", "Еда"
+           */
           title: string;
+          /**
+           * Иконка, отображаемая рядом с тегом.
+           */
           icon: 'utensilsCrossed' | 'map' | 'waves' | 'bus' | 'dollarSign' | 'fileText' | 'lifeBuoy';
           id?: string | null;
         }[]
       | null;
   };
+  /**
+   * Настройки для поисковых систем. Заполняются отдельно для каждого языка.
+   */
   seo: {
+    /**
+     * Заголовок для поисковой выдачи (title). До 70 символов.
+     */
     title: string;
+    /**
+     * Описание для поисковой выдачи (meta description). До 160 символов.
+     */
     description: string;
+    /**
+     * Ключевые слова для SEO.
+     */
     keywords?:
       | {
+          /**
+           * Одно ключевое слово или фраза.
+           */
           keyword?: string | null;
           id?: string | null;
         }[]
@@ -398,13 +611,15 @@ export interface Section {
   createdAt: string;
 }
 /**
+ * Все изображения сайта. Загружайте сюда картинки для статей, разделов и обложек.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
   id: number;
   /**
-   * Alternative text for accessibility and SEO
+   * Текст для доступности и SEO. Опишите, что изображено на картинке. Например: "Пляж на острове Фукуок, закат"
    */
   alt: string;
   updatedAt: string;
@@ -446,42 +661,54 @@ export interface Media {
   };
 }
 /**
- * Collections of best/featured articles
+ * Коллекции лучших/избранных статей. Отображаются в блоке "Лучшие подборки" на страницах разделов и подразделов.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bestSelections".
  */
 export interface BestSelection {
   id: number;
+  /**
+   * Черновик — подборка не отображается на сайте.
+   */
   status: 'draft' | 'published';
+  /**
+   * Внутреннее название подборки для админки. Посетители его не видят.
+   */
   title: string;
   /**
-   * Optional: for direct URL access
+   * Необязательный URL для прямого доступа к подборке.
    */
   slug?: string | null;
   /**
-   * Select articles for this collection. IDs stored in DB, data fetched on frontend.
+   * Выберите статьи для этой подборки. Можно добавить от 1 до 12 статей.
    */
   bestArticles: (number | Article)[];
   updatedAt: string;
   createdAt: string;
 }
 /**
- * Collections for "Continue Reading" sections
+ * Коллекции статей для блока "Продолжить чтение" / "Планируете поездку" на страницах разделов и подразделов.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "continueSelections".
  */
 export interface ContinueSelection {
   id: number;
+  /**
+   * Черновик — подборка не отображается на сайте.
+   */
   status: 'draft' | 'published';
+  /**
+   * Внутреннее название для админки.
+   */
   title: string;
   /**
-   * Optional: for direct URL access
+   * Необязательный URL для прямого доступа.
    */
   slug?: string | null;
   /**
-   * Select articles for this collection. IDs stored in DB, data fetched on frontend.
+   * Выберите статьи для этой подборки. От 1 до 12 статей.
    */
   continuePlanning: (number | Article)[];
   updatedAt: string;
@@ -669,8 +896,12 @@ export interface ArticlesSelect<T extends boolean = true> {
   useful_links?:
     | T
     | {
-        href?: T;
         label?: T;
+        linkType?: T;
+        section?: T;
+        subsection?: T;
+        article?: T;
+        externalUrl?: T;
         id?: T;
       };
   related_articles?: T;
@@ -896,32 +1127,75 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface CollectionsPage {
   id: number;
   status: 'draft' | 'published';
+  /**
+   * Заголовок страницы со всеми подборками.
+   */
   title: string;
+  /**
+   * Краткое описание страницы подборок.
+   */
   description?: string | null;
+  /**
+   * Вступительный текст под заголовком.
+   */
+  intro?: string | null;
+  /**
+   * Изображение для шапки страницы подборок.
+   */
   image: number | Media;
+  /**
+   * Настройки строки поиска на странице подборок.
+   */
   search?: {
+    /**
+     * Текст внутри поля поиска.
+     */
     placeholder?: string | null;
+    /**
+     * Популярные теги под строкой поиска.
+     */
     tags?:
       | {
+          /**
+           * Текст тега.
+           */
           title: string;
+          /**
+           * Иконка рядом с тегом.
+           */
           icon: 'utensilsCrossed' | 'map' | 'waves' | 'bus' | 'dollarSign' | 'fileText' | 'lifeBuoy';
           id?: string | null;
         }[]
       | null;
   };
   /**
-   * Optional: display best articles at the top
+   * Подборка лучших статей для отображения вверху страницы.
    */
   bestSelection?: (number | null) | BestSelection;
   /**
-   * Optional: display in continue reading section
+   * Подборка статей для блока "Продолжить чтение".
    */
   continueSelection?: (number | null) | ContinueSelection;
+  /**
+   * Настройки для поисковых систем.
+   */
   seo: {
+    /**
+     * Заголовок для поисковой выдачи (title). До 70 символов.
+     */
     title: string;
+    /**
+     * Описание для поисковой выдачи (meta description). До 160 символов.
+     */
     description: string;
+    /**
+     * Ключевые слова для SEO.
+     */
     keywords?:
       | {
+          /**
+           * Одно ключевое слово или фраза.
+           */
           keyword?: string | null;
           id?: string | null;
         }[]
@@ -937,15 +1211,42 @@ export interface CollectionsPage {
 export interface HomePage {
   id: number;
   status: 'draft' | 'published';
+  /**
+   * Верхний блок главной страницы: заголовок, описание, фоновая картинка и поиск.
+   */
   heroSection: {
+    /**
+     * Главный заголовок на странице. Например: "Гид по Фукуоку"
+     */
     title: string;
+    /**
+     * Текст под заголовком. Например: "Всё что нужно туристу — быстро и понятно"
+     */
     description: string;
+    /**
+     * Большая фоновая картинка в шапке главной страницы.
+     */
     image: number | Media;
+    /**
+     * Настройки строки поиска на главной странице.
+     */
     search?: {
+      /**
+       * Серый текст внутри поля поиска.
+       */
       placeholder?: string | null;
+      /**
+       * Популярные теги под строкой поиска для быстрой навигации.
+       */
       tags?:
         | {
+            /**
+             * Текст тега. Например: "Пляжи", "Отели"
+             */
             title: string;
+            /**
+             * Иконка рядом с тегом.
+             */
             icon: 'utensilsCrossed' | 'map' | 'waves' | 'bus' | 'dollarSign' | 'fileText' | 'lifeBuoy';
             id?: string | null;
           }[]
@@ -953,37 +1254,284 @@ export interface HomePage {
     };
   };
   /**
-   * Select articles for Popular section
+   * Выберите статьи для блока "Популярные" на главной странице.
    */
   popularArticles?: (number | Article)[] | null;
+  /**
+   * Статьи с иконками для блока планирования поездки на главной странице.
+   */
   planningBlock?: {
+    /**
+     * Добавьте статьи с иконками для этого блока.
+     */
     items?:
       | {
+          /**
+           * Выберите статью.
+           */
           article: number | Article;
+          /**
+           * Иконка, отображаемая рядом со статьёй.
+           */
           icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils';
           id?: string | null;
         }[]
       | null;
   };
   /**
-   * Select subsections to display
+   * Выберите подразделы для отображения в блоке "Лучшие подборки" на главной.
    */
   collections?: (number | Subsection)[] | null;
+  /**
+   * Статьи с иконками для блока срочной информации на главной странице.
+   */
   urgentBlock?: {
+    /**
+     * Добавьте статьи с иконками для блока "Срочно нужно".
+     */
     items?:
       | {
+          /**
+           * Выберите статью.
+           */
           article: number | Article;
+          /**
+           * Иконка, отображаемая рядом со статьёй.
+           */
           icon: 'Sun' | 'BookType' | 'Wallet' | 'House' | 'Plane' | 'Map' | 'Waves' | 'Utensils';
           id?: string | null;
         }[]
       | null;
   };
+  /**
+   * Настройки для поисковых систем.
+   */
   seo: {
+    /**
+     * Заголовок для поисковой выдачи (title). До 70 символов.
+     */
     title: string;
+    /**
+     * Описание для поисковой выдачи (meta description). До 160 символов.
+     */
     description: string;
+    /**
+     * Ключевые слова для SEO.
+     */
     keywords?:
       | {
+          /**
+           * Одно ключевое слово или фраза.
+           */
           keyword?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "helpPage".
+ */
+export interface HelpPage {
+  id: number;
+  status: 'draft' | 'published';
+  /**
+   * Верхний блок страницы помощи: заголовок, описание и поиск.
+   */
+  hero: {
+    title: string;
+    description?: string | null;
+    intro?: string | null;
+    searchPlaceholder?: string | null;
+    searchTags?:
+      | {
+          title: string;
+          /**
+           * Иконка рядом с тегом.
+           */
+          icon: 'utensilsCrossed' | 'map' | 'waves' | 'bus' | 'dollarSign' | 'fileText' | 'lifeBuoy';
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Карточки срочной помощи: такси, аптека, интернет, магазины.
+   */
+  urgentSection: {
+    title: string;
+    cards?:
+      | {
+          icon:
+            | 'Car'
+            | 'Pill'
+            | 'Wifi'
+            | 'ShoppingBag'
+            | 'Phone'
+            | 'FileText'
+            | 'Shield'
+            | 'HelpCircle'
+            | 'Stethoscope'
+            | 'WifiOff'
+            | 'Plane'
+            | 'Wallet'
+            | 'Map';
+          label: string;
+          description?: string | null;
+          link: {
+            label: string;
+            linkType: 'section' | 'subsection' | 'article' | 'external';
+            /**
+             * Выберите раздел сайта (например: "Когда ехать", "На острове")
+             */
+            section?: (number | null) | Section;
+            /**
+             * Выберите подраздел (например: "Сезоны", "Погода")
+             */
+            subsection?: (number | null) | Subsection;
+            /**
+             * Выберите конкретную статью
+             */
+            article?: (number | null) | Article;
+            /**
+             * Полный URL внешнего ресурса. Например: https://example.com
+             */
+            externalUrl?: string | null;
+          };
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Ситуационные карточки: потеря документов, нужен врач, нет интернета и т.д.
+   */
+  whatHappenedSection: {
+    title: string;
+    cards?:
+      | {
+          icon:
+            | 'Car'
+            | 'Pill'
+            | 'Wifi'
+            | 'ShoppingBag'
+            | 'Phone'
+            | 'FileText'
+            | 'Shield'
+            | 'HelpCircle'
+            | 'Stethoscope'
+            | 'WifiOff'
+            | 'Plane'
+            | 'Wallet'
+            | 'Map';
+          label: string;
+          description?: string | null;
+          link: {
+            label: string;
+            linkType: 'section' | 'subsection' | 'article' | 'external';
+            /**
+             * Выберите раздел сайта (например: "Когда ехать", "На острове")
+             */
+            section?: (number | null) | Section;
+            /**
+             * Выберите подраздел (например: "Сезоны", "Погода")
+             */
+            subsection?: (number | null) | Subsection;
+            /**
+             * Выберите конкретную статью
+             */
+            article?: (number | null) | Article;
+            /**
+             * Полный URL внешнего ресурса. Например: https://example.com
+             */
+            externalUrl?: string | null;
+          };
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Аккордеон с вопросами и ответами.
+   */
+  faqSection: {
+    title: string;
+    items?:
+      | {
+          question: string;
+          answer: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Первый блок карточек после FAQ. Карточки с иконками и ссылками на разделы/статьи.
+   */
+  cardBlock1: {
+    title: string;
+    cards?:
+      | {
+          icon:
+            | 'Car'
+            | 'Pill'
+            | 'Wifi'
+            | 'ShoppingBag'
+            | 'Phone'
+            | 'FileText'
+            | 'Shield'
+            | 'HelpCircle'
+            | 'Stethoscope'
+            | 'WifiOff'
+            | 'Plane'
+            | 'Wallet'
+            | 'Map';
+          label: string;
+          description?: string | null;
+          link: {
+            label: string;
+            linkType: 'section' | 'subsection' | 'article' | 'external';
+            /**
+             * Выберите раздел сайта (например: "Когда ехать", "На острове")
+             */
+            section?: (number | null) | Section;
+            /**
+             * Выберите подраздел (например: "Сезоны", "Погода")
+             */
+            subsection?: (number | null) | Subsection;
+            /**
+             * Выберите конкретную статью
+             */
+            article?: (number | null) | Article;
+            /**
+             * Полный URL внешнего ресурса. Например: https://example.com
+             */
+            externalUrl?: string | null;
+          };
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Две колонки: позитив (галочки) и предупреждения (треугольники).
+   */
+  cardBlock2: {
+    title: string;
+    /**
+     * Небольшой цветной ярлык над контентом. Например: "Практично"
+     */
+    badge?: string | null;
+    /**
+     * Например: "Что нужно знать" или "Do's"
+     */
+    positiveTitle?: string | null;
+    /**
+     * Например: "Чего избегать" или "Don'ts"
+     */
+    warningTitle?: string | null;
+    items?:
+      | {
+          text: string;
+          type: 'positive' | 'warning';
           id?: string | null;
         }[]
       | null;
@@ -999,12 +1547,12 @@ export interface Header {
   id: number;
   status: 'draft' | 'published';
   /**
-   * Add up to 8 navigation items. Links are generated automatically.
+   * Кнопки в шапке сайта. Максимум 8 штук. Можно добавить раздел, подраздел, статью или внешнюю ссылку.
    */
   navigationItems?:
     | {
         /**
-         * Text displayed in menu
+         * Текст, который увидит пользователь в меню. Например: "Когда ехать", "На острове"
          */
         title: string;
         icon:
@@ -1025,11 +1573,20 @@ export interface Header {
           | 'Camera'
           | 'Backpack';
         linkType: 'section' | 'subsection' | 'article' | 'external';
+        /**
+         * Выберите раздел сайта (например: "Когда ехать", "На острове")
+         */
         section?: (number | null) | Section;
+        /**
+         * Выберите подраздел (например: "Сезоны", "Погода")
+         */
         subsection?: (number | null) | Subsection;
+        /**
+         * Выберите конкретную статью
+         */
         article?: (number | null) | Article;
         /**
-         * Example: https://example.com
+         * Полный URL внешнего ресурса. Например: https://example.com
          */
         externalUrl?: string | null;
         id?: string | null;
@@ -1046,27 +1603,63 @@ export interface Footer {
   id: number;
   status: 'draft' | 'published';
   /**
-   * Description text in footer
+   * Текст в подвале сайта. Краткое описание проекта.
    */
   description?: string | null;
+  /**
+   * Ссылки на соцсети проекта. Отображаются в подвале сайта.
+   */
   socialLinks?: {
+    /**
+     * Полная ссылка на Telegram-канал.
+     */
     telegram?: string | null;
+    /**
+     * Полная ссылка на Instagram.
+     */
     instagram?: string | null;
+    /**
+     * Полная ссылка на YouTube-канал.
+     */
     youtube?: string | null;
   };
   /**
-   * Create footer sections with links
+   * Колонки со ссылками в подвале сайта. Каждая колонка имеет заголовок и список ссылок.
    */
   sections?:
     | {
+        /**
+         * Заголовок колонки. Например: "Разделы", "Информация"
+         */
         sectionTitle: string;
+        /**
+         * Ссылки внутри колонки.
+         */
         links?:
           | {
+              /**
+               * Текст, который увидит пользователь.
+               */
               label: string;
+              /**
+               * Выберите тип ссылки.
+               */
               linkType: 'section' | 'subsection' | 'article' | 'external';
+              /**
+               * Выберите раздел сайта.
+               */
               section?: (number | null) | Section;
+              /**
+               * Выберите подраздел.
+               */
               subsection?: (number | null) | Subsection;
+              /**
+               * Выберите статью.
+               */
               article?: (number | null) | Article;
+              /**
+               * Полный URL. Например: https://example.com
+               */
               externalUrl?: string | null;
               id?: string | null;
             }[]
@@ -1075,15 +1668,33 @@ export interface Footer {
       }[]
     | null;
   /**
-   * Small links at the bottom (About, Privacy Policy, etc.)
+   * Маленькие ссылки в самом низу подвала (О проекте, Политика конфиденциальности и т.д.).
    */
   bottomLinks?:
     | {
+        /**
+         * Текст ссылки. Например: "О проекте", "Конфиденциальность"
+         */
         title: string;
+        /**
+         * Выберите тип ссылки.
+         */
         linkType: 'section' | 'subsection' | 'article' | 'external';
+        /**
+         * Выберите раздел сайта.
+         */
         section?: (number | null) | Section;
+        /**
+         * Выберите подраздел.
+         */
         subsection?: (number | null) | Subsection;
+        /**
+         * Выберите статью.
+         */
         article?: (number | null) | Article;
+        /**
+         * Полный URL. Например: https://example.com
+         */
         externalUrl?: string | null;
         id?: string | null;
       }[]
@@ -1099,6 +1710,7 @@ export interface CollectionsPageSelect<T extends boolean = true> {
   status?: T;
   title?: T;
   description?: T;
+  intro?: T;
   image?: T;
   search?:
     | T
@@ -1188,6 +1800,127 @@ export interface HomePageSelect<T extends boolean = true> {
           | T
           | {
               keyword?: T;
+              id?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "helpPage_select".
+ */
+export interface HelpPageSelect<T extends boolean = true> {
+  status?: T;
+  hero?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        intro?: T;
+        searchPlaceholder?: T;
+        searchTags?:
+          | T
+          | {
+              title?: T;
+              icon?: T;
+              id?: T;
+            };
+      };
+  urgentSection?:
+    | T
+    | {
+        title?: T;
+        cards?:
+          | T
+          | {
+              icon?: T;
+              label?: T;
+              description?: T;
+              link?:
+                | T
+                | {
+                    label?: T;
+                    linkType?: T;
+                    section?: T;
+                    subsection?: T;
+                    article?: T;
+                    externalUrl?: T;
+                  };
+              id?: T;
+            };
+      };
+  whatHappenedSection?:
+    | T
+    | {
+        title?: T;
+        cards?:
+          | T
+          | {
+              icon?: T;
+              label?: T;
+              description?: T;
+              link?:
+                | T
+                | {
+                    label?: T;
+                    linkType?: T;
+                    section?: T;
+                    subsection?: T;
+                    article?: T;
+                    externalUrl?: T;
+                  };
+              id?: T;
+            };
+      };
+  faqSection?:
+    | T
+    | {
+        title?: T;
+        items?:
+          | T
+          | {
+              question?: T;
+              answer?: T;
+              id?: T;
+            };
+      };
+  cardBlock1?:
+    | T
+    | {
+        title?: T;
+        cards?:
+          | T
+          | {
+              icon?: T;
+              label?: T;
+              description?: T;
+              link?:
+                | T
+                | {
+                    label?: T;
+                    linkType?: T;
+                    section?: T;
+                    subsection?: T;
+                    article?: T;
+                    externalUrl?: T;
+                  };
+              id?: T;
+            };
+      };
+  cardBlock2?:
+    | T
+    | {
+        title?: T;
+        badge?: T;
+        positiveTitle?: T;
+        warningTitle?: T;
+        items?:
+          | T
+          | {
+              text?: T;
+              type?: T;
               id?: T;
             };
       };

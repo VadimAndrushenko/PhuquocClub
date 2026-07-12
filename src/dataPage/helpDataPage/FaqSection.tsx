@@ -3,18 +3,22 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ChevronDown } from 'lucide-react'
-import { faqData, type FaqItemData } from './faqData'
+import type { FaqItemData } from '@/lib/transformData/helpPageTransform'
 
 interface FaqSectionProps {
   className?: string
   containerClass?: string
   items?: FaqItemData[]
+  title?: string
+  locale?: string
 }
 
 export default function FaqSection({
   className = '',
   containerClass = '',
-  items = faqData,
+  items = [],
+  title,
+  locale = 'ru',
 }: FaqSectionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0)
 
@@ -32,7 +36,7 @@ export default function FaqSection({
     >
       {/* Заголовок секции */}
       <h2 className="text-3xl font-bold text-[#0A5D56] mb-8 text-center">
-        Популярные вопросы
+        {title || (locale === 'en' ? 'Popular questions' : 'Популярные вопросы')}
       </h2>
 
       {/* Список вопросов */}

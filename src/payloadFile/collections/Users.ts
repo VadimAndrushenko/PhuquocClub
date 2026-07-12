@@ -1,25 +1,12 @@
 import type { CollectionConfig } from 'payload'
 
-/**
- * ============================================
- * 📦 COLLECTION: Users
- * ============================================
- * Authentication-enabled collection
- * IMPORTANT: Read access restricted to authenticated users only
- */
-
 export const Users: CollectionConfig = {
   slug: 'users',
 
-  // 🔒 SECURITY: Restrict access
   access: {
     read: ({ req: { user } }) => {
-      // Only authenticated users can read user data
       if (!user) return false
-      
-      // Users can only read their own data unless they are admin
       if (user.role === 'admin') return true
-      
       return {
         id: {
           equals: user.id,
@@ -27,14 +14,12 @@ export const Users: CollectionConfig = {
       }
     },
     create: ({ req }) => {
-      // Только админы могут создавать новых пользователей
       if (!req.user) return false
       return req.user.role === 'admin'
     },
     update: ({ req: { user } }) => {
       if (!user) return false
       if (user.role === 'admin') return true
-      
       return {
         id: {
           equals: user.id,
@@ -50,36 +35,39 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
     defaultColumns: ['email', 'role', 'createdAt'],
+    description: 'Пользователи админ-панели. Администраторы могут управлять всеми пользователями. Редакторы могут редактировать контент.',
   },
 
   auth: {
-    tokenExpiration: 7200, // 2 hours
-    verify: false, // Set to true if email verification needed
+    tokenExpiration: 7200,
+    verify: false,
     maxLoginAttempts: 5,
-    lockTime: 600 * 1000, // 10 minutes
+    lockTime: 600 * 1000,
   },
 
   fields: [
     {
       name: 'role',
       type: 'select',
+      label: 'Роль',
       required: true,
       defaultValue: 'user',
       options: [
-        { label: 'Admin', value: 'admin' },
-        { label: 'Editor', value: 'editor' },
-        { label: 'User', value: 'user' },
+        { label: '🔑 Администратор', value: 'admin' },
+        { label: '✏️ Редактор', value: 'editor' },
+        { label: '👤 Пользователь', value: 'user' },
       ],
       admin: {
-        description: 'User role determines permissions',
+        description: 'Роль определяет права доступа: админ — полный доступ, редактор — управление контентом, пользователь — ограниченный доступ.',
       },
     },
     {
       name: 'name',
       type: 'text',
+      label: 'Имя',
       maxLength: 100,
       admin: {
-        description: 'Optional: Display name',
+        description: 'Отображаемое имя пользователя (необязательно).',
       },
     },
   ],

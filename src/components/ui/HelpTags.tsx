@@ -21,7 +21,7 @@ export default function HelpTags({ tags, className = '' }: HelpTagsProps) {
             px-4 py-2.5 
             bg-[#F5F7FA] 
             hover:bg-[#E8ECF1] 
-            text-[var(--color-paragraph)] 
+            text-paragraph 
             text-sm 
             font-medium 
             rounded-full 

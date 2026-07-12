@@ -17,18 +17,22 @@ const classContent = 'py-10 max-sm:py-8 container'
 // 🔥 ISR - РЕВАЛИДАЦИЯ КАЖДЫЕ 30 СЕКУНД
 // ============================================
 export const revalidate = 30
-export const dynamic = 'force-static'
+
+export async function generateStaticParams() {
+  return [{ lang: 'ru' }, { lang: 'en' }]
+}
 
 // ============================================
 // 📄 МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
-export async function generateMetadata(): Promise<Metadata> {
-  const page = await getHomePage()
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params
+  const page = await getHomePage(lang)
 
   if (!page) {
     return {
-      title: 'Гид по Фукуоку',
-      description: 'Всё что нужно туристу - быстро и понятно',
+      title: lang === 'en' ? 'Phu Quoc Guide' : 'Гид по Фукуоку',
+      description: lang === 'en' ? 'Everything a tourist needs - fast and clear' : 'Всё что нужно туристу - быстро и понятно',
     }
   }
 
@@ -37,10 +41,11 @@ export async function generateMetadata(): Promise<Metadata> {
     : null
 
   return buildMetadata({
-    title: page.seo?.title ?? 'Гид по Фукуоку',
-    description: page.seo?.description ?? 'Всё что нужно туристу - быстро и понятно',
+    title: page.seo?.title ?? (lang === 'en' ? 'Phu Quoc Guide' : 'Гид по Фукуоку'),
+    description: page.seo?.description ?? (lang === 'en' ? 'Everything a tourist needs' : 'Всё что нужно туристу - быстро и понятно'),
     keywords: page.seo?.keywords,
     image: img,
+    locale: lang,
   })
 }
 
@@ -48,28 +53,27 @@ export async function generateMetadata(): Promise<Metadata> {
 // 🎯 СТРАНИЦА
 // ============================================
 
-export default async function Home() {
-  const page = await getHomePage()
+export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
+  const page = await getHomePage(lang)
 
   if (!page || page.status !== 'published') {
-    // В продакшене показываем 404, в деве можно показать дефолт
     if (process.env.NODE_ENV === 'production') {
       notFound()
     }
   }
 
-  const { heroData, popularArticles, planningArticles, collectionsData, urgentArticles } = transformHomePage(page)
+  const { heroData, popularArticles, planningArticles, collectionsData, urgentArticles } = transformHomePage(page, lang || 'ru')
 
   return (
     <div>
-      {/* 🔥 Structured Data для главной */}
-      <WebSiteStructuredData siteName="Фукуок.Гид" siteUrl={siteUrl} />
+      <WebSiteStructuredData siteName={lang === 'en' ? 'Phu Quoc Guide' : 'Фукуок.Гид'} siteUrl={`${siteUrl}${lang === 'en' ? '/en' : ''}`} />
 
-      <HeroMain containerClass={classContent} dataMain={heroData} />
-      <Popular containerClass={classContent} data={popularArticles} />
-      <Planning containerClass={classContent} data={planningArticles} />
-      <Collections containerClass={classContent} data={collectionsData} />
-      <Urgent containerClass={classContent} data={urgentArticles} />
+      <HeroMain containerClass={classContent} dataMain={heroData} locale={lang} />
+      <Popular containerClass={classContent} data={popularArticles} locale={lang} />
+      <Planning containerClass={classContent} data={planningArticles} locale={lang} />
+      <Collections containerClass={classContent} data={collectionsData} locale={lang} />
+      <Urgent containerClass={classContent} data={urgentArticles} locale={lang} />
     </div>
   )
 }

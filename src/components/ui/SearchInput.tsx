@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Search, X, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useSearch } from '@/contexts/SearchContext'
 import { searchItems } from '@/lib/search/searchService'
+import { withLocale } from '@/lib/locale'
 import type { SearchInputProps } from '@/shared/types/componentsType/searchInput.type'
 import { SearchIconType } from '@/shared/types'
 
@@ -32,10 +34,12 @@ const iconMap: Record<SearchIconType, LucideIcon> = {
   lifeBuoy: LifeBuoy,
 }
 
-const typeLabel: Record<'section' | 'subsection' | 'article', { label: string; dot: string }> = {
-  section: { label: 'Раздел', dot: 'bg-[var(--color-main)]' },
-  subsection: { label: 'Подраздел', dot: 'bg-[var(--color-accent)]' },
-  article: { label: 'Статья', dot: 'bg-[var(--color-paragraph)]' },
+function getTypeLabel(locale: string): Record<'section' | 'subsection' | 'article', { label: string; dot: string }> {
+  return {
+    section: { label: locale === 'en' ? 'Section' : 'Раздел', dot: 'bg-main' },
+    subsection: { label: locale === 'en' ? 'Collection' : 'Подраздел', dot: 'bg-accent' },
+    article: { label: locale === 'en' ? 'Article' : 'Статья', dot: 'bg-paragraph' },
+  }
 }
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -52,6 +56,9 @@ function useDebounce<T>(value: T, delay: number): T {
 export default function SearchInput({ search, onClose }: SearchInputProps) {
   const { searchItems: allItems, isLoading, error } = useSearch()
 
+  const pathname = usePathname()
+  const locale = pathname.startsWith('/en') ? 'en' : 'ru'
+
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const [isOpen, setIsOpen] = useState(false)
@@ -60,8 +67,9 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
 
-  const placeholder = search?.placeholder || 'Поиск...'
+  const placeholder = search?.placeholder || (locale === 'en' ? 'Search...' : 'Поиск...')
   const tags = search?.tags || []
+  const tl = getTypeLabel(locale)
 
   const debouncedQuery = useDebounce(query, DEBOUNCE_DELAY)
 
@@ -114,7 +122,7 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
           e.preventDefault()
           if (selectedIndex >= 0 && selectedIndex < results.length) {
             const selected = results[selectedIndex]
-            window.location.href = selected.href
+            window.location.href = withLocale(selected.href, locale)
             handleSelectResult(selected.href)
           }
           break
@@ -159,7 +167,7 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
       <style>{`input[type="search"]::-webkit-search-cancel-button { display: none; }`}</style>
       <div ref={wrapperRef} className="relative flex items-center w-full">
         {isLoading && !query ? (
-          <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground animate-spin" size={20} aria-label="Загрузка" />
+          <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground animate-spin" size={20} aria-label={locale === 'en' ? 'Loading' : 'Загрузка'} />
         ) : (
           <Search
             className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -178,13 +186,13 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
           disabled={isLoading && !query}
           className="
             w-full h-14 pl-12 pr-10 rounded-2xl shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-[var(--color-main)]/30 focus:border-[var(--color-main)]/50
+            focus:outline-none focus:ring-2 focus:ring-main/30 focus:border-main/50
             placeholder:text-[#1D293D] text-[#1D293D] bg-white
             disabled:opacity-50 disabled:cursor-not-allowed
             border border-zinc-200
             transition-all duration-200
           "
-          aria-label="Поиск по сайту"
+          aria-label={locale === 'en' ? 'Search site' : 'Поиск по сайту'}
           aria-autocomplete="list"
           aria-controls="search-results"
           aria-expanded={showDropdown}
@@ -193,13 +201,13 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
 
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
           {isLoading && query.trim() && (
-            <Loader2 className="animate-spin text-blue-500" size={18} aria-label="Загрузка" />
+            <Loader2 className="animate-spin text-blue-500" size={18} aria-label={locale === 'en' ? 'Loading' : 'Загрузка'} />
           )}
           {query.trim() && (
             <button
               onClick={resetSearch}
               className="text-muted-foreground cursor-pointer hover:text-zinc-700 transition-colors"
-              aria-label="Очистить поиск"
+              aria-label={locale === 'en' ? 'Clear search' : 'Очистить поиск'}
               type="button"
             >
               <X size={20} />
@@ -211,7 +219,7 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
           id="search-results"
           ref={resultsRef}
           role="listbox"
-          aria-label="Результаты поиска"
+          aria-label={locale === 'en' ? 'Search results' : 'Результаты поиска'}
           aria-live="polite"
           aria-atomic="false"
           className={cn(
@@ -223,7 +231,7 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
             {error && (
               <div className="px-4 py-3 flex items-center gap-2 text-red-600">
                 <AlertCircle size={16} />
-                <span className="text-sm">Ошибка загрузки данных</span>
+                <span className="text-sm">{locale === 'en' ? 'Error loading data' : 'Ошибка загрузки данных'}</span>
               </div>
             )}
 
@@ -233,20 +241,20 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
                   {results.map((item, index) => (
                     <Link
                       key={item.id}
-                      href={item.href}
+                      href={withLocale(item.href, locale)}
                       role="option"
                       aria-selected={index === selectedIndex}
                       className={cn(
                         'block border-b border-zinc-100 px-4 py-3 last:border-b-0 transition-colors',
                         index === selectedIndex
-                          ? 'bg-[var(--color-main)]/[0.06] border-[var(--color-main)]/10'
+                          ? 'bg-main/[0.06] border-main/10'
                           : 'hover:bg-zinc-50',
                       )}
                       onClick={() => handleSelectResult(item.href)}
                     >
                       <div className="text-xs text-zinc-500 flex items-center gap-1.5">
-                        <span className={cn('w-1.5 h-1.5 rounded-full', typeLabel[item.type].dot)} />
-                        {typeLabel[item.type].label}
+                        <span className={cn('w-1.5 h-1.5 rounded-full', tl[item.type].dot)} />
+                        {tl[item.type].label}
                         {item.searchTagText && (
                           <span className="text-zinc-400 mx-1">·</span>
                         )}
@@ -265,9 +273,9 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
                 </div>
                 {!isLoading && (
                   <div className={cn('transition-all duration-200', results.length === 0 ? 'opacity-100 relative' : 'opacity-0 absolute inset-0 pointer-events-none')}>
-                    <div className="px-4 py-6 text-center text-sm text-zinc-500">
-                      Ничего не найдено
-                    </div>
+                      <div className="px-4 py-6 text-center text-sm text-zinc-500">
+                        {locale === 'en' ? 'Nothing found' : 'Ничего не найдено'}
+                      </div>
                   </div>
                 )}
               </div>
@@ -276,7 +284,7 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
             {isLoading && query.trim() && results.length === 0 && (
               <div className="px-4 py-6 flex items-center justify-center gap-2 text-zinc-500">
                 <Loader2 className="animate-spin" size={16} />
-                <span className="text-sm">Поиск...</span>
+                <span className="text-sm">{locale === 'en' ? 'Searching...' : 'Поиск...'}</span>
               </div>
             )}
           </div>
@@ -296,19 +304,18 @@ export default function SearchInput({ search, onClose }: SearchInputProps) {
                   bg-white shadow-sm text-sm text-[#314158]
                   max-sm:text-xs max-sm:px-2 max-sm:py-2
                   px-4 py-2.5
-                  hover:bg-[var(--color-main)]/[0.06] hover:text-[var(--color-main)]
+                  hover:bg-main/[0.06] hover:text-main
                   font-medium rounded-full border border-zinc-200
                   transition-all duration-300
                   hover:-translate-y-0.5 hover:shadow-md
-                  focus:outline-none focus:ring-2 focus:ring-[var(--color-main)]/30
+                  focus:outline-none focus:ring-2 focus:ring-main/30
                 "
-                aria-label={`Искать ${tag.title}`}
+                aria-label={locale === 'en' ? `Search ${tag.title}` : `Искать ${tag.title}`}
               >
                 {IconComponent && (
                   <IconComponent
                     size={16}
-                    className="inline-block mr-1.5"
-                    color="var(--color-accent)"
+                    className="inline-block mr-1.5 text-accent"
                     aria-hidden="true"
                   />
                 )}

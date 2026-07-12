@@ -2,6 +2,7 @@
 
 import { createContext, useContext, ReactNode } from 'react'
 import useSWR from 'swr'
+import { usePathname } from 'next/navigation'
 import type { SearchItem } from '@/lib/search/types'
 
 interface SearchContextType {
@@ -26,8 +27,11 @@ const searchFetcher = async (url: string): Promise<SearchItem[]> => {
 }
 
 export function SearchProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+  const locale = pathname.startsWith('/en') ? 'en' : 'ru'
+
   const { data, error, mutate, isValidating, isLoading } = useSWR<SearchItem[], Error>(
-    '/api/search',
+    `/api/search?locale=${locale}`,
     searchFetcher,
     {
       revalidateOnFocus: false,

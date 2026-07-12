@@ -1,10 +1,13 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { withLocale } from "@/lib/locale";
 
 export default function NeedHelpArticle({
   containerClass = "",
+  locale = "ru",
 }: {
   containerClass?: string;
+  locale?: string;
 }) {
   return (
     <section
@@ -14,16 +17,15 @@ export default function NeedHelpArticle({
     >
       <div className="bg-main rounded-3xl p-6">
         <h2 className="font-bold text-xl leading-normal text-white mb-3.5">
-          Нужна помощь?
+          {locale === 'en' ? 'Need help?' : 'Нужна помощь?'}
         </h2>
 
         <p className="font-normal text-[15px] leading-relaxed text-white/80 mb-6">
-          Если нужно быстро найти такси, аптеку, интернет или сервис рядом —
-          откройте раздел помощи.
+          {locale === 'en' ? 'Quickly find a taxi, pharmacy, internet or nearby service — open the help section.' : 'Если нужно быстро найти такси, аптеку, интернет или сервис рядом — откройте раздел помощи.'}
         </p>
 
         <Link
-          href="/help"
+          href={withLocale("/help", locale)}
           className="
             flex items-center justify-center
             w-full
@@ -41,7 +43,7 @@ export default function NeedHelpArticle({
             active:scale-[0.98]
           "
         >
-          Найти помощь
+          {locale === 'en' ? 'Find help' : 'Найти помощь'}
         </Link>
       </div>
     </section>

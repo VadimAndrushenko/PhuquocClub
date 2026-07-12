@@ -1,8 +1,9 @@
 import type { Where } from 'payload'
 import type { Article } from '@/payload-types'
 import { getPayloadClient } from './payload'
+import { withLocale } from '@/lib/locale'
 
-export async function getAllArticles(): Promise<Article[]> {
+export async function getAllArticles(locale = 'ru'): Promise<Article[]> {
   try {
     const payload = await getPayloadClient()
 
@@ -14,6 +15,7 @@ export async function getAllArticles(): Promise<Article[]> {
       depth: 2,
       limit: 100,
       sort: '-createdAt',
+      locale: locale as 'ru' | 'en',
     })
 
     return docs as Article[]
@@ -23,7 +25,7 @@ export async function getAllArticles(): Promise<Article[]> {
   }
 }
 
-export async function getArticleBySlug(slug: string): Promise<Article | null> {
+export async function getArticleBySlug(slug: string, locale = 'ru'): Promise<Article | null> {
   const payload = await getPayloadClient()
 
   const { docs } = await payload.find({
@@ -34,12 +36,13 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
     } as Where,
     depth: 2,
     limit: 1,
+    locale: locale as 'ru' | 'en',
   })
 
   return (docs[0] as Article) || null
 }
 
-export async function getRelatedArticles(currentSlug: string, limit = 3): Promise<Article[]> {
+export async function getRelatedArticles(currentSlug: string, locale = 'ru', limit = 3): Promise<Article[]> {
   const payload = await getPayloadClient()
 
   const { docs } = await payload.find({
@@ -50,12 +53,13 @@ export async function getRelatedArticles(currentSlug: string, limit = 3): Promis
     } as Where,
     depth: 2,
     limit,
+    locale: locale as 'ru' | 'en',
   })
 
   return docs as Article[]
 }
 
-export async function getArticlesBySubsection(subsectionSlug: string) {
+export async function getArticlesBySubsection(subsectionSlug: string, locale = 'ru') {
   const payload = await getPayloadClient()
 
   const { docs: subsections } = await payload.find({
@@ -77,6 +81,7 @@ export async function getArticlesBySubsection(subsectionSlug: string) {
     depth: 2,
     limit: 1000,
     sort: '-createdAt',
+    locale: locale as 'ru' | 'en',
   })
 
   return docs.map((article) => {
@@ -91,7 +96,7 @@ export async function getArticlesBySubsection(subsectionSlug: string) {
         : article.title
 
     return {
-      href: article.href || '/',
+      href: withLocale(article.href || '/', locale),
       category: article.category || '',
       image: {
         url: imageUrl,

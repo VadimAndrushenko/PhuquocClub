@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import Logo from '../ui/Logo'
 import BurgerButton from '../ui/BurgerButton'
 import { useSearch } from '@/contexts/SearchContext'
+import { withLocale } from '@/lib/locale'
 import dynamic from 'next/dynamic'
 
 import {
@@ -66,9 +67,10 @@ export interface NavigationItem {
 
 interface HeaderProps {
   navigationItems?: NavigationItem[]
+  currentLang?: string
 }
 
-export function Header({ navigationItems = [] }: HeaderProps) {
+export function Header({ navigationItems = [], currentLang = 'ru' }: HeaderProps) {
   const { showHeader } = useScrollHeader()
   const pathname = usePathname()
   const router = useRouter()
@@ -83,10 +85,11 @@ export function Header({ navigationItems = [] }: HeaderProps) {
   const headerClass = open ? 'top-0' : showHeader ? 'top-0' : '-top-20'
 
   const activeHref = useMemo(() => {
-    const sorted = [...navigationItems].sort((a, b) => b.href.length - a.href.length)
-    return sorted.find(
-      (item) => pathname === item.href || pathname.startsWith(item.href + '/'),
-    )?.href
+    const currentLast = pathname.split('/').filter(Boolean).pop()
+    return navigationItems.find((item) => {
+      const itemLast = item.href.split('/').filter(Boolean).pop()
+      return itemLast === currentLast
+    })?.href
   }, [pathname, navigationItems])
 
   const searchButtonRef = useRef<HTMLButtonElement>(null)
@@ -139,8 +142,21 @@ export function Header({ navigationItems = [] }: HeaderProps) {
       )}
     >
       <div className="container h-20 flex items-center justify-between">
-        <Logo smallLogo={true} />
+        <div className="flex gap-2 items-center">
+          <Logo smallLogo={true} locale={currentLang} />
 
+          {/* Language Switcher */}
+          <Link
+            href={currentLang === 'en' ? pathname.replace(/^\/en/, '') || '/' : `/en${pathname}`}
+            className="
+              w-10 h-10 rounded-2xl border border-main/20
+              hover:border-main/50 transition-all
+              text-sm font-medium flex items-center justify-center
+            "
+          >
+            {currentLang === 'en' ? 'RU' : 'EN'}
+          </Link>
+        </div>
         <div
           ref={menuRef}
           id="mobile-menu"
@@ -151,7 +167,7 @@ export function Header({ navigationItems = [] }: HeaderProps) {
               : 'max-xl:-translate-y-5 max-xl:opacity-0 max-xl:pointer-events-none max-xl:-z-10',
           )}
         >
-          <nav className="flex items-center max-xl:flex-col max-xl:items-start gap-3">
+          <nav className="flex items-center gap-y-2 max-xl:flex-col max-xl:items-start ">
             {navigationItems.length > 0 && (
               navigationItems.map((item) => {
 
@@ -172,8 +188,8 @@ export function Header({ navigationItems = [] }: HeaderProps) {
                       setOpen(false)
                     }}
                     className={cn(
-                      'hover-underline px-1.5 py-1 center flex items-center gap-1 text-sm transition-all duration-300',
-                      isActive ? 'text-black active' : 'text-[var(--color-paragraph)] hover:text-black',
+                      'hover-underline px-1.5 py-1 center flex items-center gap-1 text-sm transition-all duration-300 whitespace-nowrap',
+                      isActive ? 'text-black active' : 'text-paragraph hover:text-black',
                     )}
                   >
                     <IconComponent size={16} />
@@ -186,11 +202,11 @@ export function Header({ navigationItems = [] }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex gap-6 items-center relative max-[500px]:gap-2">
+          <div className="flex gap-3 items-center relative max-[500px]:gap-2">
             <button
               ref={searchButtonRef}
               onClick={openSearch}
-              aria-label="Открыть поиск"
+              aria-label={currentLang === 'en' ? 'Open search' : 'Открыть поиск'}
               aria-expanded={isSearchOpen}
               aria-controls="search-overlay"
               className="p-2 hover:bg-[#004E4A33] rounded-xl transition-colors duration-300"
@@ -199,17 +215,17 @@ export function Header({ navigationItems = [] }: HeaderProps) {
             </button>
 
             <Link
-              href="/help"
+              href={withLocale('/help', currentLang)}
               className="
-                w-[166px] h-[40px] rounded-2xl bg-[var(--color-main)]
+                h-[40px] pr-10 pl-6 rounded-2xl bg-main
                 shadow-[0_1px_2px_-1px_rgba(0,0,0,0.1),0_1px_3px_0_rgba(0,0,0,0.1)]
                 text-white hover:opacity-90 active:scale-[0.98] transition-all
                 font-medium leading-5 flex items-center gap-[17px]
-                sm:pl-6 max-sm:w-[110px] max-sm:justify-center max-sm:text-sm max-sm:gap-2.5
+                max-sm:pr-4 max-sm:pl-3 max-sm:justify-center max-sm:text-sm max-sm:gap-2.5
               "
             >
               <LifeBuoy size={18} />
-              Помощь
+              {currentLang === 'en' ? 'Help' : 'Помощь'}
             </Link>
 
             <div className="xl:hidden">
@@ -223,7 +239,7 @@ export function Header({ navigationItems = [] }: HeaderProps) {
         id="search-overlay"
         role="dialog"
         aria-modal="true"
-        aria-label="Поиск по сайту"
+        aria-label={currentLang === 'en' ? 'Search website' : 'Поиск по сайту'}
         aria-hidden={!isSearchVisible}
         className={cn(
           'fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-20 sm:pt-28 px-4 transition-all duration-300',
@@ -261,7 +277,7 @@ export function Header({ navigationItems = [] }: HeaderProps) {
           </div>
           <p className="text-center text-white/50 text-xs sm:text-sm mt-6 tracking-wide">
             <kbd className="inline-flex items-center justify-center w-5 h-5 rounded border border-white/20 text-white/60 text-[10px] mr-1">ESC</kbd>
-            {' '}или клик вне поля — закрыть
+            {' '}{currentLang === 'en' ? 'or click outside — close' : 'или клик вне поля — закрыть'}
           </p>
         </div>
       </div>

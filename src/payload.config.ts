@@ -14,6 +14,7 @@ import { BestSelections } from './payloadFile/collections/BestSelections'
 import { ContinueSelections } from './payloadFile/collections/ContinueSelections'
 import { CollectionsPage } from './payloadFile/globals/CollectionsPage'
 import { HomePage } from './payloadFile/globals/HomePage'
+import { HelpPage } from './payloadFile/globals/HelpPage'
 import { Header } from './payloadFile/globals/Header'
 import { Footer } from './payloadFile/globals/Footer'
 
@@ -35,13 +36,19 @@ const mediaURL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 export default buildConfig({
   serverURL,
 
+  localization: {
+    locales: ['ru', 'en'],
+    defaultLocale: 'ru',
+    fallback: true,
+  },
+
   admin: {
     user: Users.slug,
   },
 
   collections: [Users, Articles, Media, SubSections, Sections, BestSelections, ContinueSelections],
 
-  globals: [CollectionsPage, HomePage, Header, Footer],
+  globals: [CollectionsPage, HomePage, HelpPage, Header, Footer],
 
   editor: lexicalEditor(),
 

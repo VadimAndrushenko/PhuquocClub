@@ -25,71 +25,6 @@ export interface FooterNavSection {
   items: FooterNavItem[]
 }
 
-// Дефолтные соцсети
-const defaultSocialLinks: SocialLinks = {
-  telegram: 'https://t.me/phuquocclub',
-  instagram: 'https://instagram.com',
-  youtube: 'https://youtube.com',
-}
-
-// Дефолтное описание
-const defaultDescription = `Практичный гид по жизни и отдыху на острове Фукуок.
-Актуальная информация, проверенные места и полезные
-советы для туристов и экспатов.`
-
-// Дефолтные секции навигации
-const defaultSections: FooterNavSection[] = [
-  {
-    title: 'Планирование',
-    items: [
-      { href: '/before-trip/when-to-go', label: 'Когда ехать' },
-      { href: '/before-trip/visa', label: 'Виза' },
-      { href: '/before-trip/budget', label: 'Бюджет' },
-      { href: '/before-trip/how-to-get', label: 'Как добраться' },
-      { href: '/before-trip/insurance', label: 'Страховка' },
-    ],
-  },
-  {
-    title: 'На острове',
-    items: [
-      { href: '/accommodation', label: 'Жильё' },
-      { href: '/food', label: 'Еда' },
-      { href: '/transport', label: 'Транспорт' },
-      { href: '/collections', label: 'Подборки' },
-      { href: '/on-island/beaches', label: 'Пляжи' },
-      { href: '/on-island/entertainment', label: 'Развлечения' },
-    ],
-  },
-  {
-    title: 'Практика',
-    items: [
-      { href: '/prices', label: 'Деньги' },
-      { href: '/practical/internet', label: 'Связь и интернет' },
-      { href: '/practical/pharmacy', label: 'Аптеки и медицина' },
-      { href: '/shops', label: 'Магазины' },
-      { href: '/practical/safety', label: 'Безопасность' },
-    ],
-  },
-  {
-    title: 'Маршруты',
-    items: [
-      { href: '/routes/1-day', label: 'Маршруты на 1 день' },
-      { href: '/routes/3-days', label: 'Маршруты на 3 дня' },
-      { href: '/routes/7-days', label: 'Маршруты на 7 дней' },
-      { href: '/routes/north', label: 'Север острова' },
-      { href: '/routes/south', label: 'Юг острова' },
-    ],
-  },
-]
-
-// Дефолтные доп. ссылки
-const defaultAdditionalLinks: AdditionalLink[] = [
-  { id: 1, title: 'О проекте', href: '/about' },
-  { id: 2, title: 'Реклама', href: '/contacts' },
-  { id: 3, title: 'Контакты', href: '/contacts' },
-  { id: 4, title: 'Политика конфиденциальности', href: '/privacy' },
-]
-
 export interface FooterProps {
   description?: string
   socialLinks?: SocialLinks
@@ -98,13 +33,13 @@ export interface FooterProps {
 }
 
 export function Footer({
-  description = defaultDescription,
-  socialLinks = defaultSocialLinks,
+  description,
+  socialLinks,
   navigationSections,
   additionalLinks,
-}: FooterProps) {
-  const sections = navigationSections && navigationSections.length > 0 ? navigationSections : defaultSections
-  const links = additionalLinks && additionalLinks.length > 0 ? additionalLinks : defaultAdditionalLinks
+  locale = 'ru',
+}: FooterProps & { locale?: string }) {
+  const sections = (navigationSections || [])
 
   return (
     <footer className="bg-background mt-20 border-t border-black/5">
@@ -114,15 +49,17 @@ export function Footer({
 
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Logo />
+            <Logo locale={locale} />
 
-            <p className="mt-3 text-sm leading-6 text-paragraph whitespace-pre-line">
-              {description}
-            </p>
+            {description && (
+              <p className="mt-3 text-sm leading-6 text-paragraph whitespace-pre-line">
+                {description}
+              </p>
+            )}
 
             {/* Socials */}
             <div className="flex items-center gap-4 mt-7">
-              {socialLinks.telegram && (
+              {socialLinks?.telegram && (
                 <Link
                   href={socialLinks.telegram}
                   target="_blank"
@@ -138,7 +75,7 @@ export function Footer({
                   />
                 </Link>
               )}
-              {socialLinks.instagram && (
+              {socialLinks?.instagram && (
                 <Link
                   href={socialLinks.instagram}
                   target="_blank"
@@ -154,7 +91,7 @@ export function Footer({
                   />
                 </Link>
               )}
-              {socialLinks.youtube && (
+              {socialLinks?.youtube && (
                 <Link
                   href={socialLinks.youtube}
                   target="_blank"
@@ -187,11 +124,11 @@ export function Footer({
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-[#90A1B9] text-xs">
 
           <p className="text-center md:text-left">
-            © 2026 Phuquoc Club — Все права защищены
+            © 2026 Phuquoc Club — {locale === 'en' ? 'All rights reserved' : 'Все права защищены'}
           </p>
 
           <div className="flex items-center flex-wrap gap-4 max-md:border-t max-md:border-[#e2e8f0] max-sm:gap-2.5 text-nowrap max-sm:justify-center">
-            {links.map((link) => (
+            {(additionalLinks || []).map((link) => (
               <Link key={link.id || link.title} href={link.href} className="">
                 {link.title}
               </Link>

@@ -1,13 +1,5 @@
 import type { CollectionConfig } from 'payload'
 
-/**
- * ============================================
- * 📦 COLLECTION: ContinueSelections
- * ============================================
- * Optimized: No heavy afterRead hooks
- * Articles are fetched efficiently on the frontend
- */
-
 export const ContinueSelections: CollectionConfig = {
   slug: 'continueSelections',
 
@@ -19,14 +11,14 @@ export const ContinueSelections: CollectionConfig = {
   },
 
   labels: {
-    singular: 'Continue Reading Collection',
-    plural: 'Continue Reading Collections',
+    singular: 'Подборка "Продолжить чтение"',
+    plural: 'Подборки "Продолжить чтение"',
   },
 
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'status'],
-    description: 'Collections for "Continue Reading" sections',
+    description: 'Коллекции статей для блока "Продолжить чтение" / "Планируете поездку" на страницах разделов и подразделов.',
   },
 
   versions: {
@@ -37,45 +29,51 @@ export const ContinueSelections: CollectionConfig = {
     {
       name: 'status',
       type: 'select',
-      label: 'Status',
+      label: 'Статус',
       options: [
-        { label: '📝 Draft', value: 'draft' },
-        { label: '✅ Published', value: 'published' },
+        { label: '📝 Черновик', value: 'draft' },
+        { label: '✅ Опубликовано', value: 'published' },
       ],
       defaultValue: 'draft',
       required: true,
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+        description: 'Черновик — подборка не отображается на сайте.',
+      },
     },
     {
       name: 'title',
       type: 'text',
-      label: 'Collection Name',
+      label: 'Название подборки',
       required: true,
       minLength: 3,
       maxLength: 200,
+      admin: {
+        description: 'Внутреннее название для админки.',
+      },
     },
     {
       name: 'slug',
       type: 'text',
-      label: 'URL Slug',
+      label: 'URL-идентификатор',
       unique: true,
       minLength: 2,
       maxLength: 200,
       admin: {
-        description: 'Optional: for direct URL access',
+        description: 'Необязательный URL для прямого доступа.',
       },
     },
     {
       name: 'continuePlanning',
       type: 'relationship',
       relationTo: 'Articles',
-      label: '🔗 Continue Reading Articles',
+      label: '🔗 Статьи для чтения',
       hasMany: true,
       required: true,
       minRows: 1,
       maxRows: 12,
       admin: {
-        description: 'Select articles for this collection. IDs stored in DB, data fetched on frontend.',
+        description: 'Выберите статьи для этой подборки. От 1 до 12 статей.',
       },
     },
   ],

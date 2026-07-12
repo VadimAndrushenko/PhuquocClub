@@ -1,12 +1,5 @@
 import type { CollectionConfig } from 'payload'
 
-/**
- * ============================================
- * 📦 COLLECTION: Sections
- * ============================================
- * Clean and optimized
- */
-
 export const Sections: CollectionConfig = {
   slug: 'sections',
 
@@ -18,13 +11,14 @@ export const Sections: CollectionConfig = {
   },
 
   labels: {
-    singular: 'Section',
-    plural: 'Sections',
+    singular: 'Раздел',
+    plural: 'Разделы',
   },
 
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'status'],
+    description: 'Основные разделы сайта. Например: "Когда ехать", "На острове". Каждый раздел содержит подразделы и статьи.',
   },
 
   versions: {
@@ -47,112 +41,151 @@ export const Sections: CollectionConfig = {
       name: 'status',
       required: true,
       type: 'select',
-      label: 'Publication Status',
+      label: 'Статус',
       options: [
-        { label: '📝 Draft', value: 'draft' },
-        { label: '✅ Published', value: 'published' },
+        { label: '📝 Черновик', value: 'draft' },
+        { label: '✅ Опубликовано', value: 'published' },
       ],
       defaultValue: 'draft',
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+        description: 'Черновик — раздел не виден на сайте. Опубликовано — раздел доступен.',
+      },
       index: true,
     },
     {
       name: 'title',
       type: 'text',
-      label: 'Section Title',
+      label: 'Название раздела',
       required: true,
       minLength: 3,
       maxLength: 200,
-      admin: { position: 'sidebar' },
+      localized: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Название раздела. Отображается в меню, хлебных крошках и заголовках страниц. Например: "Когда ехать"',
+      },
     },
     {
       name: 'slug',
       type: 'text',
-      label: 'URL Slug',
+      label: 'URL-идентификатор',
       required: true,
       unique: true,
       minLength: 2,
       maxLength: 200,
       admin: {
         position: 'sidebar',
-        description: 'Example: on-island, before-trip',
+        description: 'Часть URL раздела. Только латиница, дефисы. Пример: on-island, when-to-go',
       },
       index: true,
     },
     {
       name: 'href',
       type: 'text',
-      label: 'URL (auto)',
+      label: 'URL раздела (авто)',
       admin: {
         readOnly: true,
         position: 'sidebar',
+        description: 'Генерируется автоматически из slug. Изменение вручную невозможно.',
       },
     },
     {
       name: 'description',
       type: 'textarea',
-      label: 'Description',
+      label: 'Описание раздела',
       maxLength: 500,
-      admin: { rows: 3 },
+      localized: true,
+      admin: {
+        rows: 3,
+        description: 'Краткое описание раздела для карточки на главной странице.',
+      },
     },
     {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
       required: true,
-      label: 'Cover Image',
+      label: 'Обложка раздела',
+      admin: {
+        description: 'Изображение для карточки раздела на главной странице.',
+      },
     },
     {
       name: 'bestSelection',
       type: 'relationship',
       relationTo: 'bestSelections',
-      label: '⭐ Best Articles Collection',
+      label: '⭐ Подборка лучших статей',
       hasMany: false,
+      admin: {
+        description: 'Выберите коллекцию лучших статей для отображения на странице раздела.',
+      },
     },
     {
       name: 'continueSelection',
       type: 'relationship',
       relationTo: 'continueSelections',
-      label: '📖 Continue Reading Collection',
+      label: '📖 Продолжить чтение',
       hasMany: false,
+      admin: {
+        description: 'Выберите коллекцию статей для блока "Продолжить чтение".',
+      },
     },
     {
       name: 'search',
       type: 'group',
-      label: '🔍 Search Settings',
+      label: '🔍 Настройки поиска',
+      admin: {
+        description: 'Настройки поиска для страницы раздела.',
+      },
       fields: [
         {
           name: 'placeholder',
           type: 'text',
-          label: 'Placeholder',
+          label: 'Текст-подсказка',
           maxLength: 200,
+          localized: true,
+          admin: {
+            description: 'Текст, отображаемый в поле поиска. Например: "Поиск по разделу..."',
+          },
         },
         {
           name: 'tags',
           type: 'array',
-          label: 'Tags',
+          label: 'Теги для быстрого поиска',
+          localized: true,
+          admin: {
+            description: 'Популярные теги, отображаемые под строкой поиска для быстрой навигации.',
+          },
           fields: [
             {
               name: 'title',
               type: 'text',
-              label: 'Tag Name',
+              label: 'Название тега',
               required: true,
               maxLength: 50,
+              localized: true,
+              admin: {
+                description: 'Текст тега. Например: "Пляжи", "Отели", "Еда"',
+              },
             },
             {
               name: 'icon',
               type: 'select',
-              label: 'Icon',
+              label: 'Иконка тега',
               required: true,
               options: [
-                { label: '🍴 Food', value: 'utensilsCrossed' },
-                { label: '🗺️ Attractions', value: 'map' },
-                { label: '🏖️ Beaches', value: 'waves' },
-                { label: '🚌 Transport', value: 'bus' },
-                { label: '💰 Prices', value: 'dollarSign' },
-                { label: '📄 Visa', value: 'fileText' },
-                { label: '🛟 Help', value: 'lifeBuoy' },
+                { label: '🍴 Еда', value: 'utensilsCrossed' },
+                { label: '🗺️ Достопримечательности', value: 'map' },
+                { label: '🏖️ Пляжи', value: 'waves' },
+                { label: '🚌 Транспорт', value: 'bus' },
+                { label: '💰 Цены', value: 'dollarSign' },
+                { label: '📄 Виза', value: 'fileText' },
+                { label: '🛟 Помощь', value: 'lifeBuoy' },
               ],
+              admin: {
+                description: 'Иконка, отображаемая рядом с тегом.',
+              },
             },
           ],
         },
@@ -161,22 +194,53 @@ export const Sections: CollectionConfig = {
     {
       name: 'seo',
       type: 'group',
-      label: '🔍 SEO & Meta',
+      label: '🔍 SEO и метаданные',
+      admin: {
+        description: 'Настройки для поисковых систем. Заполняются отдельно для каждого языка.',
+      },
       fields: [
-        { name: 'title', type: 'text', label: 'SEO Title', required: true, maxLength: 70 },
+        {
+          name: 'title',
+          type: 'text',
+          label: 'SEO-заголовок',
+          required: true,
+          maxLength: 70,
+          localized: true,
+          admin: {
+            description: 'Заголовок для поисковой выдачи (title). До 70 символов.',
+          },
+        },
         {
           name: 'description',
           type: 'textarea',
-          label: 'SEO Description',
-          admin: { rows: 3 },
+          label: 'SEO-описание',
           required: true,
           maxLength: 160,
+          localized: true,
+          admin: {
+            rows: 3,
+            description: 'Описание для поисковой выдачи (meta description). До 160 символов.',
+          },
         },
         {
           name: 'keywords',
           type: 'array',
+          label: 'Ключевые слова',
           maxRows: 10,
-          fields: [{ name: 'keyword', type: 'text', maxLength: 50 }],
+          localized: true,
+          admin: {
+            description: 'Ключевые слова для SEO.',
+          },
+          fields: [{
+            name: 'keyword',
+            type: 'text',
+            label: 'Ключевое слово',
+            maxLength: 50,
+            localized: true,
+            admin: {
+              description: 'Одно ключевое слово или фраза.',
+            },
+          }],
         },
       ],
     },

@@ -1,17 +1,8 @@
 import type { GlobalConfig } from 'payload'
-import { createLinkField } from '../utils/fields'
-
-/**
- * ============================================
- * 📦 GLOBAL: Footer
- * ============================================
- * Site-wide footer configuration
- * Optimized: Using reusable field utilities
- */
 
 export const Footer: GlobalConfig = {
   slug: 'footer',
-  label: '🦶 Footer',
+  label: '🦶 Подвал сайта',
 
   access: {
     read: () => true,
@@ -26,10 +17,10 @@ export const Footer: GlobalConfig = {
     {
       name: 'status',
       type: 'select',
-      label: 'Status',
+      label: 'Статус',
       options: [
-        { label: '📝 Draft', value: 'draft' },
-        { label: '✅ Published', value: 'published' },
+        { label: '📝 Черновик', value: 'draft' },
+        { label: '✅ Опубликовано', value: 'published' },
       ],
       defaultValue: 'published',
       required: true,
@@ -40,12 +31,13 @@ export const Footer: GlobalConfig = {
     {
       name: 'description',
       type: 'textarea',
-      label: 'Site Description',
+      label: 'Описание сайта',
       maxLength: 500,
       admin: {
         rows: 4,
-        description: 'Description text in footer',
+        description: 'Текст в подвале сайта. Краткое описание проекта.',
       },
+      localized: true,
       defaultValue:
         'Практичный гид по жизни и отдыху на острове Фукуок.\nАктуальная информация, проверенные места и полезные\nсоветы для туристов и экспатов.',
     },
@@ -54,25 +46,37 @@ export const Footer: GlobalConfig = {
     {
       name: 'socialLinks',
       type: 'group',
-      label: '🌐 Social Media',
+      label: '🌐 Социальные сети',
+      admin: {
+        description: 'Ссылки на соцсети проекта. Отображаются в подвале сайта.',
+      },
       fields: [
         {
           name: 'telegram',
           type: 'text',
           label: 'Telegram',
           defaultValue: 'https://t.me/phuquocclub',
+          admin: {
+            description: 'Полная ссылка на Telegram-канал.',
+          },
         },
         {
           name: 'instagram',
           type: 'text',
           label: 'Instagram',
           defaultValue: 'https://instagram.com',
+          admin: {
+            description: 'Полная ссылка на Instagram.',
+          },
         },
         {
           name: 'youtube',
           type: 'text',
           label: 'YouTube',
           defaultValue: 'https://youtube.com/@phuquocclub',
+          admin: {
+            description: 'Полная ссылка на YouTube-канал.',
+          },
         },
       ],
     },
@@ -81,77 +85,95 @@ export const Footer: GlobalConfig = {
     {
       name: 'sections',
       type: 'array',
-      label: '📑 Footer Sections',
-      maxRows: 6,
+      label: '📑 Колонки подвала',
+      maxRows: 4,
       admin: {
-        description: 'Create footer sections with links',
+        description: 'Колонки со ссылками в подвале сайта. Каждая колонка имеет заголовок и список ссылок.',
       },
       fields: [
         {
           name: 'sectionTitle',
           type: 'text',
-          label: 'Section Title',
+          label: 'Заголовок колонки',
           required: true,
           maxLength: 50,
+          localized: true,
+          admin: {
+            description: 'Заголовок колонки. Например: "Разделы", "Информация"',
+          },
         },
         {
           name: 'links',
           type: 'array',
-          label: 'Links',
+          label: 'Ссылки',
           maxRows: 10,
+          admin: {
+            description: 'Ссылки внутри колонки.',
+          },
           fields: [
             {
               name: 'label',
               type: 'text',
-              label: 'Link Text',
+              label: 'Текст ссылки',
               required: true,
               maxLength: 100,
+              localized: true,
+              admin: {
+                description: 'Текст, который увидит пользователь.',
+              },
             },
             {
               name: 'linkType',
               type: 'select',
-              label: 'Link Type',
+              label: 'Тип ссылки',
               required: true,
               options: [
-                { label: '📁 Section', value: 'section' },
-                { label: '📂 Subsection', value: 'subsection' },
-                { label: '📄 Article', value: 'article' },
-                { label: '🔗 External', value: 'external' },
+                { label: '📁 Раздел', value: 'section' },
+                { label: '📂 Подраздел', value: 'subsection' },
+                { label: '📄 Статья', value: 'article' },
+                { label: '🔗 Внешняя ссылка', value: 'external' },
               ],
+              admin: {
+                description: 'Выберите тип ссылки.',
+              },
             },
             {
               name: 'section',
               type: 'relationship',
               relationTo: 'sections',
-              label: 'Section',
+              label: 'Раздел',
               admin: {
                 condition: (_, sibling) => sibling?.linkType === 'section',
+                description: 'Выберите раздел сайта.',
               },
             },
             {
               name: 'subsection',
               type: 'relationship',
               relationTo: 'subsections',
-              label: 'Subsection',
+              label: 'Подраздел',
               admin: {
                 condition: (_, sibling) => sibling?.linkType === 'subsection',
+                description: 'Выберите подраздел.',
               },
             },
             {
               name: 'article',
               type: 'relationship',
               relationTo: 'Articles',
-              label: 'Article',
+              label: 'Статья',
               admin: {
                 condition: (_, sibling) => sibling?.linkType === 'article',
+                description: 'Выберите статью.',
               },
             },
             {
               name: 'externalUrl',
               type: 'text',
-              label: 'External URL',
+              label: 'Внешний URL',
               admin: {
                 condition: (_, sibling) => sibling?.linkType === 'external',
+                description: 'Полный URL. Например: https://example.com',
               },
             },
           ],
@@ -163,64 +185,75 @@ export const Footer: GlobalConfig = {
     {
       name: 'bottomLinks',
       type: 'array',
-      label: '📄 Bottom Links',
+      label: '📄 Нижние ссылки',
       maxRows: 5,
       admin: {
-        description: 'Small links at the bottom (About, Privacy Policy, etc.)',
+        description: 'Маленькие ссылки в самом низу подвала (О проекте, Политика конфиденциальности и т.д.).',
       },
       fields: [
         {
           name: 'title',
           type: 'text',
-          label: 'Link Text',
+          label: 'Текст ссылки',
           required: true,
           maxLength: 100,
+          localized: true,
+          admin: {
+            description: 'Текст ссылки. Например: "О проекте", "Конфиденциальность"',
+          },
         },
         {
           name: 'linkType',
           type: 'select',
-          label: 'Link Type',
+          label: 'Тип ссылки',
           required: true,
           options: [
-            { label: '📁 Section', value: 'section' },
-            { label: '📂 Subsection', value: 'subsection' },
-            { label: '📄 Article', value: 'article' },
-            { label: '🔗 External', value: 'external' },
+            { label: '📁 Раздел', value: 'section' },
+            { label: '📂 Подраздел', value: 'subsection' },
+            { label: '📄 Статья', value: 'article' },
+            { label: '🔗 Внешняя ссылка', value: 'external' },
           ],
+          admin: {
+            description: 'Выберите тип ссылки.',
+          },
         },
         {
           name: 'section',
           type: 'relationship',
           relationTo: 'sections',
-          label: 'Section',
+          label: 'Раздел',
           admin: {
             condition: (_, sibling) => sibling?.linkType === 'section',
+            description: 'Выберите раздел сайта.',
           },
         },
         {
           name: 'subsection',
           type: 'relationship',
           relationTo: 'subsections',
-          label: 'Subsection',
+          label: 'Подраздел',
           admin: {
             condition: (_, sibling) => sibling?.linkType === 'subsection',
+            description: 'Выберите подраздел.',
           },
         },
         {
           name: 'article',
           type: 'relationship',
           relationTo: 'Articles',
-          label: 'Article',
+          label: 'Статья',
           admin: {
             condition: (_, sibling) => sibling?.linkType === 'article',
+            description: 'Выберите статью.',
           },
         },
         {
           name: 'externalUrl',
           type: 'text',
-          label: 'External URL',
+          label: 'Внешний URL',
           admin: {
             condition: (_, sibling) => sibling?.linkType === 'external',
+            description: 'Полный URL. Например: https://example.com',
           },
         },
       ],

@@ -4,17 +4,16 @@ import { cn } from '@/lib/utils'
 import Breadcrumbs from '../ui/Breadcrumbs'
 import type { HeroProps } from '@/shared/types/blockType/hero.type'
 import SearchInput from '../ui/SearchInput'
-import Link from 'next/link'
 
 // ============================================
 // 🔧 ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ============================================
 
-/** Форматирует дату в русский формат */
-function formatDate(dateString: string | undefined): string | null {
+/** Форматирует дату */
+function formatDate(dateString: string | undefined, locale = 'ru'): string | null {
   if (!dateString) return null
 
-  return new Date(dateString).toLocaleDateString('ru-RU', {
+  return new Date(dateString).toLocaleDateString(locale === 'en' ? 'en-US' : 'ru-RU', {
     month: 'long',
     year: 'numeric',
   })
@@ -29,12 +28,13 @@ export default function Hero({
   thisHeader = false,
   classes = {},
   className = '',
-}: HeroProps) {
+  locale = 'ru',
+}: HeroProps & { locale?: string }) {
   const Tag = thisHeader ? 'header' : 'section'
 
   // Дата: приоритет updatedAt, fallback на createdAt
   const dateToShow = dataHero?.updatedAt || dataHero?.createdAt
-  const updatedLabel = formatDate(dateToShow)
+  const updatedLabel = formatDate(dateToShow, locale)
 
   // Показываем мета-блок только если есть что показывать
   const showMeta = dataHero?.readTime || updatedLabel || dataHero?.author
@@ -66,19 +66,20 @@ export default function Hero({
               ...(dataHero.subsection && { subsection: dataHero.subsection }),
               ...(dataHero.slug && { article: dataHero.slug }),
             }}
+            locale={locale}
           />
         )}
 
         {/* Заголовок H1 */}
         <h1 className={cn('font-bold leading-[1.1] text-main text-5xl max-sm:text-[8vw]', classes.title)}>
-          {dataHero?.title || 'Заголовок'}
+          {dataHero?.title || (locale === 'en' ? 'Title' : 'Заголовок')}
         </h1>
 
         {/* Описание */}
         {dataHero?.description && (
           <p
             className={cn(
-              'leading-relaxed text-[var(--color-paragraph)] font-medium text-xl text-wrap max-sm:text-lg',
+              'leading-relaxed text-paragraph font-medium text-xl text-wrap max-sm:text-lg',
               classes.description,
             )}
           >
@@ -102,7 +103,7 @@ export default function Hero({
                 )}
               >
                 <Clock3 size={16} className="text-accent" />
-                {dataHero.readTime} мин чтения
+                {dataHero.readTime} {locale === 'en' ? 'min read' : 'мин чтения'}
               </span>
             )}
 
@@ -114,7 +115,7 @@ export default function Hero({
                 )}
               >
                 <CalendarDays size={16} className="text-accent" />
-                Обновлено: {updatedLabel}
+                {locale === 'en' ? 'Updated:' : 'Обновлено:'} {updatedLabel}
               </span>
             )}
 
@@ -134,7 +135,7 @@ export default function Hero({
 
         {/* Интро */}
         {dataHero?.intro && (
-          <p className={cn('font-normal text-wrap sm:text-lg leading-[1.6] text-[var(--color-paragraph)]', classes.intro)}>
+          <p className={cn('font-normal text-wrap sm:text-lg leading-[1.6] text-paragraph', classes.intro)}>
             {dataHero.intro}
           </p>
         )}
@@ -147,7 +148,6 @@ export default function Hero({
         )}
       </div>
 
-      {/* Правая часть: картинка */}
       {!dataHero?.noImage && (
         <div className={cn('max-lg:hidden', classes.imageWrapper)}>
           {dataHero.image?.url && dataHero?.image.alt ? (
@@ -161,7 +161,7 @@ export default function Hero({
               unoptimized={process.env.NODE_ENV === 'development'}
             />
           ) : (
-            <div className="bg-red-100 text-red-500 p-4 rounded">проверте url или alt картинки</div>
+            <div className="bg-red-100 text-red-500 p-4 rounded">{locale === 'en' ? 'Check image URL or alt' : 'проверте url или alt картинки'}</div>
           )}
         </div>
       )}

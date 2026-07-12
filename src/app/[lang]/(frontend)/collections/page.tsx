@@ -12,23 +12,28 @@ import { transformCollectionsPage } from '@/lib/transformData/collectionsPageTra
 import { CollectionPageStructuredData } from '@/components/seo/StructuredData'
 import { buildMetadata } from '@/lib/seo/metadata'
 import { siteUrl } from '@/lib/seo/config'
+import { withLocale } from '@/lib/locale'
 
 // ============================================
 // ISR 
 // ============================================
 export const revalidate = 30
-export const dynamic = 'force-static'
+
+export async function generateStaticParams() {
+  return [{ lang: 'ru' }, { lang: 'en' }]
+}
 
 // ============================================
 // МЕТАДАННЫЕ (СТАТИЧНЫЕ)
 // ============================================
-export async function generateMetadata(): Promise<Metadata> {
-  const page = await getCollectionsPage()
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params
+  const page = await getCollectionsPage(lang)
 
   if (!page) {
     return {
-      title: 'Подборки',
-      description: 'Все подборки',
+      title: lang === 'en' ? 'Collections' : 'Подборки',
+      description: lang === 'en' ? 'All collections' : 'Все подборки',
     }
   }
 
@@ -40,8 +45,9 @@ export async function generateMetadata(): Promise<Metadata> {
     title: page.seo?.title ?? page.title,
     description: page.seo?.description ?? page.description ?? '',
     keywords: page.seo?.keywords,
-    path: '/collections',
+    path: withLocale('/collections', lang || 'ru'),
     image: img,
+    locale: lang,
   })
 }
 
@@ -50,15 +56,16 @@ export async function generateMetadata(): Promise<Metadata> {
 // ============================================
 const classPY = 'py-10 max-md:py-6'
 
-export default async function CollectionsPageRoute() {
+export default async function CollectionsPageRoute({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   // Настройки страницы (Global)
-  const page = await getCollectionsPage()
+  const page = await getCollectionsPage(lang)
   // ВСЕ подборки из базы
-  const allSubsections = await getAllSubsectionsCards()
+  const allSubsections = await getAllSubsectionsCards(lang)
 
   if (!page || page.status !== 'published') notFound()
 
-  const { heroData, bestCollectionData, continuePlanning } = transformCollectionsPage(page)
+  const { heroData, bestCollectionData, continuePlanning } = transformCollectionsPage(page, lang || 'ru')
 
   return (
     <div className="container">
@@ -66,11 +73,12 @@ export default async function CollectionsPageRoute() {
       <CollectionPageStructuredData
         title={(page.seo?.title ?? page.title) || ''}
         description={(page.seo?.description ?? page.description) || ''}
-        siteUrl={`${siteUrl}/collections`}
+        siteUrl={`${siteUrl}${withLocale('/collections', lang || 'ru')}`}
       />
 
       <Hero
         dataHero={heroData}
+        locale={lang || 'ru'}
         classes={{
           container: `${classPY}`,
           content: 'lg:max-w-[550px] lg:max-xl:max-w-[430px]',
@@ -81,21 +89,22 @@ export default async function CollectionsPageRoute() {
 
       {/* ⭐ Лучшие подборки из bestSelection */}
       {bestCollectionData.length > 0 && (
-        <BestSelections className={classPY} data={bestCollectionData} />
+        <BestSelections className={classPY} data={bestCollectionData} locale={lang} />
       )}
 
       {/* 📚 ВСЕ подборки из базы */}
       <CollectionsBlock
         collections={allSubsections}
         haveCategories={true}
-        title={`Все подборки:`}
+        title={lang === 'en' ? 'All collections:' : 'Все подборки:'}
         containerClass={classPY}
         itemsPerPage={6}
+        locale={lang}
       />
 
       {/* 🔗 Продолжить чтение из continueSelection */}
       {continuePlanning.length > 0 && (
-        <ContinuePlanning className={classPY} data={continuePlanning} />
+        <ContinuePlanning className={classPY} data={continuePlanning} locale={lang} />
       )}
     </div>
   )

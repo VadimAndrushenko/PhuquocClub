@@ -1,16 +1,8 @@
 import type { GlobalConfig } from 'payload'
 
-/**
- * ============================================
- * 🌐 GLOBAL: Collections Page
- * ============================================
- * Settings for the collections overview page
- * Subsections list is fetched dynamically
- */
-
 export const CollectionsPage: GlobalConfig = {
   slug: 'collectionsPage',
-  label: '📚 Collections Page',
+  label: '📚 Страница подборок',
 
   access: {
     read: () => true,
@@ -25,10 +17,10 @@ export const CollectionsPage: GlobalConfig = {
     {
       name: 'status',
       type: 'select',
-      label: 'Publication Status',
+      label: 'Статус',
       options: [
-        { label: '📝 Draft', value: 'draft' },
-        { label: '✅ Published', value: 'published' },
+        { label: '📝 Черновик', value: 'draft' },
+        { label: '✅ Опубликовано', value: 'published' },
       ],
       defaultValue: 'draft',
       required: true,
@@ -37,63 +29,102 @@ export const CollectionsPage: GlobalConfig = {
     {
       name: 'title',
       type: 'text',
-      label: 'Page Title',
+      label: 'Заголовок страницы',
       required: true,
       maxLength: 100,
+      localized: true,
       defaultValue: 'Все подборки',
+      admin: {
+        description: 'Заголовок страницы со всеми подборками.',
+      },
     },
     {
       name: 'description',
       type: 'textarea',
-      label: 'Page Description',
+      label: 'Описание страницы',
       maxLength: 500,
-      admin: { rows: 3 },
+      localized: true,
+      admin: {
+        rows: 3,
+        description: 'Краткое описание страницы подборок.',
+      },
+    },
+    {
+      name: 'intro',
+      type: 'textarea',
+      label: 'Intro-текст',
+      localized: true,
+      admin: {
+        description: 'Вступительный текст под заголовком.',
+        rows: 2,
+      },
     },
     {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
-      label: 'Cover Image',
+      label: 'Обложка',
       required: true,
+      admin: {
+        description: 'Изображение для шапки страницы подборок.',
+      },
     },
     {
       name: 'search',
       type: 'group',
-      label: '🔍 Search Settings',
+      label: '🔍 Настройки поиска',
+      admin: {
+        description: 'Настройки строки поиска на странице подборок.',
+      },
       fields: [
         {
           name: 'placeholder',
           type: 'text',
-          label: 'Placeholder',
+          label: 'Текст-подсказка',
           maxLength: 200,
+          localized: true,
+          admin: {
+            description: 'Текст внутри поля поиска.',
+          },
         },
         {
           name: 'tags',
           type: 'array',
-          label: 'Tags',
+          label: 'Теги для поиска',
           maxRows: 10,
+          localized: true,
+          admin: {
+            description: 'Популярные теги под строкой поиска.',
+          },
           fields: [
             {
               name: 'title',
               type: 'text',
-              label: 'Tag Name',
+              label: 'Название тега',
               required: true,
               maxLength: 50,
+              localized: true,
+              admin: {
+                description: 'Текст тега.',
+              },
             },
             {
               name: 'icon',
               type: 'select',
-              label: 'Icon',
+              label: 'Иконка',
               required: true,
               options: [
-                { label: '🍴 Food', value: 'utensilsCrossed' },
-                { label: '🗺️ Attractions', value: 'map' },
-                { label: '🏖️ Beaches', value: 'waves' },
-                { label: '🚌 Transport', value: 'bus' },
-                { label: '💰 Prices', value: 'dollarSign' },
-                { label: '📄 Visa', value: 'fileText' },
-                { label: '🛟 Help', value: 'lifeBuoy' },
+                { label: '🍴 Еда', value: 'utensilsCrossed' },
+                { label: '🗺️ Достопримечательности', value: 'map' },
+                { label: '🏖️ Пляжи', value: 'waves' },
+                { label: '🚌 Транспорт', value: 'bus' },
+                { label: '💰 Цены', value: 'dollarSign' },
+                { label: '📄 Виза', value: 'fileText' },
+                { label: '🛟 Помощь', value: 'lifeBuoy' },
               ],
+              admin: {
+                description: 'Иконка рядом с тегом.',
+              },
             },
           ],
         },
@@ -103,41 +134,72 @@ export const CollectionsPage: GlobalConfig = {
       name: 'bestSelection',
       type: 'relationship',
       relationTo: 'bestSelections',
-      label: '⭐ Best Articles Collection',
+      label: '⭐ Лучшие статьи',
       hasMany: false,
       admin: {
-        description: 'Optional: display best articles at the top',
+        description: 'Подборка лучших статей для отображения вверху страницы.',
       },
     },
     {
       name: 'continueSelection',
       type: 'relationship',
       relationTo: 'continueSelections',
-      label: '📖 Continue Reading Collection',
+      label: '📖 Продолжить чтение',
       hasMany: false,
       admin: {
-        description: 'Optional: display in continue reading section',
+        description: 'Подборка статей для блока "Продолжить чтение".',
       },
     },
     {
       name: 'seo',
       type: 'group',
-      label: '🔍 SEO & Meta',
+      label: '🔍 SEO и метаданные',
+      admin: {
+        description: 'Настройки для поисковых систем.',
+      },
       fields: [
-        { name: 'title', type: 'text', label: 'SEO Title', required: true, maxLength: 70 },
+        {
+          name: 'title',
+          type: 'text',
+          label: 'SEO-заголовок',
+          required: true,
+          maxLength: 70,
+          localized: true,
+          admin: {
+            description: 'Заголовок для поисковой выдачи (title). До 70 символов.',
+          },
+        },
         {
           name: 'description',
           type: 'textarea',
-          label: 'SEO Description',
-          admin: { rows: 3 },
+          label: 'SEO-описание',
           required: true,
           maxLength: 160,
+          localized: true,
+          admin: {
+            rows: 3,
+            description: 'Описание для поисковой выдачи (meta description). До 160 символов.',
+          },
         },
         {
           name: 'keywords',
           type: 'array',
+          label: 'Ключевые слова',
           maxRows: 10,
-          fields: [{ name: 'keyword', type: 'text', maxLength: 50 }],
+          localized: true,
+          admin: {
+            description: 'Ключевые слова для SEO.',
+          },
+          fields: [{
+            name: 'keyword',
+            type: 'text',
+            label: 'Ключевое слово',
+            maxLength: 50,
+            localized: true,
+            admin: {
+              description: 'Одно ключевое слово или фраза.',
+            },
+          }],
         },
       ],
     },

@@ -1,6 +1,7 @@
 import { getPayloadClient } from './payload'
+import { withLocale } from '@/lib/locale'
 
-export async function getSubsectionBySlugs(subsectionSlug: string) {
+export async function getSubsectionBySlugs(subsectionSlug: string, locale = 'ru') {
   const payload = await getPayloadClient()
 
   const { docs } = await payload.find({
@@ -11,12 +12,13 @@ export async function getSubsectionBySlugs(subsectionSlug: string) {
     },
     depth: 3,
     limit: 1,
+    locale: locale as 'ru' | 'en',
   })
 
   return docs[0]
 }
 
-export async function getAllSubsections() {
+export async function getAllSubsections(locale = 'ru') {
   try {
     const payload = await getPayloadClient()
 
@@ -25,6 +27,7 @@ export async function getAllSubsections() {
       where: { status: { equals: 'published' } },
       depth: 1,
       limit: 1000,
+      locale: locale as 'ru' | 'en',
     })
 
     return docs
@@ -34,7 +37,7 @@ export async function getAllSubsections() {
   }
 }
 
-export async function getAllSubsectionsCards() {
+export async function getAllSubsectionsCards(locale = 'ru') {
   const payload = await getPayloadClient()
 
   const { docs } = await payload.find({
@@ -43,6 +46,7 @@ export async function getAllSubsectionsCards() {
     depth: 2,
     limit: 1000,
     sort: '-createdAt',
+    locale: locale as 'ru' | 'en',
   })
 
   return docs.map((subsection) => {
@@ -57,7 +61,7 @@ export async function getAllSubsectionsCards() {
         : subsection.title
 
     return {
-      href: subsection.href || '/',
+      href: withLocale(subsection.href || '/', locale),
       category: subsection.category || '',
       image: {
         url: imageUrl,

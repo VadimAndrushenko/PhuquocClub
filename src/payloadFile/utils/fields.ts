@@ -1,73 +1,60 @@
-/**
- * ============================================
- * 🔧 REUSABLE FIELD DEFINITIONS
- * ============================================
- * Commonly used field configurations to avoid duplication
- */
-
 import type { Field } from 'payload'
 
-/**
- * Link type field for navigation items
- */
 export const linkTypeField: Field = {
   name: 'linkType',
   type: 'select',
-  label: 'Link Type',
+  label: 'Тип ссылки',
   required: true,
   options: [
-    { label: '📁 Section', value: 'section' },
-    { label: '📂 Subsection', value: 'subsection' },
-    { label: '📄 Article', value: 'article' },
-    { label: '🔗 External', value: 'external' },
+    { label: '📁 Раздел', value: 'section' },
+    { label: '📂 Подраздел', value: 'subsection' },
+    { label: '📄 Статья', value: 'article' },
+    { label: '🔗 Внешняя ссылка', value: 'external' },
   ],
 }
 
-/**
- * Relationship fields for link types
- */
 export const linkRelationshipFields: Field[] = [
   {
     name: 'section',
     type: 'relationship',
     relationTo: 'sections',
-    label: 'Section',
+    label: 'Раздел',
     admin: {
       condition: (_, sibling) => sibling?.linkType === 'section',
+      description: 'Выберите раздел сайта (например: "Когда ехать", "На острове")',
     },
   },
   {
     name: 'subsection',
     type: 'relationship',
     relationTo: 'subsections',
-    label: 'Subsection',
+    label: 'Подраздел',
     admin: {
       condition: (_, sibling) => sibling?.linkType === 'subsection',
+      description: 'Выберите подраздел (например: "Сезоны", "Погода")',
     },
   },
   {
     name: 'article',
     type: 'relationship',
     relationTo: 'Articles',
-    label: 'Article',
+    label: 'Статья',
     admin: {
       condition: (_, sibling) => sibling?.linkType === 'article',
+      description: 'Выберите конкретную статью',
     },
   },
   {
     name: 'externalUrl',
     type: 'text',
-    label: 'External URL',
+    label: 'Внешний URL',
     admin: {
       condition: (_, sibling) => sibling?.linkType === 'external',
-      description: 'Example: https://example.com',
+      description: 'Полный URL внешнего ресурса. Например: https://example.com',
     },
   },
 ]
 
-/**
- * Create a link field group with label
- */
 export function createLinkField(name: string, label: string, defaultLabel?: string): Field {
   return {
     name,
@@ -77,7 +64,7 @@ export function createLinkField(name: string, label: string, defaultLabel?: stri
       {
         name: 'label',
         type: 'text',
-        label: 'Display Text',
+        label: 'Текст ссылки',
         required: true,
         maxLength: 100,
         defaultValue: defaultLabel,
@@ -88,24 +75,21 @@ export function createLinkField(name: string, label: string, defaultLabel?: stri
   }
 }
 
-/**
- * Icon options for navigation
- */
 export const navigationIconOptions = [
-  { label: '🗺️ Map', value: 'Map' },
-  { label: '✈️ Plane', value: 'Plane' },
-  { label: '🏨 Hotel', value: 'Hotel' },
-  { label: '🍴 Food', value: 'UtensilsCrossed' },
-  { label: '📍 Location', value: 'MapPin' },
-  { label: '🚗 Car', value: 'Car' },
-  { label: '💰 Money', value: 'DollarSign' },
-  { label: '💡 Tips', value: 'Lightbulb' },
-  { label: '🛟 Help', value: 'LifeBuoy' },
-  { label: '📋 List', value: 'List' },
-  { label: '⭐ Star', value: 'Star' },
-  { label: '📅 Calendar', value: 'Calendar' },
-  { label: '🌊 Waves', value: 'Waves' },
-  { label: '🌴 Palm', value: 'Palmtree' },
-  { label: '📸 Camera', value: 'Camera' },
-  { label: '🎒 Backpack', value: 'Backpack' },
+  { label: '🗺️ Карта', value: 'Map' },
+  { label: '✈️ Самолёт', value: 'Plane' },
+  { label: '🏨 Отель', value: 'Hotel' },
+  { label: '🍴 Еда', value: 'UtensilsCrossed' },
+  { label: '📍 Местоположение', value: 'MapPin' },
+  { label: '🚗 Транспорт', value: 'Car' },
+  { label: '💰 Деньги', value: 'DollarSign' },
+  { label: '💡 Советы', value: 'Lightbulb' },
+  { label: '🛟 Помощь', value: 'LifeBuoy' },
+  { label: '📋 Список', value: 'List' },
+  { label: '⭐ Избранное', value: 'Star' },
+  { label: '📅 Календарь', value: 'Calendar' },
+  { label: '🌊 Волны', value: 'Waves' },
+  { label: '🌴 Пальма', value: 'Palmtree' },
+  { label: '📸 Фото', value: 'Camera' },
+  { label: '🎒 Рюкзак', value: 'Backpack' },
 ]

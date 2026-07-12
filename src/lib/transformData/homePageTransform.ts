@@ -20,13 +20,13 @@ interface EnrichedHomePage extends HomePage {
   _urgentArticlesData?: BestArticleMinimal[]
 }
 
-export function transformHomePage(page: EnrichedHomePage): TransformedHomePageData {
+export function transformHomePage(page: EnrichedHomePage, locale = 'ru'): TransformedHomePageData {
   const heroData: HeroMainProps['dataMain'] = {
-    title: page.heroSection?.title || 'Гид по Фукуоку',
+    title: page.heroSection?.title || (locale === 'en' ? 'Phu Quoc Guide' : 'Гид по Фукуоку'),
     description: page.heroSection?.description || '',
     image: (page.heroSection?.image as AppMedia) || { url: '', alt: '' },
     search: {
-      placeholder: page.heroSection?.search?.placeholder || 'Поиск по сайту...',
+      placeholder: page.heroSection?.search?.placeholder || (locale === 'en' ? 'Search website...' : 'Поиск по сайту...'),
       tags: (page.heroSection?.search?.tags || []).map((tag) => ({
         id: tag.id || '',
         title: tag.title || '',

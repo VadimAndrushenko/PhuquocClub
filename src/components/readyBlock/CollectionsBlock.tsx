@@ -30,34 +30,37 @@ interface CollectionsBlockProps {
   title?: string
   itemsPerPage?: number
   haveCategories?: boolean
+  locale?: string
+  countLabel?: [string, string, string]
 }
-
-type CategoryType =
-  | 'ТРАНСПОРТ'
-  | 'ЕДА'
-  | 'ПЛЯЖИ'
-  | 'БЕЗОПАСНОСТЬ'
-  | 'ПРАКТИКА'
-  | 'МАРШРУТЫ'
-  | 'РАЗВЛЕЧЕНИЯ'
-  | 'ДОКУМЕНТЫ'
-  | 'ШОПИНГ'
-  | 'ДОСТОПРИМЕЧАТЕЛЬНОСТИ'
-  | string
 
 type PageNumber = number | '...'
 
-const CATEGORY_ICONS: Record<CategoryType, string> = {
-  ТРАНСПОРТ: '🚗',
-  ЕДА: '🍽️',
-  ПЛЯЖИ: '🏖️',
-  БЕЗОПАСНОСТЬ: '🛡️',
-  ПРАКТИКА: '💡',
-  МАРШРУТЫ: '🗺️',
-  РАЗВЛЕЧЕНИЯ: '🎯',
-  ДОКУМЕНТЫ: '📄',
-  ШОПИНГ: '🛍️',
-  ДОСТОПРИМЕЧАТЕЛЬНОСТИ: '🏛️',
+const CATEGORY_ICONS: Record<string, string> = {
+  'Транспорт': '🚗',
+  'Transport': '🚗',
+  'Еда': '🍽️',
+  'Food': '🍽️',
+  'Проживание': '🏡',
+  'Accommodation': '🏡',
+  'Сезоны': '🗓️',
+  'Seasons': '🗓️',
+  'Пляжи': '🏖️',
+  'Beaches': '🏖️',
+  'Безопасность': '🛡️',
+  'Safety': '🛡️',
+  'Практика': '💡',
+  'Practice': '💡',
+  'Маршруты': '🗺️',
+  'Routes': '🗺️',
+  'Развлечения': '🎯',
+  'Entertainment': '🎯',
+  'Документы': '📄',
+  'Documents': '📄',
+  'Шопинг': '🛍️',
+  'Shopping': '🛍️',
+  'Достопримечательности': '🏛️',
+  'Attractions': '🏛️',
 }
 
 export default function CollectionsBlock({
@@ -66,14 +69,17 @@ export default function CollectionsBlock({
   title,
   itemsPerPage = 4,
   haveCategories = false,
+  locale = 'ru',
+  countLabel: customCountLabel,
 }: CollectionsBlockProps) {
+  const countLabel = customCountLabel || (locale === 'en' ? ['collection', 'collections', 'collections'] : ['подборка', 'подборки', 'подборок'])
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedCategory, setSelectedCategory] = useState<CategoryType | ''>('')
+  const [selectedCategory, setSelectedCategory] = useState<string | ''>('')
   const [isAnimating, setIsAnimating] = useState(false)
   const gridRef = useRef<HTMLDivElement>(null)
 
   
-  const categories: CategoryType[] = haveCategories ? [...new Set(collections.map((a) => a.category).filter(Boolean))] as string[] : []
+  const categories: string[] = haveCategories ? [...new Set(collections.map((a) => a.category).filter(Boolean))] as string[] : []
 
   const transformedCollections: CollectionsCardAccentData[] = Array.isArray(collections)
     ? collections
@@ -106,7 +112,7 @@ export default function CollectionsBlock({
     }, 300)
   }
 
-  const handleCategoryChange = (category: CategoryType | '') => {
+  const handleCategoryChange = (category: string | '') => {
     if (isAnimating) return
     setIsAnimating(true)
 
@@ -139,7 +145,7 @@ export default function CollectionsBlock({
   }, [isDropdownOpen])
 
   // Подсчет количества подборок в каждой категории
-  const getCategoryCount = (category: CategoryType | '') => {
+  const getCategoryCount = (category: string | '') => {
     if (!category) return collections.length
     return collections.filter((c) => c.category === category).length
   }
@@ -151,7 +157,7 @@ export default function CollectionsBlock({
           <h2 className="title bottom-none flex-1">{title}</h2>
           <span className="text-sm text-paragraph">
             {filteredCollections.length}{' '}
-            {declOfNum(filteredCollections.length, ['подборка', 'подборки', 'подборок'])}
+            {declOfNum(filteredCollections.length, countLabel)}
           </span>
         </div>
       )}
@@ -184,9 +190,9 @@ export default function CollectionsBlock({
                   <Filter size={18} />
                 </div>
                 <div className="text-left">
-                  <div className="text-xs text-paragraph mb-0.5">Категория</div>
+                  <div className="text-xs text-paragraph mb-0.5">{locale === 'en' ? 'Category' : 'Категория'}</div>
                   <div className="font-semibold text-main">
-                    {selectedCategory || 'Все категории'}
+                    {selectedCategory || (locale === 'en' ? 'All categories' : 'Все категории')}
                   </div>
                 </div>
               </div>
@@ -208,7 +214,7 @@ export default function CollectionsBlock({
                       }
                     }}
                     className="p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
-                    aria-label="Сбросить фильтр"
+                    aria-label={locale === 'en' ? 'Reset filter' : 'Сбросить фильтр'}
                   >
                     <X size={14} className="text-paragraph pointer-events-none" />
                   </span>
@@ -239,7 +245,7 @@ export default function CollectionsBlock({
               {/* Заголовок */}
               <div className="px-5 py-3 border-b border-gray-50 bg-gray-50/50">
                 <div className="text-xs font-semibold text-paragraph uppercase tracking-wider">
-                  Выберите категорию
+                  {locale === 'en' ? 'Choose category' : 'Выберите категорию'}
                 </div>
               </div>
 
@@ -274,9 +280,9 @@ export default function CollectionsBlock({
                           !selectedCategory ? 'text-main' : 'text-paragraph',
                         )}
                       >
-                        Все категории
+                        {locale === 'en' ? 'All categories' : 'Все категории'}
                       </div>
-                      <div className="text-xs text-paragraph">Показать все подборки</div>
+                      <div className="text-xs text-paragraph">{locale === 'en' ? 'Show all' : 'Показать все'}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -332,11 +338,7 @@ export default function CollectionsBlock({
                         </div>
                         <div className="text-xs text-paragraph">
                           {getCategoryCount(category)}{' '}
-                          {declOfNum(getCategoryCount(category), [
-                            'подборка',
-                            'подборки',
-                            'подборок',
-                          ])}
+                          {declOfNum(getCategoryCount(category), countLabel)}
                         </div>
                       </div>
                     </div>
@@ -367,7 +369,7 @@ export default function CollectionsBlock({
                     }}
                     className="w-full text-center text-sm font-medium text-accent hover:text-accent/80 transition-colors"
                   >
-                    Сбросить фильтр
+                    {locale === 'en' ? 'Reset filter' : 'Сбросить фильтр'}
                   </button>
                 </div>
               )}
@@ -385,18 +387,18 @@ export default function CollectionsBlock({
         >
           {currentCollections.length === 0 ? (
             <div className="col-span-full text-center py-16">
-              <p className="text-paragraph text-lg">Подборки не найдены</p>
+              <p className="text-paragraph text-lg">{locale === 'en' ? 'Nothing found' : 'Ничего не найдено'}</p>
               {selectedCategory && (
                 <button
                   onClick={() => handleCategoryChange('')}
                   className="mt-4 text-accent hover:underline"
                 >
-                  Сбросить фильтр
+                  {locale === 'en' ? 'Reset filter' : 'Сбросить фильтр'}
                 </button>
               )}
             </div>
           ) : (
-            <CollectionsCardAccent data={currentCollections} />
+            <CollectionsCardAccent data={currentCollections} locale={locale} />
           )}
         </div>
       </div>
@@ -414,7 +416,7 @@ export default function CollectionsBlock({
                 'w-8 h-8 sm:w-10 sm:h-10',
                 isAnimating && 'opacity-50 cursor-not-allowed',
               )}
-              aria-label="Предыдущая страница"
+              aria-label={locale === 'en' ? 'Previous page' : 'Предыдущая страница'}
             >
               <ChevronLeft size={20} />
             </button>
@@ -460,7 +462,7 @@ export default function CollectionsBlock({
                 'w-8 h-8 sm:w-10 sm:h-10',
                 isAnimating && 'opacity-50 cursor-not-allowed',
               )}
-              aria-label="Следующая страница"
+              aria-label={locale === 'en' ? 'Next page' : 'Следующая страница'}
             >
               <ChevronRight size={20} />
             </button>

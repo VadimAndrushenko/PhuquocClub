@@ -1,10 +1,11 @@
 import Hero from '@/components/readyBlock/Hero'
 import { HeroMainProps } from '@/shared/types/pageType/main.type'
 
-export default function HeroMain({ dataMain, containerClass = '' }: HeroMainProps) {
+export default function HeroMain({ dataMain, containerClass = '', locale = 'ru' }: HeroMainProps & { locale?: string }) {
   return (
     <Hero
       dataHero={dataMain}
+      locale={locale}
       classes={{
         container: `${containerClass} md:min-h-[calc(100vh-80px)]`,
         content: '',

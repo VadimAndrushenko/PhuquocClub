@@ -5,34 +5,34 @@ import { getAllSubsections } from '@/lib/payload/subsections'
 import { siteUrl } from '@/lib/seo/config'
 import { Section } from '@/payload-types'
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+function addUrls(locale: string): MetadataRoute.Sitemap {
+  const prefix = locale === 'en' ? '/en' : ''
   const urls: MetadataRoute.Sitemap = [
     {
-      url: siteUrl,
+      url: `${siteUrl}${prefix}`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `${siteUrl}/help`,
+      url: `${siteUrl}${prefix}/help`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
-      url: `${siteUrl}/collections`,
+      url: `${siteUrl}${prefix}/collections`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
   ]
 
-  // 🔥 Добавляем разделы
   try {
-    const sections = await getAllSections()
-    for (const section of sections) {
+    const sections = getAllSections()
+    for (const section of sections as any) {
       urls.push({
-        url: `${siteUrl}/${section.slug}`,
+        url: `${siteUrl}${prefix}/${section.slug}`,
         lastModified: section.updatedAt || new Date(),
         changeFrequency: 'weekly',
         priority: 0.7,
@@ -42,17 +42,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('❌ Ошибка добавления разделов в sitemap:', error)
   }
 
-  // 🔥 Добавляем подборки
   try {
-    const subsections = await getAllSubsections()
-    for (const subsection of subsections) {
+    const subsections = getAllSubsections()
+    for (const subsection of subsections as any) {
       const sectionSlug = typeof subsection.section === 'string' 
         ? subsection.section 
         : (subsection.section as Section)?.slug || ''
-      
       if (sectionSlug && subsection.slug) {
         urls.push({
-          url: `${siteUrl}/${sectionSlug}/${subsection.slug}`,
+          url: `${siteUrl}${prefix}/${sectionSlug}/${subsection.slug}`,
           lastModified: subsection.updatedAt || new Date(),
           changeFrequency: 'weekly',
           priority: 0.6,
@@ -63,13 +61,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('❌ Ошибка добавления подборок в sitemap:', error)
   }
 
-  // 🔥 Добавляем статьи
   try {
-    const articles = await getAllArticles()
-    for (const article of articles) {
+    const articles = getAllArticles()
+    for (const article of articles as any) {
       if (article.href) {
         urls.push({
-          url: `${siteUrl}${article.href}`,
+          url: `${siteUrl}${prefix}${article.href}`,
           lastModified: article.updatedAt || new Date(),
           changeFrequency: 'monthly',
           priority: 0.5,
@@ -81,4 +78,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   return urls
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  return [...addUrls('ru'), ...addUrls('en')]
 }

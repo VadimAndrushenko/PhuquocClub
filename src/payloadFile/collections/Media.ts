@@ -1,12 +1,5 @@
 import type { CollectionConfig } from 'payload'
 
-/**
- * ============================================
- * 📦 COLLECTION: Media
- * ============================================
- * Handles all image uploads
- */
-
 export const Media: CollectionConfig = {
   slug: 'media',
 
@@ -20,6 +13,7 @@ export const Media: CollectionConfig = {
   admin: {
     useAsTitle: 'filename',
     defaultColumns: ['filename', 'alt', 'updatedAt'],
+    description: 'Все изображения сайта. Загружайте сюда картинки для статей, разделов и обложек.',
   },
 
   upload: {
@@ -54,11 +48,12 @@ export const Media: CollectionConfig = {
     {
       name: 'alt',
       type: 'text',
+      label: 'Альтернативный текст',
       required: true,
       minLength: 3,
       maxLength: 200,
       admin: {
-        description: 'Alternative text for accessibility and SEO',
+        description: 'Текст для доступности и SEO. Опишите, что изображено на картинке. Например: "Пляж на острове Фукуок, закат"',
       },
     },
   ],
