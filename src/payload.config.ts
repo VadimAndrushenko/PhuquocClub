@@ -86,7 +86,7 @@ export default buildConfig({
     'https://phuquoc-club.vercel.app',
     'https://phuquocclub.com',
     'https://www.phuquocclub.com',
-    'https://phuquoc24.com'
+    'https://phuquoc24.com', 
     'https://www.phuquoc24.com'
   ].filter(Boolean),
 
@@ -98,7 +98,7 @@ export default buildConfig({
     'https://phuquoc-club.vercel.app',
     'https://phuquocclub.com',
     'https://www.phuquocclub.com',
-    'https://phuquoc24.com'
+    'https://phuquoc24.com', 
     'https://www.phuquoc24.com'
   ].filter(Boolean),
 })
