@@ -142,7 +142,7 @@ export function Header({ navigationItems = [], currentLang = 'ru' }: HeaderProps
       )}
     >
       <div className="container h-20 flex items-center justify-between">
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-1 items-center">
           <Logo smallLogo={true} locale={currentLang} />
 
           {/* Language Switcher */}
